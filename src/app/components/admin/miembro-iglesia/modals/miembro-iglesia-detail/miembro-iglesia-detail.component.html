@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>Historial de Membresía</h2>
+
+<mat-dialog-content class="detail-content">
+  <div class="member-info">
+    <h3>Datos del Miembro</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <strong>Nombre:</strong> {{data.miembro.personaDto?.nombre}}
+      </div>
+      <div class="info-item">
+        <strong>Apellido:</strong> {{data.miembro.personaDto?.apellido}}
+      </div>
+      <div class="info-item">
+        <strong>CI:</strong> {{data.miembro.personaDto?.ci}}
+      </div>
+      <div class="info-item">
+        <strong>Fecha de Conversión:</strong> {{formatDate(data.miembro.fechaConvercion)}}
+      </div>
+    </div>
+  </div>
+
+  <div class="history-section">
+    <h3>Historial de Iglesias</h3>
+    
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let item of historialIglesias">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{item.iglesia.nombre}}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{item.miembroIglesia.estado ? 'Actual' : 'Anterior'}}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="panel-content">
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Iglesia:</strong> {{item.iglesia.nombre}}
+            </div>
+            <div class="info-item">
+              <strong>Dirección:</strong> {{item.iglesia.direccion}}
+            </div>
+            <div class="info-item">
+              <strong>Fecha de Ingreso:</strong> {{formatDate(item.miembroIglesia.fecha)}}
+            </div>
+            <div class="info-item" *ngIf="!item.miembroIglesia.estado">
+              <strong>Fecha de Traspaso:</strong> {{formatDate(item.miembroIglesia.fechaTraspaso)}}
+            </div>
+          </div>
+
+          <div class="transfer-info" *ngIf="!item.miembroIglesia.estado">
+            <div class="info-item">
+              <strong>Motivo del Traspaso:</strong>
+              <p>{{item.miembroIglesia.motivoTraspaso}}</p>
+            </div>
+            <div class="info-item">
+              <strong>Carta de Traspaso:</strong>
+              <a [href]="item.miembroIglesia.uriCartaTraspaso" target="_blank">
+                Ver documento
+              </a>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

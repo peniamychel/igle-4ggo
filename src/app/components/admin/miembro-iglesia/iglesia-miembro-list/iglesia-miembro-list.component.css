@@ -1,0 +1,73 @@
+.container {
+  padding: 20px;
+  /*height: calc(100vh - 40px);*/
+  height: 95%;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 80%;
+}
+
+.iglesias-section,
+.miembros-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+mat-form-field {
+  width: 300px;
+}
+
+mat-table {
+  flex: 1;
+  overflow: auto;
+}
+
+.mat-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.mat-row.selected {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.miembros-count {
+  margin-top: 16px;
+  text-align: right;
+  font-weight: 500;
+  color: #666;
+}
+
+
+
+.mat-column-acciones {
+  width: 100px;
+  text-align: center;
+}
+
+
+.selected {
+  background-color: #cfe8fc; /* Azul claro, puedes ajustar el color */
+}
+
+mat-row:hover {
+  background-color: #e0f7fa; /* Cambia este color a uno de tu preferencia */
+}

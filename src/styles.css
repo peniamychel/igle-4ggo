@@ -1,0 +1,43 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+/*@import '@angular/material/prebuilt-themes/purple-green.css';*/
+html,
+body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Color personalizado para las alertas de éxito */
+.alerta-verde {
+  --mdc-snackbar-container-color: #680d59bb;
+  --mat-snack-bar-button-color: #ffffff;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+}
+
+/* Dialog fullscreen en modo móvil */
+@media (max-width: 600px) {
+  .dialog-fullscreen-mobile {
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+
+  .dialog-fullscreen-mobile .mat-mdc-dialog-container,
+  .dialog-fullscreen-mobile .mdc-dialog__container,
+  .dialog-fullscreen-mobile .mdc-dialog__surface {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 12px !important;
+  }
+
+  /* El panel overlay que envuelve el dialog */
+  .cdk-overlay-pane.dialog-fullscreen-mobile {
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+}

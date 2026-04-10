@@ -1,0 +1,59 @@
+.detail-content {
+  min-width: 600px;
+  max-height: 80vh;
+  padding: 20px;
+}
+
+.member-info {
+  margin-bottom: 24px;
+}
+
+h3 {
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.info-item {
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.info-item strong {
+  color: #666;
+  margin-right: 8px;
+}
+
+.history-section {
+  margin-top: 24px;
+}
+
+.panel-content {
+  padding: 16px 0;
+}
+
+.transfer-info {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+mat-expansion-panel {
+  margin-bottom: 8px;
+}
+
+mat-panel-title {
+  color: #333;
+  font-weight: 500;
+}
+
+mat-panel-description {
+  color: #666;
+}

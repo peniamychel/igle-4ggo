@@ -1,0 +1,62 @@
+<div class="container">
+  <div class="nuevo-buscar">
+
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Crear Iglesia
+    </button>
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Primera Iglesia" #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+    <ng-container matColumnDef="nombre">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
+      <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="direccion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
+      <mat-cell *matCellDef="let iglesia"> {{iglesia.direccion}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="telefono">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono</mat-header-cell>
+      <mat-cell *matCellDef="let iglesia"> {{iglesia.telefono}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fechaFundacion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Fundación</mat-header-cell>
+      <mat-cell *matCellDef="let iglesia"> {{formatDate(iglesia.fechaFundacion)}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
+      <mat-cell *matCellDef="let iglesia">
+        <button mat-icon-button color="primary" matTooltip="Editar: {{iglesia.nombre}}" matTooltipPosition="left"
+                (click)="$event.stopPropagation(); openEditDialog(iglesia)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="iglesia.estado ? 'accent' : 'warn'"
+                (click)="$event.stopPropagation(); toggleEstado(iglesia)">
+          <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="5">No se encontraron datos que coincidan con el filtro "{{input.value}}"</td>
+    </tr>
+  </mat-table>
+
+
+
+  <mat-paginator [pageSizeOptions]="[10,25, 100]" aria-label="Seleccionar página de iglesias">
+  </mat-paginator>
+</div>

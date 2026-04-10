@@ -1,0 +1,133 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Editar Usuario</h2>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <div class="user-photo-container">
+        <div class="current-photo" (click)="openImagePreview()">
+          <!-- Usamos previewUrl si existe, sino la imagen actual -->
+          <img [src]="previewUrl || data.uriFoto" [alt]="data.username" *ngIf="previewUrl || data.uriFoto">
+          <div class="no-photo" *ngIf="!previewUrl && !data.uriFoto">
+            <span class="initials">{{data.name?.charAt(0) || data.username.charAt(0)}}</span>
+          </div>
+          <div class="photo-overlay">
+            <mat-icon>zoom_in</mat-icon>
+          </div>
+        </div>
+
+        <div class="photo-actions">
+          <button mat-stroked-button type="button" (click)="fileInput.click()">
+            <mat-icon>photo_camera</mat-icon>
+            Cambiar Imagen
+          </button>
+          <input #fileInput type="file"
+                 (change)="onFileSelected($event)"
+                 accept="image/*"
+                 style="display: none">
+        </div>
+      </div>
+
+      <!-- El resto del formulario permanece igual -->
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre de Usuario</mat-label>
+          <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
+          <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+            El nombre de usuario es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Correo Electrónico</mat-label>
+          <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
+          <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+            El correo electrónico es requerido
+          </mat-error>
+          <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+            Ingrese un correo electrónico válido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombres</mat-label>
+          <input matInput formControlName="name" placeholder="Ingrese nombres">
+          <mat-error *ngIf="userForm.get('name')?.hasError('required')">
+            Los nombres son requeridos
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Apellidos</mat-label>
+          <input matInput formControlName="apellidos" placeholder="Ingrese apellidos">
+          <mat-error *ngIf="userForm.get('apellidos')?.hasError('required')">
+            Los apellidos son requeridos
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="roles-section">
+        <h3>Roles</h3>
+        <div class="roles-grid" formArrayName="roles">
+          <mat-checkbox *ngFor="let role of availableRoles; let i = index"
+                        [formControlName]="i">
+            {{role}}
+          </mat-checkbox>
+        </div>
+      </div>
+
+      <div class="password-section">
+        <div class="password-toggle">
+          <mat-slide-toggle [(ngModel)]="changePassword" [ngModelOptions]="{standalone: true}">
+            Cambiar Contraseña
+          </mat-slide-toggle>
+        </div>
+
+        <div class="password-fields" *ngIf="changePassword" [formGroup]="passwordForm">
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña Actual</mat-label>
+            <input matInput [type]="hideCurrentPassword ? 'password' : 'text'"
+                   formControlName="currentPassword"
+                   placeholder="Ingrese contraseña actual">
+            <button mat-icon-button matSuffix
+                    (click)="hideCurrentPassword = !hideCurrentPassword"
+                    type="button">
+              <mat-icon>{{hideCurrentPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
+              La contraseña actual es requerida
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nueva Contraseña</mat-label>
+            <input matInput [type]="hideNewPassword ? 'password' : 'text'"
+                   formControlName="newPassword"
+                   placeholder="Ingrese nueva contraseña">
+            <button mat-icon-button matSuffix
+                    (click)="hideNewPassword = !hideNewPassword"
+                    type="button">
+              <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+              La nueva contraseña es requerida
+            </mat-error>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
+              La contraseña debe tener al menos 4 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions>
+      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      <button mat-raised-button color="primary"
+              type="submit"
+              [disabled]="!userForm.valid || (changePassword && !passwordForm.valid)">
+        Guardar Cambios
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

@@ -1,0 +1,69 @@
+<div class="container">
+
+  <div class="nuevo-buscar">
+    <button mat-raised-button color="primary" matTooltip="Creacion de Nuevo Miembro" matTooltipPosition="above" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nuevo Miembro
+    </button>
+
+    <mat-form-field appearance="outline" matTooltip="Buscar por Nombre" matTooltipPosition="above">
+      <mat-label>Buscar miembro</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan" #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-table [dataSource]="miembros" matSort class="mat-elevation-z8">
+    <ng-container matColumnDef="nombreCompleto">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo</mat-header-cell>
+      <mat-cell *matCellDef="let miembro">
+        {{miembro.personaDto?.nombre}} {{miembro.personaDto.apellido}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="celular">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Celular</mat-header-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto.celular}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="direccion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto.direccion}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fechaConvercion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Conversión</mat-header-cell>
+      <mat-cell *matCellDef="let miembro"> {{formatDate(miembro.fechaConvercion)}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="sexo">
+      <mat-header-cell *matHeaderCellDef> Sexo</mat-header-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto.sexo}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
+      <mat-cell *matCellDef="let miembro">
+        <button mat-icon-button color="primary" matTooltip="Editar: {{miembro.personaDto?.nombre}}" matTooltipPosition="left"
+          (click)="$event.stopPropagation(); openEditDialog(miembro)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="miembro.estado ? 'accent' : 'warn'" (click)="$event.stopPropagation(); toggleEstado(miembro)">
+          <mat-icon>{{miembro.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="5">No se encontraron datos que coincidan con el filtro "{{input.value}}"
+      </td>
+    </tr>
+  </mat-table>
+
+
+  <mat-paginator [pageSizeOptions]="[10,25, 100]" aria-label="Seleccionar página de iglesias">
+  </mat-paginator>
+</div>

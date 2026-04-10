@@ -1,0 +1,40 @@
+<div class="dialog-container">
+  <div class="user-photo" *ngIf="user.uriFoto">
+    <img [src]="user.uriFoto" [alt]="user.username">
+  </div>
+  <div class="user-photo no-photo" *ngIf="!user.uriFoto">
+    <span class="initials">{{user.name?.charAt(0) || user.username.charAt(0)}}</span>
+  </div>
+
+  <h2 mat-dialog-title>{{user.name}} {{user.apellidos}}</h2>
+  
+  <mat-dialog-content>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Usuario:</label>
+        <span>{{user.username}}</span>
+      </div>
+      
+      <div class="info-item">
+        <label>Correo:</label>
+        <span>{{user.email}}</span>
+      </div>
+      
+      <div class="info-item">
+        <label>Estado:</label>
+        <span [class.active]="user.estado" [class.inactive]="!user.estado">
+          {{user.estado ? 'Activo' : 'Inactivo'}}
+        </span>
+      </div>
+      
+      <div class="info-item">
+        <label>Roles:</label>
+        <span>{{user.roles | roles}}</span>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-button (click)="onClose()">Cerrar</button>
+  </mat-dialog-actions>
+</div>

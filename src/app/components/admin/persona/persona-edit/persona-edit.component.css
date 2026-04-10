@@ -1,0 +1,117 @@
+mat-form-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+mat-dialog-content {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.row>* {
+  flex: 1;
+  min-width: 0;
+}
+
+.realiniar {
+  margin-bottom: -8px;
+}
+
+.abajo {
+  margin-bottom: 16px;
+}
+
+mat-dialog-actions {
+  display: flex !important;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 0 0;
+  margin-top: 16px;
+  box-sizing: border-box;
+}
+
+mat-dialog-actions button {
+  flex: 1;
+  width: 100%;
+}
+
+.photo-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  margin-top: 8px;
+}
+
+.photo-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid #e0e0e0;
+  transition: border-color 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-container:hover {
+  border-color: #3f51b5;
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+}
+
+.photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+}
+
+.photo-overlay mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.photo-overlay span {
+  font-size: 12px;
+  text-align: center;
+  padding: 0 8px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    gap: 0px;
+  }
+}

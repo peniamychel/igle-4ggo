@@ -1,0 +1,125 @@
+.logo {
+  width: 50px;
+  height: auto;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.app-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  /* Adjust as needed */
+  min-width: 0;
+  /* Allows flex item to shrink below content size */
+}
+
+.sidenav-wrapper {
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav-container {
+  flex: 1;
+  height: calc(100vh - 64px);
+}
+
+.sidenav {
+  width: 250px;
+  background: #fafafa;
+}
+
+.content {
+  padding: 20px;
+  background: #fff;
+}
+
+mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.user-profile-button {
+  margin-left: 8px;
+}
+
+.username-display {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  color: rgba(0, 0, 0, 0.87);
+  background: #f5f5f5;
+}
+
+.user-menu-header mat-icon {
+  margin-right: 8px;
+}
+
+::ng-deep .mat-drawer-inner-container {
+  overflow: hidden !important;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 16px;
+  }
+
+  mat-toolbar {
+    padding: 0 8px;
+  }
+
+  .username-display {
+    display: none;
+  }
+}
+
+.active {
+  font-weight: bold;
+  color: #1976d2;
+  /* Color destacado */
+}
+
+
+
+.sidenav-container {
+  height: calc(100svh - 64px);
+}
+
+
+/* Active menu item styling */
+.mat-mdc-list-item.active {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #3f51b5;
+  font-weight: 500;
+}
+
+.mat-mdc-list-item.active .mat-icon {
+  color: #3f51b5;
+}
+
+.username-display {
+  margin-right: 16px;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.user-menu-header .mat-icon {
+  margin-right: 8px;
+}

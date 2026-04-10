@@ -1,0 +1,127 @@
+<h2 mat-dialog-title class="realiniar">Crear Persona</h2>
+<form [formGroup]="personaForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <div class="row">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre">
+        <mat-error>
+          {{ getErrorMessageNombre('nombre') }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Apellido</mat-label>
+        <input matInput formControlName="apellido">
+        <mat-error>
+          {{ getErrorMessageApellido('apellido') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>CI</mat-label>
+        <input matInput formControlName="ci">
+        <mat-error>
+          {{ getErrorMessageCi('ci') }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Nacimiento</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fechaNac" placeholder="Ej: 01/01/2000">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error>
+          {{ getErrorMessage('fechaNac') }}
+        </mat-error>
+      </mat-form-field>
+
+    </div>
+
+    <div class="row">
+      <div class="">
+        <mat-label>Sexo:</mat-label>
+        <mat-button-toggle-group name="fontStyle" aria-label="Font Style" formControlName="sexo">
+          <mat-button-toggle value="Hombre">Hombre</mat-button-toggle>
+          <mat-button-toggle value="Mujer">Mujer</mat-button-toggle>
+        </mat-button-toggle-group>
+        <mat-error>
+          {{ getErrorMessageSexo('sexo') }}
+        </mat-error>
+      </div>
+
+
+      <!--                  <mat-form-field aria-label="Selecione el sexo" appearance="outline">-->
+      <!--                      <mat-label>Sexo</mat-label>-->
+      <!--                      <mat-select formControlName="sexo" placeholder="Selecione el sexo">-->
+      <!--                          <mat-option value="Masculino">Masculino</mat-option>-->
+      <!--                          <mat-option value="Femenino">Femenino</mat-option>-->
+      <!--                      </mat-select>-->
+      <!--                      <mat-error>-->
+      <!--                          {{ getErrorMessage('sexo') }}-->
+      <!--                      </mat-error>-->
+      <!--                      &lt;!&ndash;            <mat-hint align="end">Here's the dropdown arrow ^</mat-hint>&ndash;&gt;-->
+      <!--                  </mat-form-field>-->
+
+      <!--        <mat-radio-group  aria-label="Selecione el sexo" appearance="outline" formControlName="sexo">-->
+      <!--          <mat-label>Sexo:</mat-label>-->
+      <!--          <mat-radio-button value="Masculino">Masculino</mat-radio-button>-->
+      <!--          <mat-radio-button value="Femenino">Femenino</mat-radio-button>-->
+      <!--          <mat-error>-->
+      <!--            {{ getErrorMessage('sexo') }}-->
+      <!--          </mat-error>-->
+      <!--        </mat-radio-group>-->
+
+      <mat-form-field appearance="outline">
+        <mat-label>Celular</mat-label>
+        <input matInput>
+      </mat-form-field>
+
+      <!--                  <mat-form-field appearance="outline">-->
+      <!--                      <mat-label>URI Foto</mat-label>-->
+      <!--                      <input matInput formControlName="uriFoto">-->
+      <!--                  </mat-form-field>-->
+
+    </div>
+    <div class="row">
+      <div class="file-inputr">
+        <button mat-stroked-button type="button" (click)="fileInput.click()">
+          <mat-icon>photo_camera</mat-icon>
+          Seleccion Imagen
+        </button>
+        <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none">
+        <span *ngIf="selectedFile">{{selectedFile.name}}</span>
+      </div>
+
+      <!--                <div class="current-photo" (click)="openImagePreview()">-->
+      <!--                  &lt;!&ndash; Usamos previewUrl si existe, sino la imagen actual &ndash;&gt;-->
+      <!--                  <img [src]="previewUrl || data.uriFoto" [alt]="data.username" *ngIf="previewUrl || data.uriFoto">-->
+      <!--                  <div class="no-photo" *ngIf="!previewUrl && !data.uriFoto">-->
+      <!--                    <span class="initials">{{data.name?.charAt(0) || data.username.charAt(0)}}</span>-->
+      <!--                  </div>-->
+      <!--                  <div class="photo-overlay">-->
+      <!--                    <mat-icon>zoom_in</mat-icon>-->
+      <!--                  </div>-->
+      <!--                </div>-->
+
+    </div>
+
+    <mat-form-field appearance="outline" class="realiniar">
+      <mat-label>Dirección</mat-label>
+      <input matInput formControlName="direccion">
+    </mat-form-field>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!personaForm.valid">
+        Crear
+      </button>
+    </mat-dialog-actions>
+  </mat-dialog-content>
+</form>

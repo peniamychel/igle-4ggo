@@ -1,0 +1,119 @@
+<div class="container">
+  <div class="grid-container">
+    <!-- Iglesias Table -->
+    <div class="iglesias-section">
+      <div class="header-actions">
+        <h2>Iglesias</h2>
+        <mat-form-field appearance="outline">
+          <mat-label>Buscar Iglesia</mat-label>
+          <input matInput (keyup)="applyIglesiaFilter($event)" placeholder="Ej. Primera Iglesia">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <mat-table [dataSource]="iglesiasDataSource" matSort #iglesiaSort="matSort" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
+          <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="direccion">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
+          <mat-cell *matCellDef="let iglesia"> {{iglesia.direccion}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
+          <mat-cell *matCellDef="let iglesia">
+            <button mat-icon-button color="primary" (click)="loadMiembros(iglesia)">
+              <mat-icon>group</mat-icon>
+            </button>
+            <button mat-icon-button color="primary" (click)="addNewMiembro(iglesia)">
+              <mat-icon>add</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="iglesiaColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: iglesiaColumns;"
+                 [class.selected]="selectedIglesia?.id === row.id"
+                 (click)="loadMiembros(row)"></mat-row>
+      </mat-table>
+
+
+      <mat-paginator #iglesiaPaginator
+                     [pageSizeOptions]="[5, 10, 25, 100]"
+                     (page)="onPageSizeChange()"
+                     aria-label="Seleccionar página de iglesias">
+      </mat-paginator>
+    </div>
+
+    <!-- Miembros Table -->
+    <div class="miembros-section" *ngIf="selectedIglesia">
+      <div class="header-actions">
+        <h2>Miembros de {{selectedIglesia.nombre}}</h2>
+        <div class="action-buttons">
+          <mat-form-field appearance="outline">
+            <mat-label>Buscar Miembro</mat-label>
+            <input matInput (keyup)="applyMiembroFilter($event)" placeholder="Ej. Juan Pérez">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <mat-table [dataSource]="miembrosDataSource" matSort #miembroSort="matSort" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
+          <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.nombre}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="apellido">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Apellido</mat-header-cell>
+          <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.apellido}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="fechaConvercion">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Conversión</mat-header-cell>
+          <mat-cell *matCellDef="let miembro"> {{miembro.fechaConvercion | date}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
+          <mat-cell *matCellDef="let miembro">
+            <button mat-icon-button color="primary" (click)="openMiembroIglesiaDetail(miembro)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" (click)="openTraspasoDialog(miembro)">
+              <mat-icon>transfer_within_a_station</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+
+        <mat-header-row *matHeaderRowDef="miembroColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: miembroColumns;"></mat-row>
+      </mat-table>
+
+      <div class="miembros-count">
+
+        Total de Miembros: {{miembrosCount}}
+        <div class="footer-actions">
+          <button mat-raised-button color="primary" (click)="generatePDF()">
+            <mat-icon>print</mat-icon>
+            Imprimir
+          </button>
+          <button mat-raised-button color="accent" (click)="exportToExcel()">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </div>
+
+
+      <mat-paginator #miembroPaginator
+                     [pageSizeOptions]="[5, 10, 25, 100]"
+                     (page)="onPageSizeChange()"
+                     aria-label="Seleccionar página de miembros">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

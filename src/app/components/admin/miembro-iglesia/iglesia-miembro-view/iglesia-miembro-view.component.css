@@ -1,0 +1,58 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  height: calc(100vh - 40px);
+}
+
+.table-section {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 16px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-field {
+  width: 300px;
+}
+
+.mat-table {
+  width: 100%;
+  overflow: auto;
+}
+
+.mat-cell, .mat-header-cell {
+  padding: 8px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.footer-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+}

@@ -1,0 +1,84 @@
+<div class="sidenav-wrapper">
+  <mat-toolbar color="primary">
+    <button mat-icon-button (click)="drawer.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <img src="/logo.png" alt="Logo" class="logo">
+
+    <span class="app-title">Movimiento Cristiano Misionero Maranatha</span>
+    <span class="toolbar-spacer"></span>
+
+    <span class="username-display" [matMenuTriggerFor]="userMenu">{{user?.name}} {{user?.apellidos}}</span>
+
+    <!-- Botón para Desktop -->
+    <button mat-fab extended *ngIf="!isAuthenticated && !isSmallScreen" (click)="openLoginModal()">
+      <mat-icon>person</mat-icon>
+      Iniciar sesión
+    </button>
+
+    <!-- Botón para Mobile -->
+    <button mat-icon-button *ngIf="!isAuthenticated && isSmallScreen" (click)="openLoginModal()">
+      <mat-icon>person</mat-icon>
+    </button>
+
+    <button mat-icon-button *ngIf="isAuthenticated" [matMenuTriggerFor]="userMenu" class="user-profile-button">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu">
+      <div class="user-menu-header" mat-menu-item disabled>
+        <mat-icon>person</mat-icon>
+        <span>{{username}}</span>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item>
+        <mat-icon>settings</mat-icon>
+        <span>Mi Perfil</span>
+      </button>
+      <mat-divider></mat-divider>
+      <span mat-menu-item>Roles:</span>
+      <ul>
+        <li *ngFor="let role of user?.roles">
+          {{ role }}
+        </li>
+      </ul>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="sidenav-container">
+
+    <!--    <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen" >-->
+    <!--      <mat-nav-list>-->
+    <!--        <a mat-list-item-->
+
+    <!--           (click)="drawer.close()"-->
+    <!--           *ngFor="let item of menuItems"-->
+    <!--           [routerLink]="item.route"-->
+    <!--           routerLinkActive="active"-->
+    <!--           [routerLinkActiveOptions]="{exact: true}">-->
+    <!--          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>-->
+    <!--          <span matListItemTitle>{{ item.label }}</span>-->
+    <!--        </a>-->
+    <!--      </mat-nav-list>-->
+    <!--    </mat-sidenav>-->
+
+    <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen">
+      <mat-nav-list>
+        <a mat-list-item (click)="isSmallScreen && drawer.close()" *ngFor="let item of filtrarMenuItems()"
+          [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="content">
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

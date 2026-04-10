@@ -1,0 +1,43 @@
+<h2 mat-dialog-title> Crear Iglesia</h2>
+<form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="fill">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" placeholder="Nombre de la iglesia">
+      <mat-error>
+        {{ getErrorMessageNombre('nombre') }}
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Dirección</mat-label>
+      <input matInput formControlName="direccion" placeholder="Dirección de la iglesia">
+      <mat-error>
+        {{ getErrorMessageDireccion('direccion') }}
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Teléfono</mat-label>
+      <input matInput formControlName="telefono" placeholder="Teléfono de contacto">
+      <mat-error>
+        {{ getErrorMessageTelefono('telefono') }}
+      </mat-error>
+    </mat-form-field>
+
+
+    <mat-form-field appearance="fill">
+      <mat-label>Fecha de Fundación</mat-label>
+      <input matInput [matDatepicker]="picker">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!iglesiaForm.valid">
+        Crear
+      </button>
+    </mat-dialog-actions>
+  </mat-dialog-content>
+</form>

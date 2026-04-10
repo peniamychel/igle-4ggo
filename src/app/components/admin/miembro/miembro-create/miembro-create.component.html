@@ -1,0 +1,99 @@
+<h2 mat-dialog-title class="realiniar">{{editMode ? 'Editar' : 'Crear'}} Miembro</h2>
+<form [formGroup]="miembroForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    
+    <mat-form-field appearance="outline" *ngIf="!editMode">
+      <mat-label>Seleccionar Persona Existente</mat-label>
+      <mat-select (selectionChange)="onPersonaSelect($event)">
+        <mat-option *ngFor="let persona of personas" [value]="persona">
+          {{persona.nombre}} {{persona.apellido}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Apellido</mat-label>
+        <input matInput formControlName="apellido">
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>CI</mat-label>
+        <input matInput type="number" formControlName="ci">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Nacimiento</mat-label>
+        <input matInput [matDatepicker]="fechaNacPicker" formControlName="fechaNac" placeholder="Ej: 01/01/2000">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matSuffix [for]="fechaNacPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fechaNacPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <div class="">
+        <mat-label>Sexo:</mat-label>
+        <mat-button-toggle-group name="fontStyle" aria-label="Font Style" formControlName="sexo">
+          <mat-button-toggle value="Hombre">Hombre</mat-button-toggle>
+          <mat-button-toggle value="Mujer">Mujer</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Celular</mat-label>
+        <input matInput formControlName="celular">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="realiniar">
+      <mat-label>Dirección</mat-label>
+      <input matInput formControlName="direccion">
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Conversión</mat-label>
+        <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion">
+        <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fechaConvPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Lugar de Conversión</mat-label>
+        <input matInput formControlName="lugarConvercion">
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Interventores</mat-label>
+        <input matInput formControlName="interventores">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>URI Foto</mat-label>
+        <input matInput formControlName="uriFoto">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="realiniar">
+      <mat-label>Detalles</mat-label>
+      <textarea matInput formControlName="detalles" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!miembroForm.valid">
+        {{editMode ? 'Actualizar' : 'Crear'}}
+      </button>
+    </mat-dialog-actions>
+  </mat-dialog-content>
+</form>

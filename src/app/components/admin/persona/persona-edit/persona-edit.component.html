@@ -1,0 +1,71 @@
+<h2 mat-dialog-title class="realiniar">Editar Persona</h2>
+<form [formGroup]="personaForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="photo-section">
+      <div class="photo-container" (click)="fileInput.click()">
+        <img [src]="imagePreview" alt="Foto de perfil" class="profile-photo">
+        <div class="photo-overlay">
+          <mat-icon>photo_camera</mat-icon>
+          <span>{{ selectedFile ? 'Cambiar foto' : 'Click para agregar foto' }}</span>
+        </div>
+      </div>
+      <input #fileInput type="file"
+             (change)="onFileSelected($event)"
+             accept="image/*"
+             style="display: none">
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Apellido</mat-label>
+        <input matInput formControlName="apellido">
+      </mat-form-field>
+    </div>
+
+    <div class="row realiniar" >
+      <mat-form-field appearance="outline">
+        <mat-label>CI</mat-label>
+        <input matInput formControlName="ci">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Nacimiento</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fechaNac">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="abajo">
+      <mat-radio-group aria-label="Selecione el sexo" appearance="outline" formControlName="sexo">
+        <mat-label>Sexo:</mat-label>
+        <mat-radio-button value="Masculino">Masculino</mat-radio-button>
+        <mat-radio-button value="Femenino">Femenino</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Celular</mat-label>
+        <input matInput formControlName="celular">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="direccion">
+      </mat-form-field>
+    </div>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!personaForm.valid">
+        Actualizar
+      </button>
+    </mat-dialog-actions>
+  </mat-dialog-content>
+</form>

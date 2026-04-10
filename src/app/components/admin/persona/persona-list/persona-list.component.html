@@ -1,0 +1,67 @@
+<div class="container">
+  <div class="nuevo-bucar">
+    <button mat-raised-button color="primary" matTooltip="Creacion de Nueva Persona" matTooltipPosition="above"
+      (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nueva Persona
+    </button>
+
+
+    <mat-form-field appearance="outline" matTooltip="Buscar por Nombre" matTooltipPosition="above">
+      <mat-label>Buscar</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Primera Iglesia" #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <!-- Vista Tabla -->
+  <mat-table [dataSource]="personas" matSort class="mat-elevation-z8 demo-table">
+    <ng-container matColumnDef="nombre">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
+      <mat-cell *matCellDef="let persona"> {{persona.nombre}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="apellido">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Apellidos</mat-header-cell>
+      <mat-cell *matCellDef="let persona"> {{persona.apellido}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="celular">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Celular</mat-header-cell>
+      <mat-cell *matCellDef="let persona"> {{persona.celular}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="fechaNac">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Nacimiento</mat-header-cell>
+      <mat-cell *matCellDef="let persona"> {{formatDate(persona.fechaNac)}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="sexo">
+      <mat-header-cell *matHeaderCellDef> Sexo</mat-header-cell>
+      <mat-cell *matCellDef="let persona"> {{persona.sexo}} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
+      <mat-cell *matCellDef="let persona">
+        <button mat-icon-button color="primary" matTooltip="Editar: {{persona.nombre}}" matTooltipPosition="left"
+          (click)="$event.stopPropagation(); openEditDialog(persona)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="persona.estado ? 'accent' : 'warn'" (click)="$event.stopPropagation(); toggleEstado(persona)">
+          <mat-icon>{{persona.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="6">No se encontraron datos que coincidan con el filtro "{{input.value}}"
+      </td>
+    </tr>
+  </mat-table>
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de iglesias">
+  </mat-paginator>
+</div>

@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Registrar nuevo Miembro a la iglesia: {{data.iglesia.nombre}}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-container">
+<!--      <mat-form-field appearance="fill">-->
+<!--        <mat-label>Nueva Iglesia</mat-label>-->
+<!--        <mat-select formControlName="iglesiaId">-->
+<!--          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">-->
+<!--            {{iglesia.nombre}} - {{iglesia.direccion}}-->
+<!--          </mat-option>-->
+<!--        </mat-select>-->
+
+<!--        <mat-error *ngIf="form.get('iglesiaId')?.hasError('required')">-->
+<!--          Seleccione una iglesia-->
+<!--        </mat-error>-->
+<!--      </mat-form-field>-->
+
+      <mat-form-field appearance="fill">
+        <mat-label>Nueva miembro</mat-label>
+        <mat-select formControlName="miembroId" id="miembros">
+          <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
+            {{miembro.personaDto?.nombre}} {{miembro.personaDto?.apellido}}
+          </mat-option>
+        </mat-select>
+
+        <mat-error *ngIf="form.get('miembroId')?.hasError('required')">
+          Seleccione un miembro
+        </mat-error>
+      </mat-form-field>
+
+
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha de registro</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fecha">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="form.get('fechao')?.hasError('required')">
+          La fecha es requerida
+        </mat-error>
+      </mat-form-field>
+
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
+      Registrar miembro
+    </button>
+  </mat-dialog-actions>
+</form>

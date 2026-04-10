@@ -1,0 +1,64 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nuevo-bucar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mat-table {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.mat-cell {
+  padding: 8px;
+}
+
+mat-row:hover {
+  background-color: #e0f7fa;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.success-snackbar {
+  background-color: #f44336 !important;
+  color: white;
+}
+
+
+/* vista movil */
+@media (max-width: 768px) {
+
+  .mat-column-celular,
+  .mat-column-fechaNac,
+  .mat-column-sexo {
+    display: none;
+  }
+
+  .container {
+    padding: 12px;
+  }
+
+  .nuevo-bucar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nuevo-bucar button {
+    width: 100%;
+  }
+
+  .nuevo-bucar mat-form-field {
+    width: 100%;
+  }
+}

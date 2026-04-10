@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>Detalles de la Persona</h2>
+<mat-dialog-content>
+  <div class="detail-grid">
+    <div class="detail-section">
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Nombre:</strong> {{data.nombre}}
+        </div>
+        <div class="detail-item">
+          <strong>Apellido:</strong> {{data.apellido}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>CI:</strong> {{data.ci}}
+        </div>
+        <div class="detail-item">
+          <strong>Fecha de Nacimiento:</strong> {{formatDate(data.fechaNac)}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Celular:</strong> {{data.celular}}
+        </div>
+        <div class="detail-item">
+          <strong>Sexo:</strong> {{data.sexo}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Dirección:</strong> {{data.direccion}}
+        </div>
+        <div class="detail-item">
+          <strong>Estado:</strong> {{data.estado ? 'Activo' : 'Inactivo'}}
+        </div>
+      </div>
+    </div>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cerrar</button>
+    </mat-dialog-actions>
+  </div>
+</mat-dialog-content>

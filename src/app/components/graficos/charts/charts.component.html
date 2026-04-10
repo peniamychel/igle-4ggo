@@ -1,0 +1,35 @@
+<div class="container">
+  <h1>Estadísticas Iglesias con mas miembros</h1>
+
+  <div class="chart-container">
+    <ngx-charts-bar-horizontal
+      [view]="view"
+
+      [legendTitle]="legendTitle"
+      [showDataLabel]="showDataLabel"
+
+      [scheme]="colorScheme"
+      [results]="single"
+      [gradient]="gradient"
+      [xAxis]="showXAxis"
+      [yAxis]="showYAxis"
+      [legend]="showLegend"
+      [showXAxisLabel]="showXAxisLabel"
+      [showYAxisLabel]="showYAxisLabel"
+      [xAxisLabel]="xAxisLabel"
+      [yAxisLabel]="yAxisLabel"
+      (select)="onSelect($event)"
+      (activate)="onActivate($event)"
+      (deactivate)="onDeactivate($event)">
+    </ngx-charts-bar-horizontal>
+
+    <google-chart
+      [type]="chart.type"
+      [data]="chart.data"
+      [columns]="chart.columns"
+      [options]="chart.options">
+    </google-chart>
+
+  </div>
+
+</div>

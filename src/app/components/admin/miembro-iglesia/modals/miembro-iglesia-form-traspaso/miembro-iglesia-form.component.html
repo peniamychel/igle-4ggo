@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Registrar Traspaso de Miembro</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-container">
+      <mat-form-field appearance="fill">
+        <mat-label>Nueva Iglesia</mat-label>
+        <mat-select formControlName="iglesiaId">
+          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
+            {{iglesia.nombre}} - {{iglesia.direccion}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('iglesiaId')?.hasError('required')">
+          Seleccione una iglesia
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Motivo del Traspaso</mat-label>
+        <textarea matInput formControlName="motivoTraspaso" rows="3"></textarea>
+        <mat-error *ngIf="form.get('motivoTraspaso')?.hasError('required')">
+          El motivo es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha de Traspaso</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fechaTraspaso">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="form.get('fechaTraspaso')?.hasError('required')">
+          La fecha es requerida
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>URI Carta de Traspaso</mat-label>
+        <input matInput formControlName="uriCartaTraspaso">
+        <mat-error *ngIf="form.get('uriCartaTraspaso')?.hasError('required')">
+          La URI de la carta es requerida
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
+      Registrar Traspaso
+    </button>
+  </mat-dialog-actions>
+</form>

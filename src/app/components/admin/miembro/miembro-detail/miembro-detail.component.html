@@ -1,0 +1,69 @@
+<h2 mat-dialog-title>Detalles del Miembro</h2>
+<mat-dialog-content>
+  <div class="detail-grid">
+    <div class="detail-section">
+      <h3>Datos Personales</h3>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Nombre:</strong> {{data.personaDto?.nombre}}
+        </div>
+        <div class="detail-item">
+          <strong>Apellido:</strong> {{data.personaDto?.apellido}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>CI:</strong> {{data.personaDto?.ci}}
+        </div>
+        <div class="detail-item">
+          <strong>Fecha de Nacimiento:</strong> {{formatDate(data.personaDto?.fechaNac)}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Celular:</strong> {{data.personaDto?.celular}}
+        </div>
+        <div class="detail-item">
+          <strong>Sexo:</strong> {{data.personaDto?.sexo}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Dirección:</strong> {{data.personaDto?.direccion}}
+        </div>
+        <div class="detail-item">
+          <strong>URI Foto:</strong> {{data.personaDto?.uriFoto}}
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Datos de Membresía</h3>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Lugar de Conversión:</strong> {{data.lugarConvercion}}
+        </div>
+        <div class="detail-item">
+          <strong>Fecha de Conversión:</strong> {{formatDate(data.fechaConvercion)}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Interventores:</strong> {{data.interventores}}
+        </div>
+        <div class="detail-item">
+          <strong>Detalles:</strong> {{data.detalles}}
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-item">
+          <strong>Estado:</strong> {{data.estado ? 'Activo' : 'Inactivo'}}
+        </div>
+      </div>
+    </div>
+
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close type="button">Cerrar</button>
+    </mat-dialog-actions>
+  </div>
+</mat-dialog-content>

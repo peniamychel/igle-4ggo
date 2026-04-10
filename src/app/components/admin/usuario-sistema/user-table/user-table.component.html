@@ -1,0 +1,129 @@
+<div class="user-table-container">
+  <div class="table-header">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nuevo Usuario
+    </button>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Buscar usuarios...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 desktop-view">
+    <!-- Username Column -->
+    <ng-container matColumnDef="username">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Usuario </mat-header-cell>
+      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
+        <div class="user-avatar-container">
+          <div class="user-avatar" *ngIf="user.uriFoto">
+            <img [src]="user.uriFoto" [alt]="user.username">
+          </div>
+          <div class="user-avatar-placeholder" *ngIf="!user.uriFoto">
+            {{user.name?.charAt(0) || user.username.charAt(0)}}
+          </div>
+          <span>{{user.username}}</span>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </mat-header-cell>
+      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
+        {{user.name}} {{user.apellidos}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- Email Column -->
+    <ng-container matColumnDef="email">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Email </mat-header-cell>
+      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)"> {{user.email}} </mat-cell>
+    </ng-container>
+
+    <!-- Roles Column -->
+    <ng-container matColumnDef="roles">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Roles </mat-header-cell>
+      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
+        {{user.roles | roles}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- Estado Column -->
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+      <mat-cell *matCellDef="let user">
+        <button mat-button [color]="user.estado ? 'primary' : 'warn'"
+          (click)="toggleUserStatus(user); $event.stopPropagation()">
+          {{user.estado ? 'Activo' : 'Inactivo'}}
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+      <mat-cell *matCellDef="let user">
+        <button mat-icon-button color="primary" (click)="openEditDialog(user); $event.stopPropagation()">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></mat-row>
+  </mat-table>
+
+  <!-- Vista Tarjetas - Mobile -->
+  <div class="mobile-view" *ngIf="dataSource.filteredData.length > 0; else noDataMobile">
+    <div class="cards-container">
+      <mat-card *ngFor="let user of dataSource.filteredData" class="user-card" [class.inactive]="!user.estado">
+        <mat-card-header>
+          <div mat-card-avatar class="user-avatar-placeholder" *ngIf="!user.uriFoto">
+            {{user.name?.charAt(0) || user.username.charAt(0)}}
+          </div>
+          <div mat-card-avatar class="user-avatar" *ngIf="user.uriFoto">
+            <img [src]="user.uriFoto" [alt]="user.username">
+          </div>
+          <mat-card-title>{{user.username}}</mat-card-title>
+          <mat-card-subtitle>{{user.name}} {{user.apellidos}}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="info-row">
+            <span class="label">Email:</span>
+            <span class="value">{{user.email}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Roles:</span>
+            <span class="value">{{user.roles | roles}}</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-icon-button color="primary" (click)="openViewDialog(user)" matTooltip="Ver detalle">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button color="primary" (click)="openEditDialog(user)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-button [color]="user.estado ? 'primary' : 'warn'" (click)="toggleUserStatus(user)">
+            {{user.estado ? 'Activo' : 'Inactivo'}}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #noDataMobile>
+    <div class="mobile-view">
+      <p class="no-data">No se encontraron usuarios que coincidan con la búsqueda.</p>
+    </div>
+  </ng-template>
+
+  <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" [length]="dataSource.data.length"
+    (page)="savePageSize($event.pageSize)" showFirstLastButtons>
+  </mat-paginator>
+</div>
