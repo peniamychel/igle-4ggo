@@ -50,6 +50,9 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.ROLE);
+    localStorage.removeItem("nombreuser");
+    localStorage.removeItem("datosUsuario");
     this.currentUserSubject.next(null);
   }
 
@@ -57,8 +60,23 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decodedJson = atob(payloadBase64);
+      const decoded = JSON.parse(decodedJson);
+      const exp = decoded.exp;
+      if (!exp) return false;
+      return (Math.floor((new Date).getTime() / 1000)) >= exp;
+    } catch (e) {
+      return true;
+    }
+  }
+
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!this.getToken() && !this.isTokenExpired();
   }
 
   getCurrentUser(): LoginResponse | null {
@@ -67,7 +85,7 @@ export class AuthService {
 
   isAuth(){
     const authToken = localStorage.getItem('auth_token');
-    return authToken !== null && authToken.length > 0;
+    return authToken !== null && authToken.length > 0 && !this.isTokenExpired();
   }
 
   isLoggedRolAdmin(){

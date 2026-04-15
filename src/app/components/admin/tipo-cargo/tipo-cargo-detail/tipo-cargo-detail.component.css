@@ -1,0 +1,68 @@
+mat-dialog-content {
+  min-width: 380px;
+  padding-top: 8px;
+}
+
+.title-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #757575;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 15px;
+  color: #212121;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.estado-badge.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.estado-badge.inactivo {
+  background-color: #fce4ec;
+  color: #c62828;
+}

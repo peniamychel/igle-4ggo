@@ -1,0 +1,61 @@
+<div class="container">
+  <div class="nuevo-buscar">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nuevo Tipo de Cargo
+    </button>
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Diácono" #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+
+    <ng-container matColumnDef="tipo">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.tipo }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="nombre">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.nombre }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+          {{ item.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <button mat-icon-button color="primary"
+                matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
+                (click)="$event.stopPropagation(); openEditDialog(item)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
+                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
+                (click)="$event.stopPropagation(); toggleEstado(item)">
+          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+    </tr>
+  </mat-table>
+
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de tipos de cargo">
+  </mat-paginator>
+</div>

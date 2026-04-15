@@ -1,0 +1,79 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">edit</mat-icon>
+  Editar Cargo
+</h2>
+
+<form [formGroup]="cargoForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Iglesia</mat-label>
+        <mat-select formControlName="iglesiaId">
+          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
+            {{ iglesia.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('iglesiaId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Cargo</mat-label>
+        <mat-select formControlName="tipoCargoId">
+          <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
+            {{ tipo.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('tipoCargoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Miembro</mat-label>
+        <mat-select formControlName="idMiembro">
+          <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('idMiembro') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row dates-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha de Inicio</mat-label>
+        <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
+        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+        <mat-datepicker #pickerInicio></mat-datepicker>
+        <mat-error>{{ getError('fechaInicio') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha Fin (Opcional)</mat-label>
+        <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
+        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFin></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Detalles / Descripción</mat-label>
+        <textarea matInput formControlName="detalle" rows="3" placeholder="Información adicional..."></textarea>
+        <mat-error>{{ getError('detalle') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!cargoForm.valid">
+      <mat-icon>save</mat-icon>
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>

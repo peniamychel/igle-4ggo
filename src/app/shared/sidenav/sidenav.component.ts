@@ -65,6 +65,8 @@ export class SidenavComponent implements OnInit {
     { label: 'Miembro', route: '/miembro', icon: 'wc' },
     { label: 'Persona', route: '/persona', icon: 'people' },
     { label: 'Iglesia', route: '/iglesia', icon: 'church' },
+    { label: 'Tipo de Cargo', route: '/tipocargo', icon: 'badge' },
+    { label: 'Cargos Miembros', route: '/cargo', icon: 'assignment_ind' },
     { label: 'Eventos', route: '/eventos', icon: 'event' },
     { label: 'Iglesia Miembros', route: '/miembroiglesia', icon: 'recent_actors' },
     { label: 'Iglesia Grafico', route: '/graficoiglesias', icon: 'settings' },

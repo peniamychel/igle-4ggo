@@ -1,0 +1,97 @@
+import { Component, Inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { CargoService } from '../../../../core/services/cargo.service';
+import { Iglesia } from '../../../../core/models/iglesia.model';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
+import { Miembro } from '../../../../core/models/miembro.model';
+import { Cargo } from '../../../../core/models/cargo.model';
+
+@Component({
+  selector: 'app-cargo-edit',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ],
+  templateUrl: './cargo-edit.component.html',
+  styleUrls: ['./cargo-edit.component.css']
+})
+export class CargoEditComponent implements OnInit {
+  cargoForm: FormGroup;
+  cargo: Cargo;
+  iglesias: Iglesia[] = [];
+  tiposCargo: TipoCargo[] = [];
+  miembros: Miembro[] = [];
+
+  constructor(
+    private fb: FormBuilder,
+    private cargoService: CargoService,
+    private dialogRef: MatDialogRef<CargoEditComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { cargo: Cargo, iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
+  ) {
+    this.cargoForm = this.fb.group({
+      tipoCargoId: ['', Validators.required],
+      iglesiaId: ['', Validators.required],
+      idMiembro: ['', Validators.required],
+      fechaInicio: ['', Validators.required],
+      fechaFin: [''],
+      detalle: ['', Validators.maxLength(500)]
+    });
+    this.cargo = data.cargo;
+  }
+
+  ngOnInit() {
+    if (this.data) {
+      this.iglesias = this.data.iglesias;
+      this.tiposCargo = this.data.tiposCargo;
+      this.miembros = this.data.miembros;
+      
+      this.cargoForm.patchValue({
+        tipoCargoId: this.cargo.tipoCargoId,
+        iglesiaId: this.cargo.iglesiaId,
+        idMiembro: this.cargo.idMiembro,
+        fechaInicio: this.cargo.fechaInicio,
+        fechaFin: this.cargo.fechaFin,
+        detalle: this.cargo.detalle
+      });
+    }
+  }
+
+  onSubmit() {
+    if (this.cargoForm.valid) {
+      const cargoData: Partial<Cargo> = { ...this.cargo, ...this.cargoForm.value };
+      this.cargoService.updateCargo(cargoData).subscribe(() => {
+        this.dialogRef.close(true);
+      });
+    }
+  }
+
+  getError(controlName: string): string {
+    const control = this.cargoForm.get(controlName);
+    if (control?.hasError('required')) return 'Este campo es requerido';
+    if (control?.hasError('maxlength')) return 'Longitud máxima excedida';
+    return '';
+  }
+
+  getMiembroNombreCompleto(miembro: Miembro): string {
+    if (!miembro || !miembro.personaDto) return 'N/A';
+    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+  }
+}

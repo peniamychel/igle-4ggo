@@ -9,6 +9,8 @@ import { ChartsComponent } from './components/graficos/charts/charts.component';
 import { authGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './components/auth/login2/login.component';
 import { UserTableComponent } from './components/admin/usuario-sistema/user-table/user-table.component';
+import { TipoCargoListComponent } from './components/admin/tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
+import { CargoListComponent } from './components/admin/cargo/cargo-list/cargo-list.component';
 import { adminGuard } from './core/guards/admin.guard';
 import { encIglesiaGuard } from './core/guards/enc-iglesia.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -52,6 +54,18 @@ export const routes: Routes = [
         path: 'graficoiglesias',
         component: ChartsComponent,
         title: 'Grafico',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'tipocargo',
+        component: TipoCargoListComponent,
+        title: 'Tipo de Cargo',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'cargo',
+        component: CargoListComponent,
+        title: 'Cargos Miembros',
         canActivate: [authGuard]
       },
       {

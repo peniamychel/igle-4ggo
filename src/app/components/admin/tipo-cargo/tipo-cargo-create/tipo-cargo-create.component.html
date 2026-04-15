@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Crear Tipo de Cargo
+</h2>
+
+<form [formGroup]="tipoCargoForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Tipo</mat-label>
+      <input matInput formControlName="tipo" placeholder="Ej. MINISTERIAL">
+      <mat-error>{{ getError('tipo') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej. Diácono">
+      <mat-error>{{ getError('nombre') }}</mat-error>
+    </mat-form-field>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!tipoCargoForm.valid">
+        <mat-icon>save</mat-icon>
+        Crear
+      </button>
+    </mat-dialog-actions>
+
+  </mat-dialog-content>
+</form>

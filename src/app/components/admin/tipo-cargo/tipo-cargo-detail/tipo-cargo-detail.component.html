@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">info</mat-icon>
+  Detalle del Tipo de Cargo
+</h2>
+
+<mat-dialog-content>
+  <div class="detail-grid">
+    <div class="detail-section">
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Tipo</span>
+          <span class="value">{{ data.tipo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Nombre</span>
+          <span class="value">{{ data.nombre }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Estado</span>
+          <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">
+            {{ data.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Creado</span>
+          <span class="value">{{ formatDate(data.createdAt) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Última Actualización</span>
+          <span class="value">{{ formatDate(data.updatedAt) }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-raised-button mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
+</mat-dialog-content>
