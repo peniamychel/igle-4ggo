@@ -9,8 +9,11 @@
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Iglesia</mat-label>
-        <mat-select formControlName="iglesiaId">
-          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
+        <mat-select formControlName="iglesiaId" (openedChange)="onIglesiaSelectOpen($event)">
+          <div class="search-container">
+            <input #searchIglesia matInput placeholder="Buscar iglesia..." (keyup)="filterIglesias($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let iglesia of filteredIglesias" [value]="iglesia.id">
             {{ iglesia.nombre }}
           </mat-option>
         </mat-select>
@@ -33,8 +36,11 @@
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Miembro</mat-label>
-        <mat-select formControlName="idMiembro">
-          <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
+        <mat-select formControlName="idMiembro" (openedChange)="onMiembroSelectOpen($event)">
+          <div class="search-container">
+            <input #searchMiembro matInput placeholder="Buscar miembro..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
             {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
           </mat-option>
         </mat-select>

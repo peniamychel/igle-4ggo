@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,10 +34,14 @@ import { Cargo } from '../../../../core/models/cargo.model';
   styleUrls: ['./cargo-create.component.css']
 })
 export class CargoCreateComponent implements OnInit {
+  @ViewChild('searchIglesia') searchIglesiaInput!: ElementRef;
+  @ViewChild('searchMiembro') searchMiembroInput!: ElementRef;
   cargoForm: FormGroup;
   iglesias: Iglesia[] = [];
+  filteredIglesias: Iglesia[] = [];
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
+  filteredMiembros: Miembro[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -58,8 +62,46 @@ export class CargoCreateComponent implements OnInit {
   ngOnInit() {
     if (this.data) {
       this.iglesias = this.data.iglesias;
+      this.filteredIglesias = [...this.iglesias];
       this.tiposCargo = this.data.tiposCargo.filter(tc => tc.estado); // solo activos? o todos, supongamos todos los disponibles
       this.miembros = this.data.miembros; 
+      this.filteredMiembros = [...this.miembros];
+    }
+  }
+
+  filterIglesias(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filteredIglesias = this.iglesias.filter(iglesia => 
+      iglesia.nombre.toLowerCase().includes(filterValue)
+    );
+  }
+
+  onIglesiaSelectOpen(isOpen: boolean) {
+    if (isOpen) {
+      setTimeout(() => {
+        if (this.searchIglesiaInput) {
+          this.searchIglesiaInput.nativeElement.focus();
+        }
+      }, 0);
+    }
+  }
+
+  filterMiembros(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filteredMiembros = this.miembros.filter(miembro => {
+      const nombreCompleto = this.getMiembroNombreCompleto(miembro).toLowerCase();
+      const ci = (miembro.personaDto?.ci?.toString() || '').toLowerCase();
+      return nombreCompleto.includes(filterValue) || ci.includes(filterValue);
+    });
+  }
+
+  onMiembroSelectOpen(isOpen: boolean) {
+    if (isOpen) {
+      setTimeout(() => {
+        if (this.searchMiembroInput) {
+          this.searchMiembroInput.nativeElement.focus();
+        }
+      }, 0);
     }
   }
 

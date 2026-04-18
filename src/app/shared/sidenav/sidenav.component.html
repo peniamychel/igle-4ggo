@@ -69,11 +69,29 @@
 
     <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen">
       <mat-nav-list>
-        <a mat-list-item (click)="isSmallScreen && drawer.close()" *ngFor="let item of filtrarMenuItems()"
-          [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
+        <ng-container *ngFor="let item of filteredMenuItems">
+          <!-- Ítem principal sin hijos -->
+          <a mat-list-item *ngIf="!item.children" (click)="isSmallScreen && drawer.close()" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: item.route === '/'}">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+
+          <!-- Ítem padre con hijos -->
+          <ng-container *ngIf="item.children">
+            <mat-list-item (click)="toggleSubmenu(item)" class="parent-menu-item" [ngClass]="{'expanded': item.expanded}">
+              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <span matListItemTitle>{{ item.label }}</span>
+              <mat-icon matListItemMeta class="expand-icon">{{ item.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </mat-list-item>
+            
+            <div class="submenu-container" [class.expanded]="item.expanded">
+              <a mat-list-item *ngFor="let sub of item.children" (click)="isSmallScreen && drawer.close()" [routerLink]="sub.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: sub.route === '/'}">
+                <mat-icon matListItemIcon class="sub-icon">{{ sub.icon }}</mat-icon>
+                <span matListItemTitle>{{ sub.label }}</span>
+              </a>
+            </div>
+          </ng-container>
+        </ng-container>
       </mat-nav-list>
     </mat-sidenav>
 

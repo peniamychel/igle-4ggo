@@ -24,6 +24,7 @@ import { CargoCreateComponent } from '../cargo-create/cargo-create.component';
 import { CargoDetailComponent } from '../cargo-detail/cargo-detail.component';
 import { CargoEditComponent } from '../cargo-edit/cargo-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -64,7 +65,8 @@ export class CargoListComponent implements OnInit {
     private tipoCargoService: TipoCargoService,
     private miembroService: MiembroService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private route: ActivatedRoute
   ) {
     this.dataSource = new MatTableDataSource<Cargo>([]);
   }
@@ -93,13 +95,29 @@ export class CargoListComponent implements OnInit {
 
   loadCargos() {
     this.cargoService.getCargos().subscribe(response => {
-      const cargos = Array.isArray(response.datos) ? response.datos : [];
+      let cargos = Array.isArray(response.datos) ? response.datos : [];
+      cargos.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
       cargos.forEach(cargo => {
         cargo.iglesiaDto = this.iglesias.find(i => i.id === cargo.iglesiaId);
         cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.tipoCargoId);
         cargo.miembroDto = this.miembros.find(m => m.id === cargo.idMiembro);
       });
-      this.dataSource.data = cargos;
+      
+      this.route.data.subscribe(data => {
+        const filterRole = data['filterRole'];
+        if (filterRole) {
+          const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+          this.dataSource.data = cargos.filter(cargo => 
+            cargo.tipoCargoDto && normalize(cargo.tipoCargoDto.nombre).includes(normalize(filterRole))
+          );
+        } else {
+          this.dataSource.data = cargos;
+        }
+      });
     });
   }
 

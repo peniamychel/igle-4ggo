@@ -68,7 +68,8 @@ mat-toolbar {
 }
 
 ::ng-deep .mat-drawer-inner-container {
-  overflow: hidden !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 @media (max-width: 768px) {
@@ -122,4 +123,44 @@ mat-toolbar {
 
 .user-menu-header .mat-icon {
   margin-right: 8px;
+}
+
+/* Submenu container */
+.submenu-container {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.submenu-container.expanded {
+  max-height: 1000px;
+  transition: max-height 0.3s ease-in;
+}
+
+/* Parent menu item styling */
+.parent-menu-item {
+  cursor: pointer;
+}
+
+.parent-menu-item.expanded {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.expand-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+/* Indentation for sub items */
+::ng-deep .submenu-container .mdc-list-item__start {
+  margin-left: 16px; 
+}
+::ng-deep .submenu-container .mat-mdc-list-item {
+  padding-left: 32px !important;
+}
+
+.sub-icon {
+  transform: scale(0.9);
+  opacity: 0.8;
 }

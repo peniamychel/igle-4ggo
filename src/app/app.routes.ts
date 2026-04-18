@@ -69,6 +69,81 @@ export const routes: Routes = [
         canActivate: [authGuard]
       },
       {
+        path: 'pastores',
+        component: CargoListComponent,
+        title: 'Pastores',
+        data: { filterRole: 'pastor' },
+        canActivate: [authGuard]
+      },
+      {
+        path: 'encargados',
+        component: CargoListComponent,
+        title: 'Encargados',
+        data: { filterRole: 'encargado' },
+        canActivate: [authGuard]
+      },
+      {
+        path: 'lideres',
+        component: CargoListComponent,
+        title: 'Líderes',
+        data: { filterRole: 'lider' },
+        canActivate: [authGuard]
+      },
+      {
+        path: 'cambios-iglesia',
+        component: DashboardComponent,
+        title: 'Cambios Iglesia',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'solicitudes',
+        component: DashboardComponent,
+        title: 'Solicitudes',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'eventos',
+        component: DashboardComponent,
+        title: 'Eventos',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'bautizos',
+        component: DashboardComponent,
+        title: 'Bautizos',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'talleres',
+        component: DashboardComponent,
+        title: 'Talleres',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'certificados',
+        component: DashboardComponent,
+        title: 'Certificados',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'ofrendas',
+        component: DashboardComponent,
+        title: 'Ofrendas',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'perfil',
+        component: DashboardComponent,
+        title: 'Perfil',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'configuracion',
+        component: DashboardComponent,
+        title: 'Configuración',
+        canActivate: [authGuard]
+      },
+      {
         path: 'usuariosistema',
         component: UserTableComponent,
         title: 'Usuario Sistema',

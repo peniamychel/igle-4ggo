@@ -39,3 +39,25 @@ mat-dialog-actions {
     gap: 0;
   }
 }
+
+.search-container {
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 100;
+  border-bottom: 1px solid #eee;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #1976d2;
+}

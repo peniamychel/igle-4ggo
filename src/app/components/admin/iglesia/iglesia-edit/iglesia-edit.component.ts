@@ -20,7 +20,7 @@ import { catchError, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-iglesia-form',
+  selector: 'app-iglesia-edit',
   standalone: true,
   imports: [
     CommonModule,
