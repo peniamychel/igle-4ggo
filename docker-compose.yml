@@ -1,0 +1,7 @@
+services:
+  angular-app:
+    build: .
+    container_name: mi-web-angular
+    ports:
+      - "80:80"
+    restart: always

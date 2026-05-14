@@ -22,12 +22,14 @@
     </button>
 
     <button mat-icon-button *ngIf="isAuthenticated" [matMenuTriggerFor]="userMenu" class="user-profile-button">
-      <mat-icon>account_circle</mat-icon>
+      <img *ngIf="user?.uriFoto" [src]="user?.uriFoto" alt="Foto de perfil" class="user-profile-image">
+      <mat-icon *ngIf="!user?.uriFoto">account_circle</mat-icon>
     </button>
 
     <mat-menu #userMenu="matMenu">
       <div class="user-menu-header" mat-menu-item disabled>
-        <mat-icon>person</mat-icon>
+        <img *ngIf="user?.uriFoto" [src]="user?.uriFoto" alt="Foto de perfil" class="user-menu-image">
+        <mat-icon *ngIf="!user?.uriFoto">person</mat-icon>
         <span>{{username}}</span>
       </div>
       <mat-divider></mat-divider>

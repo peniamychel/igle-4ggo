@@ -48,6 +48,18 @@ mat-toolbar {
 
 .user-profile-button {
   margin-left: 8px;
+  position: relative;
+}
+
+.user-profile-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .username-display {
@@ -64,6 +76,14 @@ mat-toolbar {
 }
 
 .user-menu-header mat-icon {
+  margin-right: 8px;
+}
+
+.user-menu-image {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
   margin-right: 8px;
 }
 
@@ -150,6 +170,7 @@ mat-toolbar {
 .expand-icon {
   margin-left: auto;
   transition: transform 0.3s ease;
+  font-family: 'Material Icons' !important;
 }
 
 /* Indentation for sub items */
