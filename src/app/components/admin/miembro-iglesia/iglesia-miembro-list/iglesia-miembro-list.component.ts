@@ -125,7 +125,6 @@ export class IglesiaMiembroListComponent implements OnInit {
 
   addNewMiembro(iglesia: Iglesia) {
     if (iglesia) {
-      this.miembroIglesiaService.addNewMiembro(iglesia);
       const dialogRef = this.dialog.open(MiembroIglesiaFormCrearComponent, {
         width: '600px',
         data: { iglesia }

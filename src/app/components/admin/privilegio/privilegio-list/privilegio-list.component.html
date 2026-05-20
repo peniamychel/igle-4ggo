@@ -1,0 +1,113 @@
+<div class="container">
+  <div class="nuevo-buscar">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nuevo Privilegio
+    </button>
+    <mat-form-field appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Gestionar" #input>
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+
+    <ng-container matColumnDef="nombre">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.nombre }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acto">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Acto</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.acto }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+          {{ item.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <button mat-icon-button color="primary"
+                matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
+                (click)="$event.stopPropagation(); openEditDialog(item)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
+                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
+                (click)="$event.stopPropagation(); toggleEstado(item)">
+          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+    </tr>
+  </mat-table>
+
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de privilegios">
+  </mat-paginator>
+
+  <mat-divider class="section-divider"></mat-divider>
+
+  <mat-card class="roles-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>admin_panel_settings</mat-icon>
+      <mat-card-title>Asignación de Privilegios por Rol</mat-card-title>
+      <mat-card-subtitle>Seleccione un rol para gestionar sus privilegios</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="rol-selector">
+        <mat-button-toggle-group [value]="selectedRol" (change)="seleccionarRol($event.value)">
+          <mat-button-toggle *ngFor="let rol of rolesDisponibles" [value]="rol">
+            {{ rol }}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <div class="privilegios-asignados">
+        <h4>Privilegios de <strong>{{ selectedRol }}</strong></h4>
+        <mat-chip-set *ngIf="privilegiosPorRol.length > 0">
+          <mat-chip *ngFor="let p of privilegiosPorRol" (removed)="quitarPrivilegio(p.id)">
+            {{ p.nombre }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </mat-chip-set>
+        <p class="empty-message" *ngIf="privilegiosPorRol.length === 0">
+          No tiene privilegios asignados
+        </p>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="privilegios-disponibles">
+        <h4>Agregar Privilegios</h4>
+        <div class="available-list" *ngIf="privilegiosDisponibles.length > 0">
+          <mat-chip-set>
+            <mat-chip *ngFor="let p of privilegiosDisponibles" (click)="agregarPrivilegio(p.id!)" class="add-chip">
+              <mat-icon matChipAvatar>add</mat-icon>
+              {{ p.nombre }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+        <p class="empty-message" *ngIf="privilegiosDisponibles.length === 0">
+          Todos los privilegios están asignados a este rol
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

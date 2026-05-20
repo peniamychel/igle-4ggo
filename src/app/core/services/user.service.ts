@@ -9,7 +9,8 @@ import {
   CreateUserDto,
   UpdateUserDto,
   UpdateUserRolesDto,
-  ChangePasswordDto
+  ChangePasswordDto,
+  AdminResetPasswordDto
 } from '../models/user.model';
 import { map } from 'rxjs/operators';
 
@@ -70,12 +71,21 @@ export class UserService {
   }
 
   /**
-   * Cambia la contraseña de un usuario
+   * Cambia la contraseña de un usuario (requiere currentPassword)
    * @param passwordData contraseña del usuario a cambiar
    * @returns true si se cambio la contraseña
    */
   changePassword(passwordData: ChangePasswordDto): Observable<any> {
     return this.http.put(`${this.API_URL}/change-password`, passwordData);
+  }
+
+  /**
+   * Resetea la contraseña de un usuario (solo admin, sin currentPassword)
+   * @param dto datos con id y nueva contraseña
+   * @returns usuario actualizado
+   */
+  resetPassword(dto: AdminResetPasswordDto): Observable<any> {
+    return this.http.put(`${this.API_URL}/reset-password`, dto);
   }
 
   /**
@@ -100,12 +110,13 @@ export class UserService {
    * @param username nombre de usuario
    * @returns usuario encontrado
    */
-  getUserByNameForToken(): Observable<CreateUserDto> {
+  getUserByNameForToken(): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/findbyusername`).pipe(
       map((response) => {
         // Mapea la respuesta JSON a CreateUserDto
         const datos = response.datos;
         return {
+          id: datos.id,
           email: datos.email,
           username: datos.username,
           name: datos.name,
@@ -113,7 +124,7 @@ export class UserService {
           uriFoto: datos.uriFoto,
           password: datos.password,
           roles: datos.roles.map((role: { id: number; name: string }) => role.name)
-        } as CreateUserDto;
+        };
       })
     );
   }

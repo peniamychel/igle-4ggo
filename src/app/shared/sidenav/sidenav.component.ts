@@ -112,6 +112,7 @@ export class SidenavComponent implements OnInit {
       icon: 'admin_panel_settings',
       children: [
         { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' },
+        { label: 'Privilegios', route: '/privilegios', icon: 'security' },
         { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
         { label: 'Configuración', route: '/configuracion', icon: 'settings' }
       ]

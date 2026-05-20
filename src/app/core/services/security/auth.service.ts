@@ -41,9 +41,13 @@ export class AuthService {
         tap(response => {
           localStorage.setItem(this.TOKEN_KEY, response.token);
           localStorage.setItem(this.USER_KEY, JSON.stringify(response));
-          localStorage.setItem(this.ROLE, response.roles[0].authority);
+          const roleAuthority = response.roles.find(r => r.authority.startsWith('ROLE_'));
+          localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : response.roles[0].authority);
+          const privilegios = response.roles
+            .filter(r => !r.authority.startsWith('ROLE_'))
+            .map(r => r.authority);
+          localStorage.setItem('privilegios', JSON.stringify(privilegios));
           localStorage.setItem("nombreuser", response.username)
-          // localStorage.setItem("",response.)
           this.currentUserSubject.next(response);
         })
       );
@@ -59,6 +63,7 @@ export class AuthService {
     localStorage.removeItem(this.ROLE);
     localStorage.removeItem("nombreuser");
     localStorage.removeItem("datosUsuario");
+    localStorage.removeItem("privilegios");
     this.currentUserSubject.next(null);
   }
 

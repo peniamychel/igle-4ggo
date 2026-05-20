@@ -11,9 +11,11 @@ import { LoginComponent } from './components/auth/login2/login.component';
 import { UserTableComponent } from './components/admin/usuario-sistema/user-table/user-table.component';
 import { TipoCargoListComponent } from './components/admin/tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { CargoListComponent } from './components/admin/cargo/cargo-list/cargo-list.component';
+import { PrivilegioListComponent } from './components/admin/privilegio/privilegio-list/privilegio-list.component';
 import { adminGuard } from './core/guards/admin.guard';
 import { encIglesiaGuard } from './core/guards/enc-iglesia.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 
 export const routes: Routes = [
@@ -133,7 +135,7 @@ export const routes: Routes = [
       },
       {
         path: 'perfil',
-        component: DashboardComponent,
+        component: PerfilComponent,
         title: 'Perfil',
         canActivate: [authGuard]
       },
@@ -142,6 +144,12 @@ export const routes: Routes = [
         component: DashboardComponent,
         title: 'Configuración',
         canActivate: [authGuard]
+      },
+      {
+        path: 'privilegios',
+        component: PrivilegioListComponent,
+        title: 'Privilegios',
+        canActivate: [authGuard, adminGuard]
       },
       {
         path: 'usuariosistema',

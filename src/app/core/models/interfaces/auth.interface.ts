@@ -3,9 +3,11 @@ export interface Role {
 }
 
 export interface LoginResponse {
+  success: boolean;
   roles: Role[];
-  mensaje: string;
+  message: string;
   token: string;
+  refreshToken: string;
   username: string;
 }
 

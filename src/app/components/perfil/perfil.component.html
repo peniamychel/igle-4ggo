@@ -1,0 +1,130 @@
+<div class="profile-page">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading && user">
+    <mat-card class="profile-header-card">
+      <div class="profile-header">
+        <div class="profile-photo" (click)="openImagePreview()">
+          <img *ngIf="previewUrl || user.uriFoto" [src]="previewUrl || user.uriFoto" [alt]="user.username" class="photo-img">
+          <div class="no-photo" *ngIf="!previewUrl && !user.uriFoto">
+            <span class="initials">{{getInitials()}}</span>
+          </div>
+          <div class="photo-overlay">
+            <mat-icon>zoom_in</mat-icon>
+          </div>
+        </div>
+        <div class="profile-info">
+          <h1>{{user.name}} {{user.apellidos}}</h1>
+          <p class="username">{{'@'+user.username}}</p>
+          <p class="email">{{user.email}}</p>
+          <div class="roles" *ngIf="user.roles?.length">
+            <span class="role-badge" *ngFor="let role of user.roles">{{role}}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>person</mat-icon>
+        <mat-card-title>Información Personal</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="profileForm">
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombres</mat-label>
+              <input matInput formControlName="name" placeholder="Ingrese sus nombres">
+              <mat-error *ngIf="profileForm.get('name')?.hasError('required')">Los nombres son requeridos</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Apellidos</mat-label>
+              <input matInput formControlName="apellidos" placeholder="Ingrese sus apellidos">
+              <mat-error *ngIf="profileForm.get('apellidos')?.hasError('required')">Los apellidos son requeridos</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre de Usuario</mat-label>
+              <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
+              <mat-error *ngIf="profileForm.get('username')?.hasError('required')">El nombre de usuario es requerido</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Correo Electrónico</mat-label>
+              <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
+              <mat-error *ngIf="profileForm.get('email')?.hasError('required')">El correo electrónico es requerido</mat-error>
+              <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Ingrese un correo electrónico válido</mat-error>
+            </mat-form-field>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>photo_camera</mat-icon>
+        <mat-card-title>Foto de Perfil</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="photo-upload-container">
+          <div class="current-photo" (click)="openImagePreview()">
+            <img [src]="previewUrl || user.uriFoto" [alt]="user.username" *ngIf="previewUrl || user.uriFoto">
+            <div class="no-photo" *ngIf="!previewUrl && !user.uriFoto">
+              <span class="initials-sm">{{getInitials()}}</span>
+            </div>
+          </div>
+          <div class="photo-actions">
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
+              <mat-icon>photo_camera</mat-icon>
+              {{previewUrl ? 'Cambiar Imagen' : 'Subir Imagen'}}
+            </button>
+            <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none">
+            <p class="photo-hint" *ngIf="!previewUrl">Haga clic en la foto para ampliarla</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>lock</mat-icon>
+        <mat-card-title>Cambiar Contraseña</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="password-toggle">
+          <mat-slide-toggle [(ngModel)]="changePassword" [ngModelOptions]="{standalone: true}">
+            Cambiar Contraseña
+          </mat-slide-toggle>
+        </div>
+        <div class="password-fields" *ngIf="changePassword" [formGroup]="passwordForm">
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña Actual</mat-label>
+            <input matInput [type]="hideCurrentPassword ? 'password' : 'text'" formControlName="currentPassword" placeholder="Ingrese contraseña actual">
+            <button mat-icon-button matSuffix (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
+              <mat-icon>{{hideCurrentPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">La contraseña actual es requerida</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Nueva Contraseña</mat-label>
+            <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="newPassword" placeholder="Ingrese nueva contraseña">
+            <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" type="button">
+              <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">La nueva contraseña es requerida</mat-error>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">La contraseña debe tener al menos 6 caracteres</mat-error>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="save-section">
+      <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="saving || profileForm.invalid || (changePassword && passwordForm.invalid)" class="save-button">
+        <mat-icon>save</mat-icon>
+        {{saving ? 'Guardando...' : 'Guardar Cambios'}}
+      </button>
+    </div>
+  </ng-container>
+</div>

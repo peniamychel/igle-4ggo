@@ -39,7 +39,6 @@ export class EditUserDialogComponent {
   passwordForm: FormGroup;
   availableRoles = ['ADMIN', 'ENCARGADO_IGLESIA', 'ENCARGADO_EVENTO', 'TESORERO'];
   selectedFile: File | null = null;
-  hideCurrentPassword = true;
   hideNewPassword = true;
   changePassword = false;
   previewUrl: string | null = null;
@@ -63,8 +62,7 @@ export class EditUserDialogComponent {
     });
 
     this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(4)]]
+      newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -130,12 +128,11 @@ export class EditUserDialogComponent {
           }
           return of(null);
         }),
-        // 4. Actualizar contraseña si se activó la opción
+        // 4. Resetear contraseña si se activó la opción (admin, sin currentPassword)
         switchMap(() => {
           if (this.changePassword) {
-            return this.userService.changePassword({
+            return this.userService.resetPassword({
               id: this.data.id!,
-              currentPassword: this.passwordForm.value.currentPassword,
               newPassword: this.passwordForm.value.newPassword
             });
           }

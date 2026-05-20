@@ -86,21 +86,6 @@
 
         <div class="password-fields" *ngIf="changePassword" [formGroup]="passwordForm">
           <mat-form-field appearance="outline">
-            <mat-label>Contraseña Actual</mat-label>
-            <input matInput [type]="hideCurrentPassword ? 'password' : 'text'"
-                   formControlName="currentPassword"
-                   placeholder="Ingrese contraseña actual">
-            <button mat-icon-button matSuffix
-                    (click)="hideCurrentPassword = !hideCurrentPassword"
-                    type="button">
-              <mat-icon>{{hideCurrentPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-            </button>
-            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
-              La contraseña actual es requerida
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
             <mat-label>Nueva Contraseña</mat-label>
             <input matInput [type]="hideNewPassword ? 'password' : 'text'"
                    formControlName="newPassword"
@@ -114,7 +99,7 @@
               La nueva contraseña es requerida
             </mat-error>
             <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
-              La contraseña debe tener al menos 4 caracteres
+              La contraseña debe tener al menos 6 caracteres
             </mat-error>
           </mat-form-field>
         </div>

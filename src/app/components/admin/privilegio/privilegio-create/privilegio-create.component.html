@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Crear Privilegio
+</h2>
+
+<form [formGroup]="privilegioForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej. Gestionar Miembros">
+      <mat-error>{{ getError('nombre') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Acto</mat-label>
+      <input matInput formControlName="acto" placeholder="Ej. Crear, editar y eliminar miembros">
+      <mat-error>{{ getError('acto') }}</mat-error>
+    </mat-form-field>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!privilegioForm.valid">
+        <mat-icon>save</mat-icon>
+        Crear
+      </button>
+    </mat-dialog-actions>
+
+  </mat-dialog-content>
+</form>

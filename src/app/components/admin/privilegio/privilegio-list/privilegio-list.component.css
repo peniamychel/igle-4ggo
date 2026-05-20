@@ -1,0 +1,150 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nuevo-buscar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 300px;
+}
+
+.mat-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.mat-cell,
+.mat-header-cell {
+  padding: 8px 16px;
+}
+
+.mat-header-cell {
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.mat-column-acciones {
+  width: 130px;
+  text-align: center;
+}
+
+mat-row:hover {
+  background-color: #e0f7fa;
+  cursor: pointer;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.estado-badge.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.estado-badge.inactivo {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+.section-divider {
+  margin: 32px 0;
+}
+
+.roles-card {
+  margin-top: 16px;
+}
+
+.roles-card mat-card-header {
+  margin-bottom: 16px;
+}
+
+.rol-selector {
+  margin-bottom: 24px;
+}
+
+.rol-selector .mat-button-toggle-group {
+  flex-wrap: wrap;
+}
+
+.rol-selector .mat-button-toggle {
+  font-size: 13px;
+}
+
+.privilegios-asignados,
+.privilegios-disponibles {
+  margin: 20px 0;
+}
+
+.privilegios-asignados h4,
+.privilegios-disponibles h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.add-chip {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-chip:hover {
+  background-color: #e3f2fd;
+}
+
+.empty-message {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+@media (max-width: 768px) {
+  .mat-column-acto {
+    display: none;
+  }
+
+  .container {
+    padding: 12px;
+  }
+
+  .nuevo-buscar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nuevo-buscar button {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .mat-form-field {
+    width: 100%;
+  }
+
+  .rol-selector .mat-button-toggle-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .rol-selector .mat-button-toggle {
+    width: 100%;
+  }
+}

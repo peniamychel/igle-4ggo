@@ -58,29 +58,16 @@ export class MiembroIglesiaFormTraspasoComponent {
 
   onSubmit() {
     if (this.form.valid) {
-      // Update current membership
-      const currentMembership = {
-        id: 42,
+      const data = {
         miembroId: this.data.miembro.id,
-        iglesiaId: this.data.iglesia.id,
+        iglesiaId: this.form.value.iglesiaId,
         motivoTraspaso: this.form.value.motivoTraspaso,
         fechaTraspaso: this.form.value.fechaTraspaso,
-        uriCartaTraspaso: this.form.value.uriCartaTraspaso,
-        estado: false
+        uriCartaTraspaso: this.form.value.uriCartaTraspaso
       };
 
-      this.miembroIglesiaService.updateMiembroIglesia(currentMembership).subscribe(() => {
-        // Create new membership
-        const newMembership = {
-          miembroId: this.data.miembro.id,
-          iglesiaId: this.form.value.iglesiaId,
-          fecha: new Date(),
-          estado: true
-        };
-
-        this.miembroIglesiaService.createMiembroIglesia(newMembership).subscribe(() => {
-          this.dialogRef.close(true);
-        });
+      this.miembroIglesiaService.traspaso(data).subscribe(() => {
+        this.dialogRef.close(true);
       });
     }
   }

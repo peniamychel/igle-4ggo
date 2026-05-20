@@ -3,7 +3,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MiembroIglesia, MiembroIglesiaResponse, MiembroIglesiaDetail } from '../models/miembro-iglesia.model';
-import { Miembro } from '../models/miembro.model';
 
 @Injectable({
   providedIn: 'root'
@@ -57,10 +56,10 @@ export class MiembroIglesiaService {
     );
   }
 
-  addNewMiembro(miembto: Partial<Miembro>): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/create`,
-      miembto,
+  traspaso(data: Partial<MiembroIglesia>): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/traspaso`,
+      data,
       { headers: this.getHeaders() }
     );
   }
