@@ -73,7 +73,7 @@ export class PerfilComponent implements OnInit, OnDestroy {
 
     this.passwordForm = this.fb.group({
       currentPassword: ['', Validators.required],
-      newPassword: ['', [Validators.required, Validators.minLength(4)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
@@ -141,34 +141,50 @@ export class PerfilComponent implements OnInit, OnDestroy {
 
   saveProfile() {
     if (this.profileForm.invalid || !this.user?.id) return;
+
+    // Verificar si hay cambios reales
+    const profileChanged = this.profileForm.dirty;
+    const photoChanged = !!this.selectedFile;
+    const passwordChanged = this.changePassword && this.passwordForm.valid;
+
+    if (!profileChanged && !photoChanged && !passwordChanged) {
+      this.snackBar.open('No se detectaron cambios para guardar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
     this.saving = true;
 
-    const updateData = {
-      id: this.user.id,
-      username: this.profileForm.value.username,
-      email: this.profileForm.value.email,
-      name: this.profileForm.value.name,
-      apellidos: this.profileForm.value.apellidos,
-    };
+    let obs$ = of<any>(null);
 
-    this.userService.updateUser(updateData).pipe(
-      switchMap(() => {
-        if (this.selectedFile && this.user?.id) {
-          return this.userService.uploadUserPhoto(this.user.id, this.selectedFile);
-        }
-        return of(null);
-      }),
-      switchMap(() => {
-        if (this.changePassword && this.passwordForm.valid && this.user?.id) {
-          return this.userService.changePassword({
-            id: this.user.id,
-            currentPassword: this.passwordForm.value.currentPassword,
-            newPassword: this.passwordForm.value.newPassword,
-          });
-        }
-        return of(null);
-      })
-    ).subscribe({
+    // 1. Actualización de datos de perfil (solo si se editó el formulario)
+    if (profileChanged) {
+      const updateData = {
+        id: this.user.id,
+        username: this.profileForm.value.username,
+        email: this.profileForm.value.email,
+        name: this.profileForm.value.name,
+        apellidos: this.profileForm.value.apellidos,
+      };
+      obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateData)));
+    }
+
+    // 2. Subida de foto (solo si se seleccionó una imagen)
+    if (photoChanged) {
+      obs$ = obs$.pipe(switchMap(() => this.userService.uploadUserPhoto(this.user!.id!, this.selectedFile!)));
+    }
+
+    // 3. Cambio de contraseña (solo si está activo el toggle y el formulario es válido)
+    if (passwordChanged) {
+      obs$ = obs$.pipe(switchMap(() => this.userService.changePassword({
+        id: this.user!.id!,
+        currentPassword: this.passwordForm.value.currentPassword,
+        newPassword: this.passwordForm.value.newPassword,
+      })));
+    }
+
+    obs$.subscribe({
       next: () => {
         this.snackBar.open('Perfil actualizado exitosamente', 'Cerrar', {
           duration: 3000,
@@ -181,9 +197,20 @@ export class PerfilComponent implements OnInit, OnDestroy {
         this.previewUrl = null;
         this.loadUserProfile();
       },
-      error: () => {
-        this.snackBar.open('Error al actualizar perfil', 'Cerrar', {
-          duration: 3000,
+      error: (err: any) => {
+        let errorMessage = 'Error al actualizar perfil';
+        if (err?.error?.message) {
+          if (typeof err.error.message === 'string') {
+            errorMessage = err.error.message;
+          } else if (typeof err.error.message === 'object') {
+            const messages = Object.values(err.error.message).join(', ');
+            if (messages) {
+              errorMessage = messages;
+            }
+          }
+        }
+        this.snackBar.open(errorMessage, 'Cerrar', {
+          duration: 4000,
           panelClass: ['error-snackbar']
         });
         this.saving = false;

@@ -17,6 +17,7 @@ import { encIglesiaGuard } from './core/guards/enc-iglesia.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
+import { privilegioGuard } from './core/guards/privilegio.guard';
 
 export const routes: Routes = [
   {
@@ -32,106 +33,106 @@ export const routes: Routes = [
         path: 'miembro',
         component: MiembroListComponent,
         title: 'Mimembro',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'persona',
         component: PersonaListComponent,
         title: 'Persona',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'iglesia',
         component: IglesiaListComponent,
         title: 'Iglesia',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'miembroiglesia',
         component: IglesiaMiembroListComponent,
         title: 'Iglesia',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'graficoiglesias',
         component: ChartsComponent,
         title: 'Grafico',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'tipocargo',
         component: TipoCargoListComponent,
         title: 'Tipo de Cargo',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'cargo',
         component: CargoListComponent,
         title: 'Cargos Miembros',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'pastores',
         component: CargoListComponent,
         title: 'Pastores',
         data: { filterRole: 'pastor' },
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'encargados',
         component: CargoListComponent,
         title: 'Encargados',
         data: { filterRole: 'encargado' },
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'lideres',
         component: CargoListComponent,
         title: 'Líderes',
         data: { filterRole: 'lider' },
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'cambios-iglesia',
         component: DashboardComponent,
         title: 'Cambios Iglesia',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'solicitudes',
         component: DashboardComponent,
         title: 'Solicitudes',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'eventos',
         component: DashboardComponent,
         title: 'Eventos',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'bautizos',
         component: DashboardComponent,
         title: 'Bautizos',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'talleres',
         component: DashboardComponent,
         title: 'Talleres',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'certificados',
         component: DashboardComponent,
         title: 'Certificados',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'ofrendas',
         component: DashboardComponent,
         title: 'Ofrendas',
-        canActivate: [authGuard]
+        canActivate: [authGuard, privilegioGuard]
       },
       {
         path: 'perfil',

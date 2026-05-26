@@ -96,49 +96,67 @@ export class EditUserDialogComponent {
 
   onSubmit(): void {
     if (this.userForm.valid && (!this.changePassword || this.passwordForm.valid)) {
-      // 1. Actualizar datos básicos del usuario
       const selectedRoles = this.availableRoles.filter((_, i) =>
         this.userForm.get('roles')?.value[i]
       );
 
-      const updateUserData = {
-        id: this.data.id,
-        username: this.userForm.value.username,
-        email: this.userForm.value.email,
-        name: this.userForm.value.name,
-        apellidos: this.userForm.value.apellidos
-      };
+      // Verificar qué secciones han cambiado
+      const basicDetailsChanged =
+        this.userForm.value.username !== this.data.username ||
+        this.userForm.value.email !== this.data.email ||
+        this.userForm.value.name !== this.data.name ||
+        this.userForm.value.apellidos !== this.data.apellidos;
 
-      // Comenzar con la actualización de datos básicos
-      this.userService.updateUser(updateUserData).pipe(
-        // 2. Actualizar roles si han cambiado
-        switchMap(() => {
-          if (selectedRoles.length > 0) {
-            return this.userService.updateUserRoles({
-              id: this.data.id!,
-              roles: selectedRoles
-            });
-          }
-          return of(null);
-        }),
-        // 3. Actualizar foto si se seleccionó una nueva
-        switchMap(() => {
-          if (this.selectedFile) {
-            return this.userService.uploadUserPhoto(this.data.id!, this.selectedFile);
-          }
-          return of(null);
-        }),
-        // 4. Resetear contraseña si se activó la opción (admin, sin currentPassword)
-        switchMap(() => {
-          if (this.changePassword) {
-            return this.userService.resetPassword({
-              id: this.data.id!,
-              newPassword: this.passwordForm.value.newPassword
-            });
-          }
-          return of(null);
-        })
-      ).subscribe({
+      const originalRoles = this.data.roles.map(r => r.name);
+      const rolesChanged = selectedRoles.length !== originalRoles.length ||
+        selectedRoles.some(r => !originalRoles.includes(r));
+
+      const photoChanged = !!this.selectedFile;
+      const passwordChanged = this.changePassword && this.passwordForm.valid;
+
+      if (!basicDetailsChanged && !rolesChanged && !photoChanged && !passwordChanged) {
+        this.snackBar.open('No se detectaron cambios para guardar', 'Cerrar', {
+          duration: 3000
+        });
+        return;
+      }
+
+      let obs$ = of<any>(null);
+
+      // 1. Actualizar datos básicos si cambiaron
+      if (basicDetailsChanged) {
+        const updateUserData = {
+          id: this.data.id,
+          username: this.userForm.value.username,
+          email: this.userForm.value.email,
+          name: this.userForm.value.name,
+          apellidos: this.userForm.value.apellidos
+        };
+        obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
+      }
+
+      // 2. Actualizar roles si cambiaron
+      if (rolesChanged) {
+        obs$ = obs$.pipe(switchMap(() => this.userService.updateUserRoles({
+          id: this.data.id!,
+          roles: selectedRoles
+        })));
+      }
+
+      // 3. Actualizar foto si cambió
+      if (photoChanged) {
+        obs$ = obs$.pipe(switchMap(() => this.userService.uploadUserPhoto(this.data.id!, this.selectedFile!)));
+      }
+
+      // 4. Resetear contraseña si se activó la opción (admin, sin currentPassword)
+      if (passwordChanged) {
+        obs$ = obs$.pipe(switchMap(() => this.userService.resetPassword({
+          id: this.data.id!,
+          newPassword: this.passwordForm.value.newPassword
+        })));
+      }
+
+      obs$.subscribe({
         next: () => {
           this.snackBar.open('Usuario actualizado exitosamente', 'Cerrar', {
             duration: 3000,
@@ -146,9 +164,20 @@ export class EditUserDialogComponent {
           });
           this.dialogRef.close(true);
         },
-        error: (error) => {
-          this.snackBar.open('Error al actualizar usuario', 'Cerrar', {
-            duration: 3000,
+        error: (err: any) => {
+          let errorMessage = 'Error al actualizar usuario';
+          if (err?.error?.message) {
+            if (typeof err.error.message === 'string') {
+              errorMessage = err.error.message;
+            } else if (typeof err.error.message === 'object') {
+              const messages = Object.values(err.error.message).join(', ');
+              if (messages) {
+                errorMessage = messages;
+              }
+            }
+          }
+          this.snackBar.open(errorMessage, 'Cerrar', {
+            duration: 4000,
             panelClass: ['error-snackbar']
           });
         }

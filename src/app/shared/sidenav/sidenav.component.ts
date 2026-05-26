@@ -24,6 +24,8 @@ export interface MenuItem {
   icon: string;
   children?: MenuItem[];
   expanded?: boolean;
+  /** Si true, el ítem solo se muestra a usuarios con rol ADMIN */
+  adminOnly?: boolean;
 }
 
 @Component({
@@ -108,45 +110,112 @@ export class SidenavComponent implements OnInit {
     },
     { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
     {
-      label: 'Usuario Sistemas',
+      label: 'Administración',
       icon: 'admin_panel_settings',
+      adminOnly: true,
       children: [
         { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' },
-        { label: 'Privilegios', route: '/privilegios', icon: 'security' },
-        { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
-        { label: 'Configuración', route: '/configuracion', icon: 'settings' }
+        { label: 'Privilegios', route: '/privilegios', icon: 'security' }
       ]
-    }
+    },
+    { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
+    { label: 'Configuración', route: '/configuracion', icon: 'settings' }
   ];
   constructor() {
   }
 
   /**
-   * Filtra de manera recursiva el menú basándose en los roles del usuario.
-   * 
-   * @param items Lista de menús a filtrar.
-   * @param isAdmin Booleano que indica si el usuario tiene rol de Administrador.
-   * @param isEncargado Booleano que indica si el usuario tiene rol de Encargado.
-   * @returns Un arreglo con los elementos del menú autorizados para el usuario.
+   * Mapa explícito de ruta → palabra clave del privilegio en el JWT.
+   * Los privilegios del JWT tienen el formato "Gestionar X" o "Ver X".
+   * La palabra clave se busca (contains) en cada authority del usuario.
    */
-  private filterMenu(items: MenuItem[], isAdmin: boolean, isEncargado: boolean): MenuItem[] {
+  private readonly ROUTE_PRIVILEGE_MAP: Record<string, string> = {
+    '/miembro':          'Miembros',
+    '/persona':          'Personas',
+    '/iglesia':          'Iglesias',
+    '/miembroiglesia':   'MiembroIglesia',
+    '/graficoiglesias':  'Iglesias',
+    '/tipocargo':        'Tipos de Cargo',
+    '/cargo':            'Cargos',
+    '/pastores':         'Cargos',
+    '/encargados':       'Cargos',
+    '/lideres':          'Cargos',
+    '/cambios-iglesia':  'Iglesias',
+    '/solicitudes':      'Miembros',
+    '/eventos':          'Eventos',
+    '/bautizos':         'Eventos',
+    '/talleres':         'Eventos',
+    '/certificados':     'Eventos',
+    '/ofrendas':         'Ofrendas',
+    '/usuariosistema':   'usuario',
+    '/privilegios':      'Privilegios',
+  };
+
+  /**
+   * Determina si el usuario tiene el privilegio necesario para una ruta.
+   * Usa el mapa explícito ROUTE_PRIVILEGE_MAP y compara contra las
+   * authorities guardadas en localStorage tras el login (provenientes del JWT).
+   */
+  private hasPrivilegeForRoute(route: string | undefined, _label: string, _parentLabel: string = ''): boolean {
+    if (!route) return false;
+
+    // Rutas siempre visibles para cualquier usuario autenticado
+    if (route === '/' || route === '/perfil' || route === '/configuracion') {
+      return true;
+    }
+
+    const storedPrivilegios = localStorage.getItem('privilegios');
+    if (!storedPrivilegios) return false;
+
+    let userPrivileges: string[] = [];
+    try {
+      userPrivileges = JSON.parse(storedPrivilegios);
+    } catch (e) {
+      console.error('Error al parsear privilegios del localStorage', e);
+      return false;
+    }
+
+    const keyword = this.ROUTE_PRIVILEGE_MAP[route];
+    if (!keyword) return false;
+
+    const normalize = (str: string) =>
+      str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+    const normalizedKeyword = normalize(keyword);
+    return userPrivileges.some(p => normalize(p).includes(normalizedKeyword));
+  }
+
+  /**
+   * Filtra de manera recursiva el menú basándose en los roles del usuario y sus privilegios.
+   *
+   * - Los ítems con `adminOnly: true` solo se muestran si el usuario es ADMIN.
+   * - Los grupos padre solo se muestran si al menos un hijo es visible.
+   * - Los ítems hoja se muestran según la asignación de privilegios del JWT.
+   *
+   * @param items Lista de menús a filtrar.
+   * @param isAdmin Si el usuario tiene rol ADMIN.
+   * @param parentLabel Nombre del menú padre actual (para contexto).
+   */
+  private filterMenu(items: MenuItem[], isAdmin: boolean, parentLabel: string = ''): MenuItem[] {
     return items
       .map(item => {
         if (item.children) {
-          const filteredChildren = this.filterMenu(item.children, isAdmin, isEncargado);
+          const filteredChildren = this.filterMenu(item.children, isAdmin, item.label);
           return { ...item, children: filteredChildren };
         }
         return item;
       })
       .filter(item => {
+        // Ocultar grupos/ítems marcados como adminOnly para no-admins
+        if (item.adminOnly && !isAdmin) return false;
+
         if (item.children) {
           return item.children.length > 0;
         }
+        // Admin ve todo
         if (isAdmin) return true;
-        if (isEncargado) {
-          return item.route !== '/usuariosistema';
-        }
-        return item.route === '/' || item.route === '/configuracion';
+
+        return this.hasPrivilegeForRoute(item.route, item.label, parentLabel);
       });
   }
 
@@ -161,9 +230,8 @@ export class SidenavComponent implements OnInit {
       return;
     }
     const isAdmin = this.authService.isLoggedRolAdmin();
-    const isEncargado = this.authService.isLoggedRolEncargado();
 
-    this.filteredMenuItems = this.filterMenu(this.menuItems, isAdmin, isEncargado);
+    this.filteredMenuItems = this.filterMenu(this.menuItems, isAdmin);
 
     // Restaurar estado de los menús
     const savedState = sessionStorage.getItem('expandedMenus');
@@ -256,8 +324,9 @@ export class SidenavComponent implements OnInit {
   }
 
   /**
-   * Se suscribe a los observables de autenticación para determinar
-   * si el usuario está logueado y actualizar su información general.
+   * Se suscribe al observable de autenticación para actualizar el estado del usuario.
+   * Los privilegios ya vienen en el JWT desde el login y están guardados
+   * en localStorage['privilegios'] por AuthService — no hace falta una llamada extra al API.
    */
   private initializeUserState() {
     this.authService.currentUser$.subscribe(user => {

@@ -69,7 +69,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
 
   private checkScreenSize() {
     const width = window.innerWidth;
-    this.isSmallScreen = width < window.outerWidth * 0.5;
+    this.isSmallScreen = width < 960;
     this.updateDisplayedColumns();
   }
 
@@ -109,6 +109,10 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    // Forzar la recalculación del layout de la barra lateral y contenedor al renderizar el componente
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
   }
 
   loadUsers(): void {

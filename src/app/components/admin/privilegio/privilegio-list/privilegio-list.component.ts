@@ -175,8 +175,11 @@ export class PrivilegioListComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result && privilegio.id) {
-          const updated: Partial<PrivilegioDto> = { estado: !privilegio.estado };
-          this.privilegioService.update(privilegio.id, updated as PrivilegioDto).subscribe(() => {
+          const updated: PrivilegioDto = {
+            ...privilegio,
+            estado: !privilegio.estado
+          };
+          this.privilegioService.update(privilegio.id, updated).subscribe(() => {
             privilegio.estado = !privilegio.estado;
             this.messageSnackBar(`Privilegio '${privilegio.nombre}' ${privilegio.estado ? 'activado' : 'desactivado'}`);
           });
