@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Crear Certificado
+</h2>
+
+<form [formGroup]="certificadoForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Evento</mat-label>
+        <mat-select formControlName="eventoId">
+          <mat-option *ngFor="let evento of eventos" [value]="evento.id">
+            {{ evento.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('eventoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Tipo de Certificado</mat-label>
+        <mat-select formControlName="tipoCertificadoId">
+          <mat-option *ngFor="let tc of tiposCertificado" [value]="tc.id">
+            {{ tc.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('tipoCertificadoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Código de Certificado</mat-label>
+        <input matInput formControlName="codigoCertificado" placeholder="Ej. CERT-2026-001">
+        <mat-error>{{ getError('codigoCertificado') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Motivo del Certificado</mat-label>
+        <textarea matInput formControlName="motivoCertificado" rows="2" placeholder="Certificado de Bautismo"></textarea>
+        <mat-error>{{ getError('motivoCertificado') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!certificadoForm.valid">
+      <mat-icon>save</mat-icon>
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>

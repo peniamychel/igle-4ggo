@@ -216,6 +216,35 @@ export class CargoListComponent implements OnInit {
     }
   }
 
+  deleteCargo(cargo: Cargo) {
+    if (cargo.id) {
+      const cargoName = cargo.tipoCargoDto?.nombre || 'este cargo';
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          message: `¿Está seguro que desea eliminar <br><strong style="font-size: 1.25em; color: #d32f2f; display: block; margin-top: 8px;">${cargoName}</strong>?<br><br>Esta acción no se puede deshacer.`
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && cargo.id) {
+          this.cargoService.deleteCargo(cargo.id).subscribe({
+            next: () => {
+              this.messageSnackBar('Cargo eliminado exitosamente');
+              this.loadCargos();
+            },
+            error: (err) => {
+              const msg = err.status === 409
+                ? 'No se puede eliminar el cargo porque tiene registros asociados (eventos, etc).'
+                : 'Error al eliminar el cargo.';
+              this.snackBar.open(msg, 'Cerrar', { duration: 5000, panelClass: ['alerta-roja'] });
+            }
+          });
+        }
+      });
+    }
+  }
+
   messageSnackBar(message: string) {
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,

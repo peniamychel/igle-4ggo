@@ -1,0 +1,47 @@
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 380px;
+  padding-top: 10px;
+}
+
+.form-row {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.title-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+mat-dialog-actions {
+  padding-top: 8px;
+}
+
+.search-container {
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 100;
+  border-bottom: 1px solid #eee;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #1976d2;
+}

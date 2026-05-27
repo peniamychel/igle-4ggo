@@ -68,4 +68,12 @@ export class CargoService {
   toggleEstado(id: number): Observable<boolean> {
     return this.http.put<boolean>(`${this.apiUrl}/estado/${id}`, {}, { headers: this.getHeaders() });
   }
+
+  /**
+   * Elimina un cargo
+   * @param id id del cargo
+   */
+  deleteCargo(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+  }
 }

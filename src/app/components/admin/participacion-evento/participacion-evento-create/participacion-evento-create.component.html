@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Registrar Participación
+</h2>
+
+<form [formGroup]="participacionForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Miembro</mat-label>
+        <mat-select formControlName="miembroId" (openedChange)="onMiembroSelectOpen($event)">
+          <div class="search-container">
+            <input #searchMiembro matInput placeholder="Buscar miembro..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('miembroId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Evento</mat-label>
+        <mat-select formControlName="eventoId">
+          <mat-option *ngFor="let evento of eventos" [value]="evento.id">
+            {{ evento.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('eventoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha de Participación</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fecha">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error>{{ getError('fecha') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Certificado (Opcional)</mat-label>
+        <mat-select formControlName="certificadoId">
+          <mat-option [value]="null">Sin certificado</mat-option>
+          <mat-option *ngFor="let cert of certificados" [value]="cert.id">
+            {{ cert.codigoCertificado }} - {{ cert.motivoCertificado }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!participacionForm.valid">
+      <mat-icon>save</mat-icon>
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -18,6 +18,12 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { privilegioGuard } from './core/guards/privilegio.guard';
+import { TipoEventoListComponent } from './components/admin/tipo-evento/tipo-evento-list/tipo-evento-list.component';
+import { TipoCertificadoListComponent } from './components/admin/tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
+import { EventoListComponent } from './components/admin/evento/evento-list/evento-list.component';
+import { CertificadoListComponent } from './components/admin/certificado/certificado-list/certificado-list.component';
+import { ResponsableEventoListComponent } from './components/admin/responsable-evento/responsable-evento-list/responsable-evento-list.component';
+import { ParticipacionEventoListComponent } from './components/admin/participacion-evento/participacion-evento-list/participacion-evento-list.component';
 
 export const routes: Routes = [
   {
@@ -105,8 +111,14 @@ export const routes: Routes = [
         canActivate: [authGuard, privilegioGuard]
       },
       {
+        path: 'tipoevento',
+        component: TipoEventoListComponent,
+        title: 'Tipos de Evento',
+        canActivate: [authGuard, privilegioGuard]
+      },
+      {
         path: 'eventos',
-        component: DashboardComponent,
+        component: EventoListComponent,
         title: 'Eventos',
         canActivate: [authGuard, privilegioGuard]
       },
@@ -123,9 +135,27 @@ export const routes: Routes = [
         canActivate: [authGuard, privilegioGuard]
       },
       {
+        path: 'tipocertificado',
+        component: TipoCertificadoListComponent,
+        title: 'Tipos de Certificado',
+        canActivate: [authGuard, privilegioGuard]
+      },
+      {
         path: 'certificados',
-        component: DashboardComponent,
+        component: CertificadoListComponent,
         title: 'Certificados',
+        canActivate: [authGuard, privilegioGuard]
+      },
+      {
+        path: 'responsable-evento',
+        component: ResponsableEventoListComponent,
+        title: 'Responsables de Evento',
+        canActivate: [authGuard, privilegioGuard]
+      },
+      {
+        path: 'participacion-evento',
+        component: ParticipacionEventoListComponent,
+        title: 'Participaciones de Evento',
         canActivate: [authGuard, privilegioGuard]
       },
       {

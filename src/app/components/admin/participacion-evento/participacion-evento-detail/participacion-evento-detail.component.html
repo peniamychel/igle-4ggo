@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">info</mat-icon>
+  Detalle de Participación
+</h2>
+
+<mat-dialog-content>
+  <div class="detail-grid">
+    <div class="detail-section">
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Miembro</span>
+          <span class="value">{{ getMiembroNombreCompleto(data.miembroDto) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Evento</span>
+          <span class="value">{{ data.eventoDto?.nombre || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Fecha</span>
+          <span class="value">{{ formatDate(data.fecha) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Certificado</span>
+          <span class="value">{{ data.certificadoDto?.codigoCertificado || 'Sin certificado' }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Estado</span>
+          <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">
+            {{ data.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Creado</span>
+          <span class="value">{{ formatDate(data.createdAt) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="label">Última Actualización</span>
+          <span class="value">{{ formatDate(data.updatedAt) }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-raised-button mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
+</mat-dialog-content>

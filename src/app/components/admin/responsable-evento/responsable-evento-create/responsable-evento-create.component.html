@@ -1,0 +1,60 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Asignar Responsables
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="responsableForm" class="add-form">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Evento</mat-label>
+        <mat-select formControlName="eventoId">
+          <mat-option *ngFor="let evento of eventos" [value]="evento.id">
+            {{ evento.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('eventoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row cargo-row">
+      <mat-form-field appearance="fill" class="cargo-field">
+        <mat-label>Responsable (Cargo)</mat-label>
+        <mat-select formControlName="cargoId" (openedChange)="onCargoSelectOpen($event)">
+          <div class="search-container">
+            <input #searchCargo matInput placeholder="Buscar responsable..." (keyup)="filterCargos($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let cargo of filteredCargos" [value]="cargo.id">
+            {{ getCargoNombreCompleto(cargo) }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('cargoId') }}</mat-error>
+      </mat-form-field>
+      <button mat-fab extended color="accent" class="add-btn" (click)="addToList()" [disabled]="responsableForm.invalid" type="button">
+        <mat-icon>add</mat-icon>
+        Añadir
+      </button>
+    </div>
+  </form>
+
+  <div class="pending-section" *ngIf="pendingList.length > 0">
+    <h3 class="pending-title">Responsables a asignar ({{ pendingList.length }})</h3>
+    <div class="pending-item" *ngFor="let item of pendingList; let i = index">
+      <div class="pending-info">
+        <span class="pending-evento">{{ item.eventoNombre }}</span>
+        <span class="pending-responsable">{{ item.responsableNombre }}</span>
+      </div>
+      <button mat-icon-button color="warn" (click)="removeFromList(i)" matTooltip="Eliminar" type="button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="pendingList.length === 0 || saving">
+    <mat-icon>save</mat-icon>
+    {{ saving ? 'Guardando...' : 'Guardar Todos' }}
+  </button>
+</mat-dialog-actions>

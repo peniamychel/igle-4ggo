@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">add_circle</mat-icon>
+  Crear Tipo de Certificado
+</h2>
+
+<form [formGroup]="tipoCertificadoForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej. Bautismo">
+      <mat-error>{{ getError('nombre') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Fecha</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="fecha">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error>{{ getError('fecha') }}</mat-error>
+    </mat-form-field>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!tipoCertificadoForm.valid">
+        <mat-icon>save</mat-icon>
+        Crear
+      </button>
+    </mat-dialog-actions>
+
+  </mat-dialog-content>
+</form>

@@ -1,0 +1,20 @@
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 380px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.title-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+mat-dialog-actions {
+  padding-top: 8px;
+}

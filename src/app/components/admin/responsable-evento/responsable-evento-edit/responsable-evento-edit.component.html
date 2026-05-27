@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">edit</mat-icon>
+  Editar Responsable
+</h2>
+
+<form [formGroup]="responsableForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Evento</mat-label>
+        <mat-select formControlName="eventoId">
+          <mat-option *ngFor="let evento of eventos" [value]="evento.id">
+            {{ evento.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('eventoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Responsable (Cargo)</mat-label>
+        <mat-select formControlName="cargoId" (openedChange)="onCargoSelectOpen($event)">
+          <div class="search-container">
+            <input #searchCargo matInput placeholder="Buscar responsable..." (keyup)="filterCargos($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let cargo of filteredCargos" [value]="cargo.id">
+            {{ getCargoNombreCompleto(cargo) }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('cargoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!responsableForm.valid">
+      <mat-icon>save</mat-icon>
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>
