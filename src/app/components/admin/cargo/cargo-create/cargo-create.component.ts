@@ -42,12 +42,14 @@ export class CargoCreateComponent implements OnInit {
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
+  filterRole: string = '';
+  hideCargoSelect: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private cargoService: CargoService,
     private dialogRef: MatDialogRef<CargoCreateComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
+    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[], filterRole?: string }
   ) {
     this.cargoForm = this.fb.group({
       tipoCargoId: ['', Validators.required],
@@ -63,9 +65,21 @@ export class CargoCreateComponent implements OnInit {
     if (this.data) {
       this.iglesias = this.data.iglesias;
       this.filteredIglesias = [...this.iglesias];
-      this.tiposCargo = this.data.tiposCargo.filter(tc => tc.estado); // solo activos? o todos, supongamos todos los disponibles
-      this.miembros = this.data.miembros; 
+      this.tiposCargo = this.data.tiposCargo.filter(tc => tc.estado);
+      this.miembros = this.data.miembros;
       this.filteredMiembros = [...this.miembros];
+      this.filterRole = this.data.filterRole || '';
+
+      if (this.filterRole) {
+        this.hideCargoSelect = true;
+        const tipoCargoMatch = this.tiposCargo.find(tc => {
+          const nombre = tc.nombre?.toLowerCase() || '';
+          return nombre.includes(this.filterRole.toLowerCase());
+        });
+        if (tipoCargoMatch) {
+          this.cargoForm.patchValue({ tipoCargoId: tipoCargoMatch.id });
+        }
+      }
     }
   }
 

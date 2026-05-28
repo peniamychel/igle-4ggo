@@ -2,6 +2,27 @@
 <form [formGroup]="personaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 
+    <div class="photo-section">
+      <div class="photo-container" (click)="fileInput.click()">
+        <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto de perfil" class="profile-photo">
+        <div class="no-photo" *ngIf="!imagePreview">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="photo-overlay">
+          <mat-icon>photo_camera</mat-icon>
+          <span>{{ imagePreview ? 'Cambiar foto' : 'Click para agregar foto' }}</span>
+        </div>
+      </div>
+      <input #fileInput type="file"
+             (change)="onFileSelected($event)"
+             accept="image/*"
+             style="display: none">
+      <button *ngIf="imagePreview" mat-icon-button type="button" class="remove-photo-btn"
+              (click)="removePhoto(); $event.stopPropagation()" matTooltip="Quitar foto">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
     <div class="row">
 
       <mat-form-field appearance="outline">
@@ -80,35 +101,13 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Celular</mat-label>
-        <input matInput>
+        <input matInput formControlName="celular">
       </mat-form-field>
 
       <!--                  <mat-form-field appearance="outline">-->
       <!--                      <mat-label>URI Foto</mat-label>-->
       <!--                      <input matInput formControlName="uriFoto">-->
       <!--                  </mat-form-field>-->
-
-    </div>
-    <div class="row">
-      <div class="file-inputr">
-        <button mat-stroked-button type="button" (click)="fileInput.click()">
-          <mat-icon>photo_camera</mat-icon>
-          Seleccion Imagen
-        </button>
-        <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none">
-        <span *ngIf="selectedFile">{{selectedFile.name}}</span>
-      </div>
-
-      <!--                <div class="current-photo" (click)="openImagePreview()">-->
-      <!--                  &lt;!&ndash; Usamos previewUrl si existe, sino la imagen actual &ndash;&gt;-->
-      <!--                  <img [src]="previewUrl || data.uriFoto" [alt]="data.username" *ngIf="previewUrl || data.uriFoto">-->
-      <!--                  <div class="no-photo" *ngIf="!previewUrl && !data.uriFoto">-->
-      <!--                    <span class="initials">{{data.name?.charAt(0) || data.username.charAt(0)}}</span>-->
-      <!--                  </div>-->
-      <!--                  <div class="photo-overlay">-->
-      <!--                    <mat-icon>zoom_in</mat-icon>-->
-      <!--                  </div>-->
-      <!--                </div>-->
 
     </div>
 

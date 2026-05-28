@@ -1,6 +1,15 @@
 <h2 mat-dialog-title>Detalles de la Persona</h2>
 <mat-dialog-content>
   <div class="detail-grid">
+    <div class="photo-section">
+      <div class="photo-container" *ngIf="data.uriFoto">
+        <img [src]="data.uriFoto" [alt]="data.nombre" class="profile-photo">
+      </div>
+      <div class="photo-placeholder" *ngIf="!data.uriFoto">
+        {{data.nombre.charAt(0) || '?'}}
+      </div>
+    </div>
+
     <div class="detail-section">
       <div class="detail-row">
         <div class="detail-item">

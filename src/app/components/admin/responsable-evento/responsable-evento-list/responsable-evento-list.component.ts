@@ -220,10 +220,11 @@ export class ResponsableEventoListComponent implements OnInit {
     }
   }
 
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
-      panelClass: ['alerta-verde']
+      panelClass: [panelClass]
     });
   }
 }

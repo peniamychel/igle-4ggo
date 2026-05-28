@@ -45,6 +45,11 @@
                 (click)="$event.stopPropagation(); toggleEstado(item)">
           <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
         </button>
+        <button mat-icon-button color="warn"
+                matTooltip="Eliminar" matTooltipPosition="right"
+                (click)="$event.stopPropagation(); deleteTipoCargo(item)">
+          <mat-icon>delete</mat-icon>
+        </button>
       </mat-cell>
     </ng-container>
 

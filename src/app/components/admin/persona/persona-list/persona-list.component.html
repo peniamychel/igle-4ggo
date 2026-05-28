@@ -16,6 +16,20 @@
 
   <!-- Vista Tabla -->
   <mat-table [dataSource]="personas" matSort class="mat-elevation-z8 demo-table">
+    <ng-container matColumnDef="foto">
+      <mat-header-cell *matHeaderCellDef> Foto </mat-header-cell>
+      <mat-cell *matCellDef="let persona">
+        <div class="persona-avatar-container">
+          <div class="persona-avatar" *ngIf="persona.uriFoto">
+            <img [src]="persona.uriFoto" [alt]="persona.nombre">
+          </div>
+          <div class="persona-avatar-placeholder" *ngIf="!persona.uriFoto">
+            {{persona.nombre?.charAt(0) || '?'}}
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="nombre">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
       <mat-cell *matCellDef="let persona"> {{persona.nombre}} </mat-cell>

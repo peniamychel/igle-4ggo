@@ -2,7 +2,7 @@
   <div class="nuevo-buscar">
     <button mat-raised-button color="primary" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon>
-      Asignar Cargo
+      {{ filterRole === 'pastor' ? 'Asignar Nuevo Pastor' : filterRole === 'encargado' ? 'Asignar Nuevo Encargado' : 'Asignar Cargo' }}
     </button>
     <mat-form-field appearance="outline">
       <mat-label>Buscar</mat-label>
@@ -64,8 +64,8 @@
       </mat-cell>
     </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+    <mat-header-row *matHeaderRowDef="displayedColumnsForView"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumnsForView;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
     <tr class="mat-row" *matNoDataRow>
       <td class="mat-cell" colspan="7">No se encontraron datos que coincidan con "{{ input.value }}"</td>

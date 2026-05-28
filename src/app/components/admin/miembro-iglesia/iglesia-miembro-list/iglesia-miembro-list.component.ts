@@ -100,7 +100,13 @@ export class IglesiaMiembroListComponent implements OnInit {
 
   loadIglesias() {
     this.iglesiaService.getIglesias().subscribe(response => {
-      this.iglesiasDataSource.data = response.datos;
+      const data = [...response.datos];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.iglesiasDataSource.data = data;
     });
   }
 
@@ -115,6 +121,11 @@ export class IglesiaMiembroListComponent implements OnInit {
         const miembros = miembrosResponse.datos.filter(m =>
           miembroIds.includes(m.id!)
         );
+        miembros.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
         this.miembrosDataSource.data = miembros;
         this.miembrosCount = miembros.length;
 

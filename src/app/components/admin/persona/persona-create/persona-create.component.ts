@@ -57,6 +57,7 @@ export class PersonaCreateComponent implements OnInit {
   private snackBar: MatSnackBar = inject(MatSnackBar);
 
   selectedFile: File | null = null;
+  imagePreview: string | null = null;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: Persona
@@ -65,9 +66,11 @@ export class PersonaCreateComponent implements OnInit {
 
       nombre: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+( [a-zA-Z]+)*$'), Validators.minLength(3)]],
       apellido: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+( [a-zA-Z]+)*$'), Validators.minLength(3)]],
-      // ci: ['', [Validators.required, Validators.pattern(/^\d.*/), Validators.minLength(4)], [this.ciValidator.bind(this)]],
+      ci: ['', [Validators.minLength(4)]],
       fechaNac: ['', Validators.required],
-      sexo: ['', Validators.required]
+      sexo: ['', Validators.required],
+      celular: [''],
+      direccion: ['']
     });
   }
 
@@ -88,10 +91,17 @@ export class PersonaCreateComponent implements OnInit {
 
   onSubmit() {
     if (this.personaForm.valid) {
-      const persona = {
+      const formValue = this.personaForm.value;
+      const persona: any = {
         ...this.data,
-        ...this.personaForm.value
+        nombre: formValue.nombre,
+        apellido: formValue.apellido,
+        fechaNac: formValue.fechaNac ? new Date(formValue.fechaNac).toISOString() : undefined,
+        sexo: formValue.sexo,
       };
+      if (formValue.ci) { persona.ci = Number(formValue.ci); }
+      if (formValue.celular) { persona.celular = formValue.celular; }
+      if (formValue.direccion) { persona.direccion = formValue.direccion; }
       this.personaService.createPersona(persona).subscribe({
         next: (response) => {
           if (this.selectedFile && response.datos.id) {
@@ -101,14 +111,14 @@ export class PersonaCreateComponent implements OnInit {
                   duration: 3000,
                   panelClass: ['success-snackbar']
                 });
-                this.matDialogRef.close(true);
+                this.matDialogRef.close(response.datos);
               },
               error: () => {
                 this.snackBar.open('Error al subir la foto', 'Cerrar', {
                   duration: 3000,
                   panelClass: ['error-snackbar']
                 });
-                this.matDialogRef.close(true);
+                this.matDialogRef.close(response.datos);
               }
             });
           } else {
@@ -116,15 +126,12 @@ export class PersonaCreateComponent implements OnInit {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
-            this.matDialogRef.close(true);
+            this.matDialogRef.close(response.datos);
           }
 
         },
         error: (err) => {
           console.error('Error al crear la persona:', err);
-        },
-        complete: () => {
-          console.log('Solicitud completada.');
           this.snackBar.open('Error al crear Persona', 'Cerrar', {
             duration: 3000,
             panelClass: ['error-snackbar']
@@ -201,7 +208,17 @@ export class PersonaCreateComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
+  }
+
+  removePhoto(): void {
+    this.selectedFile = null;
+    this.imagePreview = null;
   }
 
   // openImagePreview(): void {

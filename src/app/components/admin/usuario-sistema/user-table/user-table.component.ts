@@ -118,7 +118,9 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   loadUsers(): void {
     this.userService.getAllUsers().subscribe({
       next: (response) => {
-        this.dataSource.data = response.datos;
+        const data = [...response.datos];
+        data.sort((a, b) => (b.id || 0) - (a.id || 0));
+        this.dataSource.data = data;
       },
       error: (error) => {
         this.snackBar.open('Error al cargar usuarios', 'Cerrar', {

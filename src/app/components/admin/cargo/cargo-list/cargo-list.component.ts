@@ -55,6 +55,7 @@ export class CargoListComponent implements OnInit {
   iglesias: Iglesia[] = [];
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
+  filterRole: string = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -72,6 +73,9 @@ export class CargoListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.route.data.subscribe(data => {
+      this.filterRole = data['filterRole'] || '';
+    });
     this.loadInitialData();
   }
 
@@ -91,6 +95,13 @@ export class CargoListComponent implements OnInit {
       this.miembros = results.miembros.datos || [];
       this.loadCargos();
     });
+  }
+
+  get displayedColumnsForView(): string[] {
+    if (this.filterRole) {
+      return this.displayedColumns.filter(col => col !== 'tipoCargo' && col !== 'fechaFin');
+    }
+    return this.displayedColumns.filter(col => col !== 'fechaFin');
   }
 
   loadCargos() {
@@ -152,7 +163,8 @@ export class CargoListComponent implements OnInit {
       data: {
         iglesias: this.iglesias,
         tiposCargo: this.tiposCargo,
-        miembros: this.miembros
+        miembros: this.miembros,
+        filterRole: this.filterRole
       }
     });
 
@@ -245,10 +257,11 @@ export class CargoListComponent implements OnInit {
     }
   }
 
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
-      panelClass: ['alerta-verde']
+      panelClass: [panelClass]
     });
   }
 }

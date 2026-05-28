@@ -72,10 +72,17 @@ export class TipoCargoService {
    * @param id id del tipo de cargo
    * @returns true si se cambio el estado
    */
-  toggleEstado(id: number): Observable<boolean> {
-    return this.http.put<boolean>(
+  toggleEstado(id: number): Observable<ApiResponse<TipoCargo>> {
+    return this.http.put<ApiResponse<TipoCargo>>(
       `${this.apiUrl}/estado/${id}`,
       {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  deleteTipoCargo(id: number): Observable<any> {
+    return this.http.delete(
+      `${this.apiUrl}/delete/${id}`,
       { headers: this.getHeaders() }
     );
   }

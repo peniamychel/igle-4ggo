@@ -66,7 +66,13 @@ export class TipoCargoListComponent implements OnInit {
 
   loadTipoCargos() {
     this.tipoCargoService.getTipoCargos().subscribe(response => {
-      this.dataSource.data = Array.isArray(response.datos) ? response.datos : [];
+      const data = Array.isArray(response.datos) ? [...response.datos] : [];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.dataSource.data = data;
     });
   }
 
@@ -130,19 +136,45 @@ export class TipoCargoListComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result && tipoCargo.id) {
-          this.tipoCargoService.toggleEstado(tipoCargo.id).subscribe(newEstado => {
-            tipoCargo.estado = newEstado;
-            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' ${newEstado ? 'activado' : 'desactivado'}`);
+          this.tipoCargoService.toggleEstado(tipoCargo.id).subscribe(response => {
+            tipoCargo.estado = response.datos.estado;
+            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' ${response.datos.estado ? 'activado' : 'desactivado'}`);
           });
         }
       });
     }
   }
 
-  messageSnackBar(message: string) {
+  deleteTipoCargo(tipoCargo: TipoCargo) {
+    if (!tipoCargo.id) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: `¿Está seguro que desea eliminar el tipo de cargo <br><strong style="font-size: 1.25em; color: #d32f2f; display: block; margin-top: 8px;">${tipoCargo.nombre}</strong>?<br><br><span style="color: #d32f2f;">Esta acción no se puede deshacer.</span>`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && tipoCargo.id) {
+        this.tipoCargoService.deleteTipoCargo(tipoCargo.id).subscribe({
+          next: () => {
+            this.loadTipoCargos();
+            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' eliminado`);
+          },
+          error: () => {
+            this.messageSnackBar('Error al eliminar el tipo de cargo', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
-      panelClass: ['alerta-verde']
+      panelClass: [panelClass]
     });
   }
 }

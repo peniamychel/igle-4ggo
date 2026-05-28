@@ -14,6 +14,20 @@
   </div>
 
   <mat-table [dataSource]="miembros" matSort class="mat-elevation-z8">
+    <ng-container matColumnDef="foto">
+      <mat-header-cell *matHeaderCellDef> Foto </mat-header-cell>
+      <mat-cell *matCellDef="let miembro">
+        <div class="miembro-avatar-container">
+          <div class="miembro-avatar" *ngIf="miembro.personaDto?.uriFoto">
+            <img [src]="miembro.personaDto.uriFoto" [alt]="miembro.personaDto?.nombre">
+          </div>
+          <div class="miembro-avatar-placeholder" *ngIf="!miembro.personaDto?.uriFoto">
+            {{miembro.personaDto?.nombre?.charAt(0) || '?'}}
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="nombreCompleto">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo</mat-header-cell>
       <mat-cell *matCellDef="let miembro">

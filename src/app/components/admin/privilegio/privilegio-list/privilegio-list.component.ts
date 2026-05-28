@@ -79,7 +79,13 @@ export class PrivilegioListComponent implements OnInit {
   loadPrivilegios() {
     this.privilegioService.getAll().subscribe(data => {
       this.todosPrivilegios = data;
-      this.dataSource.data = data;
+      const sorted = [...data];
+      sorted.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.dataSource.data = sorted;
     });
   }
 
@@ -188,10 +194,11 @@ export class PrivilegioListComponent implements OnInit {
     }
   }
 
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
-      panelClass: ['alerta-verde']
+      panelClass: [panelClass]
     });
   }
 }

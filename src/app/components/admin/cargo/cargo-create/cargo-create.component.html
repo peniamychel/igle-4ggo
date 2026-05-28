@@ -1,6 +1,6 @@
 <h2 mat-dialog-title>
   <mat-icon class="title-icon">add_circle</mat-icon>
-  Asignar Cargo
+  {{ hideCargoSelect ? (filterRole === 'pastor' ? 'Asignar Nuevo Pastor' : 'Asignar Nuevo Encargado') : 'Asignar Cargo' }}
 </h2>
 
 <form [formGroup]="cargoForm" (ngSubmit)="onSubmit()">
@@ -21,7 +21,7 @@
       </mat-form-field>
     </div>
 
-    <div class="form-row">
+    <div class="form-row" *ngIf="!hideCargoSelect">
       <mat-form-field appearance="fill">
         <mat-label>Cargo</mat-label>
         <mat-select formControlName="tipoCargoId">

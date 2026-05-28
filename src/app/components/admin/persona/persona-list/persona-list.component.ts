@@ -51,7 +51,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 export class PersonaListComponent implements OnInit {
   // personas: Persona[] = [];
   personas = new MatTableDataSource<Persona>([]);
-  displayedColumns: string[] = ['nombre', 'apellido', 'celular', 'fechaNac', 'sexo', 'acciones'];
+  displayedColumns: string[] = ['foto', 'nombre', 'apellido', 'celular', 'fechaNac', 'sexo', 'acciones'];
 
   @ViewChild(MatSort) sort!: MatSort;
   // @ViewChild(MatTable) table!: MatTable<Persona>;
@@ -79,7 +79,13 @@ export class PersonaListComponent implements OnInit {
    */
   loadPersonas() {
     this.personaService.getPersonas().subscribe(response => {
-      this.personas.data = response.datos;
+      const data = [...response.datos];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.personas.data = data;
       this.personas.paginator = this.paginator;
       this.personas.sort = this.sort;
     });
@@ -112,7 +118,7 @@ export class PersonaListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadPersonas();
-        this.messageSnackBar(`Persona '${result.nombre}' Creado`)
+        this.messageSnackBar(`Persona '${result.nombre}' Creada`)
       }
     });
   }
@@ -195,9 +201,10 @@ export class PersonaListComponent implements OnInit {
    * Despliega un aviso ('SnackBar') persistente por un periodo corto de tiempo.
    * @param message El mensaje descriptivo a mostrar en la notificación.
    */
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(
-      message, 'Cerrar', { duration: 3000, panelClass: ['success-snackbar'] }
+      message, 'Cerrar', { duration: 3000, panelClass: [panelClass] }
     );
   }
 }

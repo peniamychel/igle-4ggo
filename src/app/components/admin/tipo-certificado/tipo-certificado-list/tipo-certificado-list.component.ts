@@ -66,7 +66,13 @@ export class TipoCertificadoListComponent implements OnInit {
 
   loadTipoCertificados() {
     this.tipoCertificadoService.getTipoCertificados().subscribe(response => {
-      this.dataSource.data = Array.isArray(response.datos) ? response.datos : [];
+      const data = Array.isArray(response.datos) ? [...response.datos] : [];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.dataSource.data = data;
     });
   }
 
@@ -139,10 +145,11 @@ export class TipoCertificadoListComponent implements OnInit {
     }
   }
 
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
-      panelClass: ['alerta-verde']
+      panelClass: [panelClass]
     });
   }
 }

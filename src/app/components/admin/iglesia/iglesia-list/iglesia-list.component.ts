@@ -76,7 +76,13 @@ export class IglesiaListComponent implements OnInit {
    */
   loadIglesias() {
     this.iglesiaService.getIglesias().subscribe(response => {
-      this.dataSource.data = response.datos;
+      const data = [...response.datos];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.dataSource.data = data;
     });
   }
 
@@ -205,13 +211,11 @@ export class IglesiaListComponent implements OnInit {
    * Muestra un pequeño mensaje de notificación ('SnackBar') temporal en la parte inferior de la pantalla.
    * @param message El texto que se va a desplegar en la notificación.
    */
-  messageSnackBar(message: string) {
-    this.snackBar.open(
-      message, 'Cerrar',
-      {
-        duration: 3000,
-        panelClass: ['alerta-verde']
-      }
-    );
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 3000,
+      panelClass: [panelClass]
+    });
   }
 }

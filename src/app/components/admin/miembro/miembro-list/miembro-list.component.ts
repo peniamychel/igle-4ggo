@@ -51,7 +51,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 export class MiembroListComponent implements OnInit {
   miembros = new MatTableDataSource<Miembro>([]);
   miembros2: Miembro[] = [];
-  displayedColumns: string[] = ['nombreCompleto', 'celular', 'direccion', 'fechaConvercion', 'sexo', 'acciones'];
+  displayedColumns: string[] = ['foto', 'nombreCompleto', 'celular', 'direccion', 'fechaConvercion', 'sexo', 'acciones'];
 
   @ViewChild(MatSort) sort!: MatSort;
   // @ViewChild(MatTable) table!: MatTable<Persona>;
@@ -112,8 +112,13 @@ export class MiembroListComponent implements OnInit {
    */
   loadMiembros() {
     this.miembroService.getMiembros().subscribe(response => {
-      this.miembros.data = response.datos;
-
+      const data = [...response.datos];
+      data.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      this.miembros.data = data;
     });
   }
 
@@ -228,9 +233,10 @@ export class MiembroListComponent implements OnInit {
    * Despliega un aviso ('SnackBar') persistente por un periodo corto de tiempo.
    * @param message El mensaje descriptivo a mostrar en la notificación.
    */
-  messageSnackBar(message: string) {
+  messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+    const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(
-      message, 'Cerrar', { duration: 3000, panelClass: ['success-snackbar'] }
+      message, 'Cerrar', { duration: 3000, panelClass: [panelClass] }
     );
   }
 
