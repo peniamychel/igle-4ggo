@@ -1,0 +1,164 @@
+<!-- ════════════════════════════════════════════════
+     AUDIT TRAIL — Stats + Filters + Premium Table
+     ════════════════════════════════════════════════ -->
+
+<!-- ── Tarjetas de Estadísticas ── -->
+<div class="stats-row">
+  <div class="stat-card stat-total">
+    <div class="stat-icon-wrapper">
+      <mat-icon>assignment</mat-icon>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ totalEventos }}</span>
+      <span class="stat-label">Total Eventos</span>
+    </div>
+  </div>
+
+  <div class="stat-card stat-login">
+    <div class="stat-icon-wrapper">
+      <mat-icon>login</mat-icon>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ iniciosSesion }}</span>
+      <span class="stat-label">Inicios de Sesión</span>
+    </div>
+  </div>
+
+  <div class="stat-card stat-warn">
+    <div class="stat-icon-wrapper">
+      <mat-icon>gpp_maybe</mat-icon>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ advertencias }}</span>
+      <span class="stat-label">Advertencias</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Barra de Filtros ── -->
+<div class="filters-bar">
+  <mat-form-field appearance="outline" class="filter-search">
+    <mat-label>Buscar eventos...</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput
+           [(ngModel)]="searchQuery"
+           (keyup)="onSearchKeyup()"
+           placeholder="Usuario, descripción, IP..."
+           autocomplete="off">
+    @if (searchQuery) {
+      <button matSuffix mat-icon-button aria-label="Limpiar" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter-select">
+    <mat-label>Tipo de evento</mat-label>
+    <mat-select [(ngModel)]="selectedAccion" (selectionChange)="onFilterChange()">
+      @for (acc of acciones; track acc) {
+        <mat-option [value]="acc">{{ acc }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter-select">
+    <mat-label>Período</mat-label>
+    <mat-select [(ngModel)]="selectedDias" (selectionChange)="onFilterChange()">
+      @for (periodo of periodos; track periodo.value) {
+        <mat-option [value]="periodo.value">{{ periodo.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<!-- ── Tabla de Auditoría ── -->
+<div class="table-container mat-elevation-z1">
+  <table mat-table [dataSource]="dataSource" matSort matSortActive="fecha" matSortDirection="desc" class="audit-table">
+
+    <!-- Columna: Evento -->
+    <ng-container matColumnDef="accion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Evento</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="event-cell">
+          <div class="event-icon-wrapper" [ngClass]="log.accion.toLowerCase()">
+            <mat-icon>{{ getActionIcon(log.accion) }}</mat-icon>
+          </div>
+          <div class="event-text">
+            <span class="event-title">{{ log.accion }}</span>
+            <span class="event-desc">{{ log.detalle }}</span>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Usuario -->
+    <ng-container matColumnDef="usuario">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="user-cell">
+          <div class="user-avatar" [style.background-color]="getAvatarColor(log.usuario)">
+            {{ getInitials(log.usuario) }}
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ log.usuario }}</span>
+            <span class="user-role">{{ log.rol }}</span>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Fecha -->
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha y Hora</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="date-cell">
+          <span class="date-main">{{ log.fecha | date:'dd MMM yyyy, HH:mm' }}</span>
+          <span class="date-relative">{{ getRelativeTime(log.fecha) }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Estado -->
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+      <td mat-cell *matCellDef="let log">
+        <span class="status-chip" [ngClass]="log.estado.toLowerCase()">
+          <mat-icon class="status-chip-icon">{{ getStatusIcon(log.estado) }}</mat-icon>
+          {{ getStatusLabel(log.estado) }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Acciones -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>Detalles</th>
+      <td mat-cell *matCellDef="let log">
+        <button mat-icon-button
+                matTooltip="Ver detalles completos"
+                class="detail-btn"
+                (click)="openDetail(log)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+    <!-- Empty state -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+        <div class="no-data">
+          <mat-icon>search_off</mat-icon>
+          <span>No se encontraron registros con los filtros actuales</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <mat-paginator [pageSizeOptions]="[5, 10, 25]"
+                 [pageSize]="10"
+                 showFirstLastButtons
+                 aria-label="Seleccionar página de eventos">
+  </mat-paginator>
+</div>

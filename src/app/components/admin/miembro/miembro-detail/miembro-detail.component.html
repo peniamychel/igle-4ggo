@@ -1,69 +1,96 @@
-<h2 mat-dialog-title>Detalles del Miembro</h2>
-<mat-dialog-content>
-  <div class="detail-grid">
-    <div class="detail-section">
-      <h3>Datos Personales</h3>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Nombre:</strong> {{data.personaDto?.nombre}}
-        </div>
-        <div class="detail-item">
-          <strong>Apellido:</strong> {{data.personaDto?.apellido}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>CI:</strong> {{data.personaDto?.ci}}
-        </div>
-        <div class="detail-item">
-          <strong>Fecha de Nacimiento:</strong> {{formatDate(data.personaDto?.fechaNac)}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Celular:</strong> {{data.personaDto?.celular}}
-        </div>
-        <div class="detail-item">
-          <strong>Sexo:</strong> {{data.personaDto?.sexo}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Dirección:</strong> {{data.personaDto?.direccion}}
-        </div>
-        <div class="detail-item">
-          <strong>URI Foto:</strong> {{data.personaDto?.uriFoto}}
-        </div>
-      </div>
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">people</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Detalles del Miembro</h2>
+      <p class="header-subtitle">{{ data.personaDto?.nombre }} {{ data.personaDto?.apellido }}</p>
     </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
-    <div class="detail-section">
-      <h3>Datos de Membresía</h3>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Lugar de Conversión:</strong> {{data.lugarConvercion}}
-        </div>
-        <div class="detail-item">
-          <strong>Fecha de Conversión:</strong> {{formatDate(data.fechaConvercion)}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Interventores:</strong> {{data.interventores}}
-        </div>
-        <div class="detail-item">
-          <strong>Detalles:</strong> {{data.detalles}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Estado:</strong> {{data.estado ? 'Activo' : 'Inactivo'}}
-        </div>
-      </div>
+<mat-dialog-content class="dialog-content">
+  <!-- Photo Section -->
+  <div class="photo-section" *ngIf="getProfilePhoto()">
+    <div class="photo-container" (click)="toggleImagePreview()" style="cursor: pointer;">
+      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.personaDto?.nombre" class="profile-photo">
     </div>
+  </div>
+  <div class="photo-section" *ngIf="!getProfilePhoto()">
+    <div class="photo-placeholder">
+      {{data.personaDto?.nombre?.charAt(0) || '?'}}
+    </div>
+  </div>
 
-    <mat-dialog-actions>
-      <button mat-button mat-dialog-close type="button">Cerrar</button>
-    </mat-dialog-actions>
+  <!-- Image Preview Overlay -->
+  <div class="image-preview-overlay" *ngIf="showImagePreview" (click)="toggleImagePreview()">
+    <div class="image-preview-container" (click)="$event.stopPropagation()">
+      <button mat-icon-button class="preview-close-btn" (click)="toggleImagePreview()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.personaDto?.nombre" class="preview-image">
+    </div>
+  </div>
+
+  <h3 class="section-title">Datos Personales</h3>
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Nombre</span>
+      <span class="val">{{ data.personaDto?.nombre }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Apellido</span>
+      <span class="val">{{ data.personaDto?.apellido }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">CI</span>
+      <span class="val">{{ data.personaDto?.ci }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Fecha Nacimiento</span>
+      <span class="val">{{ formatDate(data.personaDto?.fechaNac) }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Celular</span>
+      <span class="val">{{ data.personaDto?.celular }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Sexo</span>
+      <span class="val">{{ data.personaDto?.sexo }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Direccion</span>
+      <span class="val">{{ data.personaDto?.direccion }}</span>
+    </div>
+  </div>
+
+  <h3 class="section-title">Datos de Membresia</h3>
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Lugar de Conversion</span>
+      <span class="val">{{ data.lugarConvercion }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Fecha de Conversion</span>
+      <span class="val">{{ formatDate(data.fechaConvercion) }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Interventores</span>
+      <span class="val">{{ data.interventores }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Detalles</span>
+      <span class="val">{{ data.detalles }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Estado</span>
+      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
+    </div>
   </div>
 </mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

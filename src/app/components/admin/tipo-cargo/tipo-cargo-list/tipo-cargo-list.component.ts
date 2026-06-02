@@ -130,7 +130,10 @@ export class TipoCargoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} el tipo de cargo <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${tipoCargo.nombre}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} el tipo de cargo <strong>${tipoCargo.nombre}</strong>.`,
+          confirmText: tipoCargo.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 
@@ -151,7 +154,10 @@ export class TipoCargoListComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        message: `¿Está seguro que desea eliminar el tipo de cargo <br><strong style="font-size: 1.25em; color: #d32f2f; display: block; margin-top: 8px;">${tipoCargo.nombre}</strong>?<br><br><span style="color: #d32f2f;">Esta acción no se puede deshacer.</span>`
+        title: '¿Está seguro que desea eliminar?',
+        message: `Está a punto de eliminar el tipo de cargo <strong>${tipoCargo.nombre}</strong>. Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        type: 'danger'
       }
     });
 

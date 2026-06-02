@@ -5,14 +5,17 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatSelectChange, MatSelectModule} from '@angular/material/select';
+import {MatSelectModule} from '@angular/material/select';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatNativeDateModule} from '@angular/material/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {Persona} from '../../../../core/models/persona.model';
 import {PersonaService} from '../../../../core/services/persona.service';
 import {MiembroService} from '../../../../core/services/miembro.service';
+import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-miembro-form',
@@ -29,17 +32,19 @@ import {MiembroService} from '../../../../core/services/miembro.service';
     MatSelectModule,
     MatDialogModule,
     MatNativeDateModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatIconModule,
+    MatTooltipModule,
+    ImageUrlPipe
   ]
 })
 export class MiembroFormEditarComponent implements OnInit {
   miembroForm!: FormGroup;
-  personaForm!: FormGroup;
   editMode = false;
-  personas: Persona[] = [];
   selectedPersona: Persona | null = null;
-  private persona: Persona | null = null;
-  private miembro: Miembro | null = null;
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
+  photoRemoved = false;
 
   constructor(
     private fb: FormBuilder,
@@ -53,7 +58,6 @@ export class MiembroFormEditarComponent implements OnInit {
 
   createForm() {
     this.miembroForm = this.fb.group({
-      // Persona fields
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
       ci: ['', Validators.required],
@@ -61,9 +65,6 @@ export class MiembroFormEditarComponent implements OnInit {
       celular: ['', Validators.required],
       sexo: ['', Validators.required],
       direccion: ['', Validators.required],
-      uriFoto: [''],
-
-      // Miembro fields
       fechaConvercion: [''],
       lugarConvercion: ['', Validators.required],
       interventores: ['', Validators.required],
@@ -72,22 +73,18 @@ export class MiembroFormEditarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadPersonas();
     if (this.data) {
       this.editMode = true;
       this.patchFormValues();
     }
   }
 
-  loadPersonas() {
-    this.personaService.getPersonas().subscribe(response => {
-      this.personas = response.datos.filter(p => p.estado);
-    });
-  }
-
   patchFormValues() {
     if (this.data.personaDto) {
       this.selectedPersona = this.data.personaDto;
+      if (this.data.personaDto.uriFoto) {
+        this.imagePreview = this.data.personaDto.uriFoto;
+      }
       this.miembroForm.patchValue({
         ...this.data.personaDto,
         ...this.data
@@ -95,78 +92,60 @@ export class MiembroFormEditarComponent implements OnInit {
     }
   }
 
-
-  public async onSubmit2() {
-    if (this.miembroForm.valid) {
-      const miembroForm = this.miembroForm.value;
-
-      this.persona = this.data.personaDto!;
-
-      const persona = await this.personaService.getPersonaById(this.persona.id!).toPromise();
-
-      this.data.personaDto = {
-        ...this.data.personaDto,
-        nombre: miembroForm.nombre,
-        apellido: miembroForm.apellido,
-        ci: miembroForm.ci,
-        fechaNac: miembroForm.fechaNac,
-        celular: miembroForm.celular,
-        sexo: miembroForm.sexo,
-        direccion: miembroForm.direccion,
-        uriFoto: miembroForm.uriFoto,
-        id: this.data.personaDto!.id
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
       };
-      await this.personaService.updatePersonax(this.persona).toPromise();
-
-      const miembroData = {
-        ...this.data,
-        fechaConvercion: miembroForm.fechaConvercion,
-        lugarConvercion: miembroForm.lugarConvercion,
-        interventores: miembroForm.interventores,
-        detalles: miembroForm.detalles,
-        personaId: this.data.personaDto!.id
-      };
-      await this.miembroService.updateMiembro(miembroData).toPromise();
-
-
-      this.dialogRef.close(true);
+      reader.readAsDataURL(this.selectedFile);
     }
   }
 
+  removePhoto() {
+    this.selectedFile = null;
+    this.imagePreview = null;
+    this.photoRemoved = true;
+  }
+
   public onSubmit() {
-    const miembroForm = this.miembroForm.value;
-
     if (this.miembroForm.valid) {
-      // console.log(this.data)
+      const formValue = this.miembroForm.value;
 
-      const persona = {
+      const persona: any = {
         ...this.data.personaDto,
-        nombre: miembroForm.nombre,
-        apellido: miembroForm.apellido,
-        ci: miembroForm.ci,
-        fechaNac: miembroForm.fechaNac,
-        celular: miembroForm.celular,
-        sexo: miembroForm.sexo,
-        direccion: miembroForm.direccion,
-        uriFoto: miembroForm.uriFoto
-      };
-      this.personaService.updatePersonax(persona).subscribe(() => {
-      });
-
-      const miembroData = {
-        ...this.data,
-        fechaConvercion: miembroForm.fechaConvercion,
-        lugarConvercion: miembroForm.lugarConvercion,
-        interventores: miembroForm.interventores,
-        detalles: miembroForm.detalles,
-        personaId: this.data.personaDto!.id,
-        id: this.data.id
+        nombre: formValue.nombre,
+        apellido: formValue.apellido,
+        ci: formValue.ci,
+        fechaNac: formValue.fechaNac,
+        celular: formValue.celular,
+        sexo: formValue.sexo,
+        direccion: formValue.direccion
       };
 
-      this.miembroService.updateMiembro(miembroData).subscribe(() => {
-        this.dialogRef.close(true);
-      });
+      this.personaService.updatePersonax(persona).subscribe(async () => {
+        if (this.selectedFile && this.data.personaDto?.id) {
+          await this.personaService.uploadUserPhoto(this.data.personaDto.id, this.selectedFile).toPromise();
+        } else if (this.photoRemoved && this.data.personaDto?.id) {
+          await this.personaService.deleteProfilePhoto(this.data.personaDto.id).toPromise();
+        }
 
+        const miembroData = {
+          ...this.data,
+          fechaConvercion: formValue.fechaConvercion,
+          lugarConvercion: formValue.lugarConvercion,
+          interventores: formValue.interventores,
+          detalles: formValue.detalles,
+          personaId: this.data.personaDto!.id,
+          id: this.data.id
+        };
+
+        this.miembroService.updateMiembro(miembroData).subscribe(() => {
+          this.dialogRef.close(true);
+        });
+      });
     }
   }
 }

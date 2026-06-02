@@ -3,7 +3,7 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form-container">
-<!--      <mat-form-field appearance="fill">-->
+<!--      <mat-form-field appearance="outline">-->
 <!--        <mat-label>Nueva Iglesia</mat-label>-->
 <!--        <mat-select formControlName="iglesiaId">-->
 <!--          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">-->
@@ -16,7 +16,7 @@
 <!--        </mat-error>-->
 <!--      </mat-form-field>-->
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Nueva miembro</mat-label>
         <mat-select formControlName="miembroId" id="miembros">
           <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
@@ -30,7 +30,7 @@
       </mat-form-field>
 
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de registro</mat-label>
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>

@@ -7,7 +7,7 @@
   <mat-dialog-content>
     
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Iglesia</mat-label>
         <mat-select formControlName="iglesiaId" (openedChange)="onIglesiaSelectOpen($event)">
           <div class="search-container">
@@ -22,7 +22,7 @@
     </div>
 
     <div class="form-row" *ngIf="!hideCargoSelect">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Cargo</mat-label>
         <mat-select formControlName="tipoCargoId">
           <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Miembro</mat-label>
         <mat-select formControlName="idMiembro" (openedChange)="onMiembroSelectOpen($event)">
           <div class="search-container">
@@ -49,7 +49,7 @@
     </div>
 
     <div class="form-row dates-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de Inicio</mat-label>
         <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
         <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
@@ -57,7 +57,7 @@
         <mat-error>{{ getError('fechaInicio') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha Fin (Opcional)</mat-label>
         <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
         <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
@@ -66,7 +66,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Detalles / Descripción</mat-label>
         <textarea matInput formControlName="detalle" rows="3" placeholder="Información adicional..."></textarea>
         <mat-error>{{ getError('detalle') }}</mat-error>

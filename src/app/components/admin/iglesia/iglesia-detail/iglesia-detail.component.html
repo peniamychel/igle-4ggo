@@ -1,40 +1,59 @@
-<h2 mat-dialog-title>Detalles de la Iglesia</h2>
-<mat-dialog-content>
-  <div class="detail-grid">
-    <div class="detail-section">
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Nombre:</strong> {{data.nombre}}
-        </div>
-        <div class="detail-item">
-          <strong>Dirección:</strong> {{data.direccion}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Teléfono:</strong> {{data.telefono}}
-        </div>
-        <div class="detail-item">
-          <strong>Fecha de Fundación:</strong> {{formatDate(data.fechaFundacion)}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Estado:</strong> {{data.estado ? 'Activo' : 'Inactivo'}}
-        </div>
-        <div class="detail-item">
-          <strong>Creado:</strong> {{formatDate(data.createdAt!)}}
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-item">
-          <strong>Última Actualización:</strong> {{formatDate(data.updatedAt!)}}
-        </div>
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">church</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Detalles de la Iglesia</h2>
+      <p class="header-subtitle">{{ data.nombre }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Nombre</span>
+      <span class="val">{{ data.nombre }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Direccion</span>
+      <span class="val">{{ data.direccion }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Telefono</span>
+      <span class="val">{{ data.telefono }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Fecha Fundacion</span>
+      <span class="val">{{ formatDate(data.fechaFundacion) }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Estado</span>
+      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
+    </div>
+  </div>
+
+  <h3 class="section-title">Información del Sistema</h3>
+  <div class="info-grid">
+    <div class="info-cell">
+      <mat-icon class="cell-icon">schedule</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Creado</span>
+        <span class="cell-value">{{ data.createdAt ? formatDate(data.createdAt) : 'N/A' }}</span>
       </div>
     </div>
-
-    <mat-dialog-actions>
-      <button mat-button mat-dialog-close type="button">Cerrar</button>
-    </mat-dialog-actions>
+    <div class="info-cell">
+      <mat-icon class="cell-icon">update</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Última Actualizacion</span>
+        <span class="cell-value">{{ data.updatedAt ? formatDate(data.updatedAt) : 'N/A' }}</span>
+      </div>
+    </div>
   </div>
 </mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

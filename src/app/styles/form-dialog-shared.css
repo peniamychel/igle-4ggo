@@ -1,0 +1,112 @@
+/* ═══════════════════════════════════════════════
+   FORM DIALOG SHARED — Premium Dialog Form Styles
+   Inspired by Angular Material Blocks Template
+   ═══════════════════════════════════════════════ */
+
+/* ── Dialog Container — Rounded corners ── */
+.cdk-overlay-pane .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+}
+
+/* ── Dialog Title ── */
+[mat-dialog-title] {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  padding: 24px 24px 4px 24px !important;
+  margin: 0 !important;
+  transition: color 0.25s ease;
+}
+
+/* ── Title Icon ── */
+[mat-dialog-title] .title-icon,
+.mat-mdc-dialog-title .title-icon {
+  color: var(--mat-tab-header-active-label-text-color, #7c4dff) !important;
+}
+
+/* ── Dialog Content ── */
+.mdc-dialog__content {
+  padding: 8px 24px 16px 24px !important;
+}
+
+/* ── Dialog Actions ── */
+.mdc-dialog__actions {
+  padding: 8px 16px 16px 16px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+/* ── Cancel button — outline style ── */
+.mdc-dialog__actions button[mat-dialog-close] {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  padding: 6px 20px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.mdc-dialog__actions button[mat-dialog-close]:hover {
+  background-color: rgba(124, 77, 255, 0.05) !important;
+  border-color: var(--text-secondary) !important;
+}
+
+/* ── Submit button — filled style ── */
+.mdc-dialog__actions button[type="submit"] {
+  border-radius: 8px !important;
+  padding: 6px 24px !important;
+  font-weight: 500 !important;
+}
+
+/* ── Form Row (side-by-side fields) ── */
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Search Container ── */
+.search-container {
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  background-color: var(--card-bg);
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, background-color 0.25s ease, color 0.25s ease;
+}
+
+.search-input:focus {
+  border-color: var(--mat-tab-header-active-label-text-color, #7c4dff);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ══════════ Responsive ══════════ */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

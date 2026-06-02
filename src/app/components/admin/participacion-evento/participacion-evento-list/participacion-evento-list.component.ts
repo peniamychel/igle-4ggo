@@ -186,7 +186,10 @@ export class ParticipacionEventoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} esta participación?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} esta participación.`,
+          confirmText: participacion.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 

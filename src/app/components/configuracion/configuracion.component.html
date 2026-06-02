@@ -1,0 +1,108 @@
+<div class="config-wrapper">
+  <!-- ── Encabezado de la Página ── -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Configuración</h1>
+      <p class="page-subtitle">Administra tus preferencias del sistema, seguridad y bitácora de auditoría</p>
+    </div>
+  </div>
+
+  <!-- ── Panel de Pestañas ── -->
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex"
+                 animationDuration="300ms"
+                 class="config-tabs">
+
+    <!-- Tab 1: General -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">tune</mat-icon>
+        <span class="tab-label-text">General</span>
+      </ng-template>
+      <div class="tab-content">
+        <div class="theme-settings-container">
+          <div class="settings-card-header">
+            <mat-icon class="section-header-icon">palette</mat-icon>
+            <div>
+              <h3 class="theme-section-title">Personalización del Tema</h3>
+              <p class="section-subtitle">Selecciona el estilo visual preferido para el panel de administración de tu iglesia</p>
+            </div>
+          </div>
+
+          <div class="theme-options-grid">
+            <!-- Opción: Claro -->
+            <div class="theme-option-card"
+                 [class.active]="!isDarkMode()"
+                 (click)="setTheme(false)">
+              <div class="theme-preview light-preview">
+                <div class="preview-header"></div>
+                <div class="preview-body">
+                  <div class="preview-sidebar"></div>
+                  <div class="preview-main">
+                    <div class="preview-line long"></div>
+                    <div class="preview-line short"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-card-footer">
+                <mat-icon class="option-icon" [class.checked]="!isDarkMode()">{{ !isDarkMode() ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                <div class="option-info">
+                  <span class="option-title">Tema Claro</span>
+                  <span class="option-desc">Ideal para ambientes con alta iluminación</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Opción: Oscuro -->
+            <div class="theme-option-card"
+                 [class.active]="isDarkMode()"
+                 (click)="setTheme(true)">
+              <div class="theme-preview dark-preview">
+                <div class="preview-header"></div>
+                <div class="preview-body">
+                  <div class="preview-sidebar"></div>
+                  <div class="preview-main">
+                    <div class="preview-line long"></div>
+                    <div class="preview-line short"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-card-footer">
+                <mat-icon class="option-icon" [class.checked]="isDarkMode()">{{ isDarkMode() ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+                <div class="option-info">
+                  <span class="option-title">Tema Oscuro</span>
+                  <span class="option-desc">Perfecto para reducir la fatiga visual de noche</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Seguridad -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">shield</mat-icon>
+        <span class="tab-label-text">Seguridad</span>
+      </ng-template>
+      <div class="tab-content">
+        <div class="placeholder-section">
+          <mat-icon class="placeholder-icon">lock</mat-icon>
+          <h3>Configuración de Seguridad</h3>
+          <p>Las opciones de seguridad y contraseñas estarán disponibles próximamente.</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Bitácora de Auditoría (activa por defecto) -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">history</mat-icon>
+        <span class="tab-label-text">Bitácora de Auditoría</span>
+      </ng-template>
+      <div class="tab-content">
+        <app-audit-trail></app-audit-trail>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

@@ -7,7 +7,7 @@
   <mat-dialog-content>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Miembro</mat-label>
         <mat-select formControlName="miembroId" (openedChange)="onMiembroSelectOpen($event)">
           <div class="search-container">
@@ -22,7 +22,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Evento</mat-label>
         <mat-select formControlName="eventoId">
           <mat-option *ngFor="let evento of eventos" [value]="evento.id">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de Participación</mat-label>
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -44,7 +44,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Certificado (Opcional)</mat-label>
         <mat-select formControlName="certificadoId">
           <mat-option [value]="null">Sin certificado</mat-option>

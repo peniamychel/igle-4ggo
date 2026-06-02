@@ -175,7 +175,10 @@ export class PrivilegioListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} el privilegio <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${privilegio.nombre}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} el privilegio <strong>${privilegio.nombre}</strong>.`,
+          confirmText: privilegio.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 

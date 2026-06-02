@@ -1,7 +1,7 @@
 <h2 mat-dialog-title> Crear Iglesia</h2>
 <form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" placeholder="Nombre de la iglesia">
       <mat-error>
@@ -9,7 +9,7 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Dirección</mat-label>
       <input matInput formControlName="direccion" placeholder="Dirección de la iglesia">
       <mat-error>
@@ -17,7 +17,7 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Teléfono</mat-label>
       <input matInput formControlName="telefono" placeholder="Teléfono de contacto">
       <mat-error>
@@ -26,7 +26,7 @@
     </mat-form-field>
 
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Fecha de Fundación</mat-label>
       <input matInput [matDatepicker]="picker">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>

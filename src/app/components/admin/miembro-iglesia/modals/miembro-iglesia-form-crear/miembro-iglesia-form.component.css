@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
+  padding: 8px 24px 16px 24px;
   min-width: 400px;
 }
 
@@ -14,7 +14,39 @@ textarea {
   min-height: 100px;
 }
 
+.title-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: var(--mat-tab-header-active-label-text-color, #7c4dff);
+}
+
 mat-dialog-actions {
-  padding: 16px;
-  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 0 0 0;
+}
+
+mat-dialog-actions button[mat-dialog-close],
+mat-dialog-actions button[type="button"]:not([color]) {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: transparent;
+  padding: 6px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+mat-dialog-actions button[mat-dialog-close]:hover,
+mat-dialog-actions button[type="button"]:not([color]):hover {
+  background-color: rgba(124, 77, 255, 0.05);
+  border-color: var(--text-secondary);
+}
+
+mat-dialog-actions button[type="submit"],
+mat-dialog-actions button[mat-raised-button][color="primary"] {
+  border-radius: 8px;
+  padding: 6px 24px;
+  font-weight: 500;
 }

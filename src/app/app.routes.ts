@@ -24,6 +24,7 @@ import { EventoListComponent } from './components/admin/evento/evento-list/event
 import { CertificadoListComponent } from './components/admin/certificado/certificado-list/certificado-list.component';
 import { ResponsableEventoListComponent } from './components/admin/responsable-evento/responsable-evento-list/responsable-evento-list.component';
 import { ParticipacionEventoListComponent } from './components/admin/participacion-evento/participacion-evento-list/participacion-evento-list.component';
+import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
 
 export const routes: Routes = [
   {
@@ -172,7 +173,7 @@ export const routes: Routes = [
       },
       {
         path: 'configuracion',
-        component: DashboardComponent,
+        component: ConfiguracionComponent,
         title: 'Configuración',
         canActivate: [authGuard]
       },

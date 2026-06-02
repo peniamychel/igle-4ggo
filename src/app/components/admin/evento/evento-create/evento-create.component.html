@@ -7,7 +7,7 @@
   <mat-dialog-content>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Tipo de Evento</mat-label>
         <mat-select formControlName="tipoEventoId">
           <mat-option *ngFor="let tipo of tiposEvento" [value]="tipo.id">
@@ -19,7 +19,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Nombre del Evento</mat-label>
         <input matInput formControlName="nombre" placeholder="Ej. Bautismo Colectivo">
         <mat-error>{{ getError('nombre') }}</mat-error>
@@ -27,7 +27,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Motivo</mat-label>
         <textarea matInput formControlName="motivo" rows="2" placeholder="Celebración mensual"></textarea>
         <mat-error>{{ getError('motivo') }}</mat-error>
@@ -35,7 +35,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Ubicación</mat-label>
         <input matInput formControlName="ubicacion" placeholder="Ej. Salón Principal">
         <mat-error>{{ getError('ubicacion') }}</mat-error>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="form-row dates-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de Inicio</mat-label>
         <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
         <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
@@ -51,7 +51,7 @@
         <mat-error>{{ getError('fechaInicio') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de Fin</mat-label>
         <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
         <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>

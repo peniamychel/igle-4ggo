@@ -1,128 +1,342 @@
-.dialog-container {
-  padding: 20px;
-  min-width: 500px;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.user-photo-container {
+/* Header */
+.dialog-header {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
 }
 
-.current-photo {
-  width: 100px;
-  height: 100px;
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  padding: 6px;
+  box-sizing: content-box;
+  background: rgba(124, 77, 255, 0.12);
+  color: #ab92ff;
+}
+
+h2[mat-dialog-title] {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  transition: color 0.25s ease;
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: color 0.25s ease;
+}
+
+.close-btn {
+  margin-top: -4px;
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* Dialog Content */
+.dialog-content {
+  padding: 0 24px 16px !important;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* Photo Section */
+.photo-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  margin-top: 8px;
+  position: relative;
+}
+
+.photo-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   overflow: hidden;
-  margin-bottom: 10px;
-  border: 2px solid #e0e0e0;
-  position: relative;
   cursor: pointer;
+  border: 3px solid #e0e0e0;
+  transition: border-color 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.current-photo img {
+.photo-container:hover {
+  border-color: #3f51b5;
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+}
+
+.photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.profile-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.no-photo {
+  background-color: var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.no-photo mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--text-secondary);
 }
 
 .photo-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  color: white;
 }
 
 .photo-overlay mat-icon {
-  color: white;
-  font-size: 24px;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
 }
 
-.current-photo:hover .photo-overlay {
-  opacity: 1;
+.photo-overlay span {
+  font-size: 12px;
+  text-align: center;
+  padding: 0 8px;
+  font-weight: 500;
 }
 
-.no-photo {
-  background-color: #e0e0e0;
+.remove-photo-btn {
+  align-self: flex-start;
+  background-color: var(--border-color, #e0e0e0) !important;
+  color: var(--text-secondary) !important;
+  margin-top: 0;
+  margin-left: 12px;
+}
+
+.remove-photo-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.image-deleted-badge {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: default;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #f44336;
 }
 
-.initials {
-  font-size: 36px;
-  color: #757575;
-  text-transform: uppercase;
+.image-deleted-badge mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
+/* Form Styles */
 .form-row {
   display: flex;
   gap: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .form-row mat-form-field {
   flex: 1;
 }
 
+/* Roles Section */
 .roles-section {
-  margin: 20px 0;
+  margin-top: 16px;
+  padding: 20px;
+  background: rgba(124, 77, 255, 0.05);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
 }
 
-.roles-section h3 {
-  margin-bottom: 10px;
-  color: rgba(0, 0, 0, 0.87);
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+  transition: color 0.25s ease;
+}
+
+.section-title mat-icon {
+  color: #ab92ff;
+  font-size: 20px;
+}
+
+.section-hint {
+  margin: 0 0 16px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
 }
 
 .roles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
+.role-checkbox-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.role-card {
+  display: block;
+  cursor: pointer;
+}
+
+.role-card-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  transition: all 0.2s ease;
+}
+
+.role-card:hover .role-card-content {
+  border-color: #ab92ff;
+  box-shadow: 0 2px 12px rgba(124, 77, 255, 0.1);
+}
+
+.role-checkbox-hidden:checked + .role-card-content {
+  border-color: #7c4dff;
+  background: rgba(124, 77, 255, 0.08);
+  box-shadow: 0 2px 12px rgba(124, 77, 255, 0.15);
+}
+
+.role-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.role-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.role-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.role-description {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-check {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.role-checkbox-hidden:checked + .role-card-content .role-check {
+  opacity: 1;
+  color: #7c4dff;
+}
+
+/* Password Section */
 .password-section {
-  margin-top: 20px;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(124, 77, 255, 0.05);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
 }
 
 .password-toggle {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .password-fields {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-mat-dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+/* Dialog Actions */
+.dialog-actions {
+  padding: 12px 24px 16px !important;
+}
+
+.dialog-actions button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 6px 20px;
 }
 
 ::ng-deep .mat-mdc-dialog-content {
   max-height: 70vh !important;
 }
 
+/* Responsive */
 @media (max-width: 600px) {
-  .dialog-container {
-    min-width: auto;
-    width: 100%;
-    padding: 10px;
-  }
-
   .form-row {
     flex-direction: column;
     gap: 0;
@@ -132,11 +346,19 @@ mat-dialog-actions {
     grid-template-columns: 1fr;
   }
 
-  mat-dialog-actions {
+  .dialog-header {
+    padding: 16px 16px 8px;
+  }
+
+  .dialog-content {
+    padding: 0 16px 12px !important;
+  }
+
+  .dialog-actions {
     flex-direction: column-reverse;
   }
 
-  mat-dialog-actions button {
+  .dialog-actions button {
     width: 100%;
   }
 }

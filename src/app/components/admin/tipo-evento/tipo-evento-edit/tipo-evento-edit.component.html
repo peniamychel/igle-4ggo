@@ -6,7 +6,7 @@
 <form [formGroup]="tipoEventoForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" placeholder="Ej. Bautismo">
       <mat-error>{{ getError('nombre') }}</mat-error>

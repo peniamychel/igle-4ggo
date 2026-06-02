@@ -12,8 +12,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../../core/services/user.service';
 import { User } from '../../../../core/models/user.model';
 import { ImagePreviewDialogComponent } from '../imagen-preview-dialog/image-preview-dialog.component';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+
+interface RoleDefinition {
+  key: string;
+  label: string;
+  description: string;
+  icon: string;
+  color: string;
+}
 
 @Component({
   selector: 'app-edit-user-dialog',
@@ -29,7 +38,8 @@ import { switchMap } from 'rxjs/operators';
     MatSlideToggleModule,
     FormsModule,
     ReactiveFormsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    ImageUrlPipe
   ],
   templateUrl: './edit-user-dialog.component.html',
   styleUrls: ['./edit-user-dialog.component.css']
@@ -37,11 +47,67 @@ import { switchMap } from 'rxjs/operators';
 export class EditUserDialogComponent {
   userForm: FormGroup;
   passwordForm: FormGroup;
-  availableRoles = ['ADMIN', 'ENCARGADO_IGLESIA', 'ENCARGADO_EVENTO', 'TESORERO'];
   selectedFile: File | null = null;
   hideNewPassword = true;
   changePassword = false;
   previewUrl: string | null = null;
+  imageDeleted = false;
+
+  roleDefinitions: RoleDefinition[] = [
+    {
+      key: 'ADMIN',
+      label: 'Administrador',
+      description: 'Acceso total al sistema y configuración',
+      icon: 'shield',
+      color: '#f44336'
+    },
+    {
+      key: 'ENCARGADO_IGLESIA',
+      label: 'Encargado de Iglesia',
+      description: 'Gestión de miembros y actividades de la iglesia',
+      icon: 'church',
+      color: '#7c4dff'
+    },
+    {
+      key: 'ENCARGADO_EVENTO',
+      label: 'Encargado de Eventos',
+      description: 'Organización y gestión de eventos',
+      icon: 'event',
+      color: '#00bfa5'
+    },
+    {
+      key: 'TESORERO',
+      label: 'Tesorero',
+      description: 'Gestión financiera y donaciones',
+      icon: 'account_balance',
+      color: '#ff9800'
+    }
+  ];
+
+  get availableRoles(): string[] {
+    return this.roleDefinitions.map(r => r.key);
+  }
+
+  get hasChanges(): boolean {
+    const basicDetailsChanged =
+      this.userForm.value.username !== this.data.username ||
+      this.userForm.value.email !== this.data.email ||
+      this.userForm.value.name !== this.data.name ||
+      this.userForm.value.apellidos !== this.data.apellidos;
+
+    const originalRoles = this.data.roles.map(r => r.name);
+    const selectedRoles = this.availableRoles.filter((_, i) =>
+      this.userForm.get('roles')?.value[i]
+    );
+    const rolesChanged = selectedRoles.length !== originalRoles.length ||
+      selectedRoles.some(r => !originalRoles.includes(r));
+
+    const photoChanged = !!this.selectedFile;
+    const photoDeleted = this.imageDeleted && !!this.data.uriFoto;
+    const passwordChanged = this.changePassword && this.passwordForm.valid;
+
+    return basicDetailsChanged || rolesChanged || photoChanged || photoDeleted || passwordChanged;
+  }
 
   constructor(
     private dialogRef: MatDialogRef<EditUserDialogComponent>,
@@ -56,8 +122,8 @@ export class EditUserDialogComponent {
       email: [data.email, [Validators.required, Validators.email]],
       name: [data.name, Validators.required],
       apellidos: [data.apellidos, Validators.required],
-      roles: this.fb.array(this.availableRoles.map(role =>
-        data.roles.some(userRole => userRole.name === role)
+      roles: this.fb.array(this.roleDefinitions.map(role =>
+        data.roles.some(userRole => userRole.name === role.key)
       ))
     });
 
@@ -69,11 +135,13 @@ export class EditUserDialogComponent {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      if (this.previewUrl) {
-        URL.revokeObjectURL(this.previewUrl);
-      }
       this.selectedFile = file;
-      this.previewUrl = URL.createObjectURL(file);
+      this.imageDeleted = false;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previewUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -88,10 +156,11 @@ export class EditUserDialogComponent {
       });
     }
   }
-  ngOnDestroy(): void {
-    if (this.previewUrl) {
-      URL.revokeObjectURL(this.previewUrl);
-    }
+
+  deletePhoto(): void {
+    this.imageDeleted = true;
+    this.selectedFile = null;
+    this.previewUrl = null;
   }
 
   onSubmit(): void {
@@ -100,7 +169,6 @@ export class EditUserDialogComponent {
         this.userForm.get('roles')?.value[i]
       );
 
-      // Verificar qué secciones han cambiado
       const basicDetailsChanged =
         this.userForm.value.username !== this.data.username ||
         this.userForm.value.email !== this.data.email ||
@@ -112,18 +180,11 @@ export class EditUserDialogComponent {
         selectedRoles.some(r => !originalRoles.includes(r));
 
       const photoChanged = !!this.selectedFile;
+      const photoDeleted = this.imageDeleted && this.data.uriFoto && !this.selectedFile;
       const passwordChanged = this.changePassword && this.passwordForm.valid;
-
-      if (!basicDetailsChanged && !rolesChanged && !photoChanged && !passwordChanged) {
-        this.snackBar.open('No se detectaron cambios para guardar', 'Cerrar', {
-          duration: 3000
-        });
-        return;
-      }
 
       let obs$ = of<any>(null);
 
-      // 1. Actualizar datos básicos si cambiaron
       if (basicDetailsChanged) {
         const updateUserData = {
           id: this.data.id,
@@ -135,7 +196,6 @@ export class EditUserDialogComponent {
         obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
       }
 
-      // 2. Actualizar roles si cambiaron
       if (rolesChanged) {
         obs$ = obs$.pipe(switchMap(() => this.userService.updateUserRoles({
           id: this.data.id!,
@@ -143,12 +203,14 @@ export class EditUserDialogComponent {
         })));
       }
 
-      // 3. Actualizar foto si cambió
+      if (photoDeleted) {
+        obs$ = obs$.pipe(switchMap(() => this.userService.deleteUserPhoto(this.data.id!)));
+      }
+
       if (photoChanged) {
         obs$ = obs$.pipe(switchMap(() => this.userService.uploadUserPhoto(this.data.id!, this.selectedFile!)));
       }
 
-      // 4. Resetear contraseña si se activó la opción (admin, sin currentPassword)
       if (passwordChanged) {
         obs$ = obs$.pipe(switchMap(() => this.userService.resetPassword({
           id: this.data.id!,

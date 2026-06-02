@@ -1,130 +1,100 @@
-<div class="profile-page">
+<div class="settings-page">
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
   <ng-container *ngIf="!loading && user">
-    <mat-card class="profile-header-card">
-      <div class="profile-header">
-        <div class="profile-photo" (click)="openImagePreview()">
-          <img *ngIf="previewUrl || user.uriFoto" [src]="previewUrl || user.uriFoto" [alt]="user.username" class="photo-img">
-          <div class="no-photo" *ngIf="!previewUrl && !user.uriFoto">
-            <span class="initials">{{getInitials()}}</span>
-          </div>
-          <div class="photo-overlay">
-            <mat-icon>zoom_in</mat-icon>
-          </div>
-        </div>
-        <div class="profile-info">
-          <h1>{{user.name}} {{user.apellidos}}</h1>
-          <p class="username">{{'@'+user.username}}</p>
-          <p class="email">{{user.email}}</p>
-          <div class="roles" *ngIf="user.roles?.length">
-            <span class="role-badge" *ngFor="let role of user.roles">{{role}}</span>
+    <div class="page-header">
+      <div class="header-info">
+        <h1 class="page-title">Perfil</h1>
+        <p class="page-subtitle">Gestiona tu información personal y configuración de cuenta</p>
+      </div>
+      <button mat-flat-button color="primary" (click)="openEditDialog()">
+        <mat-icon>edit</mat-icon>
+        Editar Perfil
+      </button>
+    </div>
+
+    <div class="content-grid">
+      <!-- Card: Foto + Info básica -->
+      <div class="profile-card">
+        <div class="profile-card-header">
+          <div class="avatar-section">
+            <div class="avatar" (click)="openImagePreview()">
+              <img *ngIf="user.uriFoto"
+                   [src]="user.uriFoto | imageUrl"
+                   [alt]="user.username" class="avatar-img">
+              <div class="avatar-placeholder" *ngIf="!user.uriFoto">
+                <span>{{ getInitials() }}</span>
+              </div>
+              <div class="avatar-overlay">
+                <mat-icon>zoom_in</mat-icon>
+              </div>
+            </div>
+            <div class="user-identity">
+              <h2 class="user-name">{{ user.name }} {{ user.apellidos }}</h2>
+              <p class="user-username">&#64;{{ user.username }}</p>
+              <div class="role-chips">
+                <span class="role-chip" *ngFor="let role of user.roles">{{ formatRole(role) }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </mat-card>
 
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>person</mat-icon>
-        <mat-card-title>Información Personal</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <form [formGroup]="profileForm">
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Nombres</mat-label>
-              <input matInput formControlName="name" placeholder="Ingrese sus nombres">
-              <mat-error *ngIf="profileForm.get('name')?.hasError('required')">Los nombres son requeridos</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Apellidos</mat-label>
-              <input matInput formControlName="apellidos" placeholder="Ingrese sus apellidos">
-              <mat-error *ngIf="profileForm.get('apellidos')?.hasError('required')">Los apellidos son requeridos</mat-error>
-            </mat-form-field>
+      <!-- Card: Información Personal -->
+      <div class="info-card">
+        <div class="card-header-row">
+          <h3 class="card-title">
+            <mat-icon>person</mat-icon>
+            Información Personal
+          </h3>
+          <button mat-icon-button (click)="openEditDialog()" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Nombres</span>
+            <span class="info-value">{{ user.name }}</span>
           </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Nombre de Usuario</mat-label>
-              <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
-              <mat-error *ngIf="profileForm.get('username')?.hasError('required')">El nombre de usuario es requerido</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Correo Electrónico</mat-label>
-              <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
-              <mat-error *ngIf="profileForm.get('email')?.hasError('required')">El correo electrónico es requerido</mat-error>
-              <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Ingrese un correo electrónico válido</mat-error>
-            </mat-form-field>
+          <div class="info-item">
+            <span class="info-label">Apellidos</span>
+            <span class="info-value">{{ user.apellidos }}</span>
           </div>
-        </form>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>photo_camera</mat-icon>
-        <mat-card-title>Foto de Perfil</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="photo-upload-container">
-          <div class="current-photo" (click)="openImagePreview()">
-            <img [src]="previewUrl || user.uriFoto" [alt]="user.username" *ngIf="previewUrl || user.uriFoto">
-            <div class="no-photo" *ngIf="!previewUrl && !user.uriFoto">
-              <span class="initials-sm">{{getInitials()}}</span>
-            </div>
+          <div class="info-item">
+            <span class="info-label">Nombre de Usuario</span>
+            <span class="info-value">{{ user.username }}</span>
           </div>
-          <div class="photo-actions">
-            <button mat-stroked-button type="button" (click)="fileInput.click()">
-              <mat-icon>photo_camera</mat-icon>
-              {{previewUrl ? 'Cambiar Imagen' : 'Subir Imagen'}}
-            </button>
-            <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none">
-            <p class="photo-hint" *ngIf="!previewUrl">Haga clic en la foto para ampliarla</p>
+          <div class="info-item">
+            <span class="info-label">Correo Electrónico</span>
+            <span class="info-value">{{ user.email }}</span>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
 
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>lock</mat-icon>
-        <mat-card-title>Cambiar Contraseña</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="password-toggle">
-          <mat-slide-toggle [(ngModel)]="changePassword" [ngModelOptions]="{standalone: true}">
-            Cambiar Contraseña
-          </mat-slide-toggle>
+      <!-- Card: Seguridad -->
+      <div class="info-card">
+        <div class="card-header-row">
+          <h3 class="card-title">
+            <mat-icon>lock</mat-icon>
+            Seguridad
+          </h3>
+          <button mat-icon-button (click)="openEditDialog()" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
         </div>
-        <div class="password-fields" *ngIf="changePassword" [formGroup]="passwordForm">
-          <mat-form-field appearance="outline">
-            <mat-label>Contraseña Actual</mat-label>
-            <input matInput [type]="hideCurrentPassword ? 'password' : 'text'" formControlName="currentPassword" placeholder="Ingrese contraseña actual">
-            <button mat-icon-button matSuffix (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
-              <mat-icon>{{hideCurrentPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-            </button>
-            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">La contraseña actual es requerida</mat-error>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Nueva Contraseña</mat-label>
-            <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="newPassword" placeholder="Ingrese nueva contraseña">
-            <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" type="button">
-              <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-            </button>
-            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">La nueva contraseña es requerida</mat-error>
-            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">La contraseña debe tener al menos 6 caracteres</mat-error>
-          </mat-form-field>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Contraseña</span>
+            <span class="info-value masked">••••••••</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Último cambio</span>
+            <span class="info-value">—</span>
+          </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-
-    <div class="save-section">
-      <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="saving || profileForm.invalid || (changePassword && passwordForm.invalid)" class="save-button">
-        <mat-icon>save</mat-icon>
-        {{saving ? 'Guardando...' : 'Guardar Cambios'}}
-      </button>
+      </div>
     </div>
   </ng-container>
 </div>

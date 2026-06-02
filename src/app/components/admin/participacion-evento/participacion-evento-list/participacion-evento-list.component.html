@@ -11,7 +11,8 @@
     </mat-form-field>
   </div>
 
-  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <div class="table-container">
+  <mat-table [dataSource]="dataSource" matSort>
 
     <ng-container matColumnDef="miembro">
       <mat-header-cell *matHeaderCellDef mat-sort-header>Miembro</mat-header-cell>
@@ -68,4 +69,5 @@
 
   <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de participaciones">
   </mat-paginator>
+  </div>
 </div>

@@ -20,7 +20,9 @@ import {MatRadioButton, MatRadioGroup} from '@angular/material/radio';
 import {catchError, Observable, of} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {MatIcon} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-persona-form',
@@ -36,7 +38,9 @@ import {MatSnackBar} from '@angular/material/snack-bar';
     MatDialogModule,
     MatRadioButton,
     MatRadioGroup,
-    MatIcon
+    MatIcon,
+    MatTooltipModule,
+    ImageUrlPipe
   ],
   templateUrl: './persona-edit.component.html',
   styleUrls: ['./persona-edit.component.css']
@@ -45,7 +49,8 @@ export class PersonaEditComponent implements OnInit {
   private matDialogRef= inject(MatDialogRef<PersonaEditComponent>);
   personaForm: FormGroup;
   selectedFile: File | null = null;
-  imagePreview: string = 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+  imagePreview: string = '';
+  photoRemoved = false;
 
   constructor(
     private fb: FormBuilder,
@@ -83,6 +88,12 @@ export class PersonaEditComponent implements OnInit {
     }
   }
 
+  removePhoto() {
+    this.selectedFile = null;
+    this.imagePreview = '';
+    this.photoRemoved = true;
+  }
+
   onSubmit() {
     if (this.personaForm.valid) {
       const persona = {
@@ -94,7 +105,7 @@ export class PersonaEditComponent implements OnInit {
           if (this.selectedFile && response.datos.id) {
             this.personaService.uploadUserPhoto(response.datos.id, this.selectedFile).subscribe({
               next: () => {
-                this.snackBar.open('Persona creado exitosamente', 'Cerrar', {
+                this.snackBar.open('Persona actualizada exitosamente', 'Cerrar', {
                   duration: 3000,
                   panelClass: ['success-snackbar']
                 });
@@ -104,6 +115,23 @@ export class PersonaEditComponent implements OnInit {
                 this.snackBar.open('Error al subir la foto', 'Cerrar', {
                   duration: 3000,
                   panelClass: ['error-snackbar']
+                });
+                this.matDialogRef.close(true);
+              }
+            });
+          } else if (this.photoRemoved && response.datos.id) {
+            this.personaService.deleteProfilePhoto(response.datos.id).subscribe({
+              next: () => {
+                this.snackBar.open('Persona actualizada exitosamente', 'Cerrar', {
+                  duration: 3000,
+                  panelClass: ['success-snackbar']
+                });
+                this.matDialogRef.close(true);
+              },
+              error: () => {
+                this.snackBar.open('Persona actualizada exitosamente', 'Cerrar', {
+                  duration: 3000,
+                  panelClass: ['success-snackbar']
                 });
                 this.matDialogRef.close(true);
               }

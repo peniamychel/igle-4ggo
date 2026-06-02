@@ -7,7 +7,7 @@
   <mat-dialog-content>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Evento</mat-label>
         <mat-select formControlName="eventoId">
           <mat-option *ngFor="let evento of eventos" [value]="evento.id">
@@ -19,7 +19,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Responsable (Cargo)</mat-label>
         <mat-select formControlName="cargoId" (openedChange)="onCargoSelectOpen($event)">
           <div class="search-container">

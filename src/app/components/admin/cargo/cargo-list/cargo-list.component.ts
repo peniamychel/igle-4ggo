@@ -213,7 +213,10 @@ export class CargoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${cargoName}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} el cargo <strong>${cargoName}</strong>.`,
+          confirmText: cargo.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 
@@ -234,7 +237,10 @@ export class CargoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea eliminar <br><strong style="font-size: 1.25em; color: #d32f2f; display: block; margin-top: 8px;">${cargoName}</strong>?<br><br>Esta acción no se puede deshacer.`
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar el cargo <strong>${cargoName}</strong>. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
         }
       });
 
