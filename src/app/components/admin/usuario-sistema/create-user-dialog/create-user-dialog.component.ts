@@ -9,6 +9,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../../core/services/user.service';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+
+interface RoleDefinition {
+  key: string;
+  label: string;
+  description: string;
+  icon: string;
+  color: string;
+}
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -23,7 +32,8 @@ import { UserService } from '../../../../core/services/user.service';
     MatIconModule,
     FormsModule,
     ReactiveFormsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    ImageUrlPipe
   ],
   templateUrl: './create-user-dialog.component.html',
   styleUrls: ['./create-user-dialog.component.css']
@@ -31,9 +41,43 @@ import { UserService } from '../../../../core/services/user.service';
 export class CreateUserDialogComponent {
   userForm: FormGroup;
   hidePassword = true;
-  availableRoles = ['ADMIN', 'ENCARGADO_IGLESIA', 'ENCARGADO_EVENTO'];
   selectedFile: File | null = null;
   previewUrl: string | null = null;
+
+  roleDefinitions: RoleDefinition[] = [
+    {
+      key: 'ADMIN',
+      label: 'Administrador',
+      description: 'Acceso total al sistema y configuración',
+      icon: 'shield',
+      color: '#f44336'
+    },
+    {
+      key: 'ENCARGADO_IGLESIA',
+      label: 'Encargado de Iglesia',
+      description: 'Gestión de miembros y actividades de la iglesia',
+      icon: 'church',
+      color: '#7c4dff'
+    },
+    {
+      key: 'ENCARGADO_EVENTO',
+      label: 'Encargado de Eventos',
+      description: 'Organización y gestión de eventos',
+      icon: 'event',
+      color: '#00bfa5'
+    },
+    {
+      key: 'TESORERO',
+      label: 'Tesorero',
+      description: 'Gestión financiera y donaciones',
+      icon: 'account_balance',
+      color: '#ff9800'
+    }
+  ];
+
+  get availableRoles(): string[] {
+    return this.roleDefinitions.map(r => r.key);
+  }
 
   constructor(
     private dialogRef: MatDialogRef<CreateUserDialogComponent>,
@@ -47,25 +91,25 @@ export class CreateUserDialogComponent {
       name: ['', Validators.required],
       apellidos: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(4)]],
-      roles: this.fb.array(this.availableRoles.map(() => false))
+      roles: this.fb.array(this.roleDefinitions.map(() => false))
     });
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      if (this.previewUrl) {
-        URL.revokeObjectURL(this.previewUrl);
-      }
       this.selectedFile = file;
-      this.previewUrl = URL.createObjectURL(file);
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previewUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  ngOnDestroy(): void {
-    if (this.previewUrl) {
-      URL.revokeObjectURL(this.previewUrl);
-    }
+  removePhoto(): void {
+    this.selectedFile = null;
+    this.previewUrl = null;
   }
 
   onSubmit(): void {

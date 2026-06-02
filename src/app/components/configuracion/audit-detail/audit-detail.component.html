@@ -1,0 +1,97 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon [ngClass]="log.accion.toLowerCase()" class="header-icon">
+      {{ getActionIcon(log.accion) }}
+    </mat-icon>
+    <div>
+      <h2 mat-dialog-title>Detalles del Registro de Auditoría</h2>
+      <p class="header-subtitle">Registro ID: #{{ log.id }}</p>
+    </div>
+  </div>
+  <button mat-icon-button (click)="close()" class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <!-- Tarjeta de Resumen -->
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Evento</span>
+      <span class="val event-badge" [ngClass]="log.accion.toLowerCase()">
+        {{ log.accion }}
+      </span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Descripción</span>
+      <span class="val desc-text">{{ log.detalle }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Estado de la Acción</span>
+      <span class="val status-badge" [ngClass]="log.estado.toLowerCase()">
+        <mat-icon class="status-icon">
+          {{ log.estado === 'SUCCESS' ? 'check_circle' : (log.estado === 'WARNING' ? 'warning' : 'cancel') }}
+        </mat-icon>
+        {{ log.estado === 'SUCCESS' ? 'Completado' : (log.estado === 'WARNING' ? 'Advertencia' : 'Fallido') }}
+      </span>
+    </div>
+  </div>
+
+  <h3 class="section-title">Información del Actor & Sistema</h3>
+  
+  <!-- Grid de Metadatos Principales -->
+  <div class="info-grid">
+    <div class="info-cell">
+      <mat-icon class="cell-icon">person</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Usuario</span>
+        <span class="cell-value">{{ log.usuario }}</span>
+        <span class="cell-subvalue">&#64;{{ log.username }} • {{ log.rol }}</span>
+      </div>
+    </div>
+    
+    <div class="info-cell">
+      <mat-icon class="cell-icon">schedule</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Fecha y Hora</span>
+        <span class="cell-value">{{ formattedDate }}</span>
+        <span class="cell-subvalue">Zona Horaria Local</span>
+      </div>
+    </div>
+
+    <div class="info-cell">
+      <mat-icon class="cell-icon">lan</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Dirección IP</span>
+        <span class="cell-value">{{ log.ip }}</span>
+        <span class="cell-subvalue">Origen del cliente</span>
+      </div>
+    </div>
+
+    <div class="info-cell">
+      <mat-icon class="cell-icon">devices</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Dispositivo & Agente</span>
+        <span class="cell-value">{{ log.dispositivo }}</span>
+        <span class="cell-subvalue">Navegador / Sistema</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloque de JSON de Metadatos -->
+  <div class="json-header">
+    <h3 class="section-title">Metadatos Técnicos (JSON)</h3>
+    <button mat-flat-button color="accent" size="small" (click)="copyToClipboard()" class="copy-btn">
+      <mat-icon>content_copy</mat-icon>
+      Copiar Metadatos
+    </button>
+  </div>
+  
+  <div class="json-container">
+    <pre><code>{{ log.metadatos }}</code></pre>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button (click)="close()">Cerrar Detalles</button>
+</mat-dialog-actions>

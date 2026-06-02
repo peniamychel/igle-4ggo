@@ -3,7 +3,7 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form-container">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Nueva Iglesia</mat-label>
         <mat-select formControlName="iglesiaId">
           <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
@@ -15,7 +15,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Motivo del Traspaso</mat-label>
         <textarea matInput formControlName="motivoTraspaso" rows="3"></textarea>
         <mat-error *ngIf="form.get('motivoTraspaso')?.hasError('required')">
@@ -23,7 +23,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha de Traspaso</mat-label>
         <input matInput [matDatepicker]="picker" formControlName="fechaTraspaso">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -33,7 +33,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>URI Carta de Traspaso</mat-label>
         <input matInput formControlName="uriCartaTraspaso">
         <mat-error *ngIf="form.get('uriCartaTraspaso')?.hasError('required')">

@@ -8,6 +8,11 @@
     <span class="app-title">Movimiento Cristiano Misionero Maranatha</span>
     <span class="toolbar-spacer"></span>
 
+    <!-- Theme Toggle Button -->
+    <button mat-icon-button (click)="toggleTheme()" matTooltip="Alternar modo oscuro/claro" style="margin-right: 8px;">
+      <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
     <span class="username-display" [matMenuTriggerFor]="userMenu">{{user?.name}} {{user?.apellidos}}</span>
 
     <!-- Botón para Desktop -->
@@ -22,13 +27,13 @@
     </button>
 
     <button mat-icon-button *ngIf="isAuthenticated" [matMenuTriggerFor]="userMenu" class="user-profile-button">
-      <img *ngIf="user?.uriFoto" [src]="user?.uriFoto" alt="Foto de perfil" class="user-profile-image">
+      <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="user-profile-image">
       <mat-icon *ngIf="!user?.uriFoto">account_circle</mat-icon>
     </button>
 
     <mat-menu #userMenu="matMenu">
       <div class="user-menu-header" mat-menu-item disabled>
-        <img *ngIf="user?.uriFoto" [src]="user?.uriFoto" alt="Foto de perfil" class="user-menu-image">
+        <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="user-menu-image">
         <mat-icon *ngIf="!user?.uriFoto">person</mat-icon>
         <span>{{username}}</span>
       </div>
@@ -69,7 +74,7 @@
     <!--      </mat-nav-list>-->
     <!--    </mat-sidenav>-->
 
-    <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen">
+    <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen" class="sidenav">
       <mat-nav-list>
         <ng-container *ngFor="let item of filteredMenuItems">
           <!-- Ítem principal sin hijos -->

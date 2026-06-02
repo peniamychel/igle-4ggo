@@ -157,7 +157,10 @@ export class EventoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} el evento <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${evento.nombre}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} el evento <strong>${evento.nombre}</strong>.`,
+          confirmText: evento.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 

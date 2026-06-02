@@ -1,7 +1,28 @@
-<h2 mat-dialog-title class="realiniar">{{editMode ? 'Editar' : 'Crear'}} Miembro</h2>
+<h2 mat-dialog-title class="realiniar">Editar Miembro</h2>
 <form [formGroup]="miembroForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    
+
+    <div class="photo-section">
+      <div class="photo-container" (click)="fileInput.click()">
+        <img *ngIf="imagePreview" [src]="imagePreview | imageUrl" alt="Foto de perfil" class="profile-photo">
+        <div class="no-photo" *ngIf="!imagePreview">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="photo-overlay">
+          <mat-icon>photo_camera</mat-icon>
+          <span>{{ imagePreview ? 'Cambiar foto' : 'Click para agregar foto' }}</span>
+        </div>
+      </div>
+      <input #fileInput type="file"
+             (change)="onFileSelected($event)"
+             accept="image/*"
+             style="display: none">
+      <button *ngIf="imagePreview" mat-icon-button type="button" class="remove-photo-btn"
+              (click)="removePhoto(); $event.stopPropagation()" matTooltip="Quitar foto">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
     <div class="row">
       <mat-form-field appearance="outline">
         <mat-label>Nombre</mat-label>
@@ -68,11 +89,6 @@
         <mat-label>Interventores</mat-label>
         <input matInput formControlName="interventores">
       </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>URI Foto</mat-label>
-        <input matInput formControlName="uriFoto">
-      </mat-form-field>
     </div>
 
     <mat-form-field appearance="outline" class="realiniar">
@@ -83,7 +99,7 @@
     <mat-dialog-actions>
       <button mat-button mat-dialog-close type="button">Cancelar</button>
       <button mat-raised-button color="primary" type="submit" [disabled]="!miembroForm.valid">
-        {{editMode ? 'Actualizar' : 'Crear'}}
+        Actualizar
       </button>
     </mat-dialog-actions>
   </mat-dialog-content>

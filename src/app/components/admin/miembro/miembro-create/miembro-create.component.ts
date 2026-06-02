@@ -8,13 +8,15 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatSelectModule} from '@angular/material/select';
 import {MatNativeDateModule} from '@angular/material/core';
 import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {PersonaService} from '../../../../core/services/persona.service';
 import {Persona} from '../../../../core/models/persona.model';
 import {MatSelectChange} from '@angular/material/select';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MiembroService} from '../../../../core/services/miembro.service';
-import {firstValueFrom} from 'rxjs';
+import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-miembro-form',
@@ -31,7 +33,10 @@ import {firstValueFrom} from 'rxjs';
     MatSelectModule,
     MatDialogModule,
     MatNativeDateModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatIconModule,
+    MatTooltipModule,
+    ImageUrlPipe
   ]
 })
 export class MiembroCreateComponent implements OnInit {
@@ -39,6 +44,8 @@ export class MiembroCreateComponent implements OnInit {
   editMode = false;
   personas: Persona[] = [];
   selectedPersona: Persona | null = null;
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -52,7 +59,6 @@ export class MiembroCreateComponent implements OnInit {
 
   createForm() {
     this.miembroForm = this.fb.group({
-      // Persona fields
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
       ci: ['', Validators.required],
@@ -60,9 +66,6 @@ export class MiembroCreateComponent implements OnInit {
       celular: ['', Validators.required],
       sexo: ['', Validators.required],
       direccion: ['', Validators.required],
-      uriFoto: [''],
-
-      // Miembro fields
       fechaConvercion: [''],
       lugarConvercion: ['', Validators.required],
       interventores: ['', Validators.required],
@@ -79,17 +82,17 @@ export class MiembroCreateComponent implements OnInit {
   }
 
   loadPersonas() {
-    // this.personaService.getPersonas().subscribe(response => {
-    //   this.personas = response.datos.filter(p => p.estado);
-    // });
-    this.personaService.personaNoMiembro().subscribe( response => {
+    this.personaService.personaNoMiembro().subscribe(response => {
       this.personas = response.datos.filter(p => p.estado);
-    })
+    });
   }
 
   patchFormValues() {
     if (this.data.personaDto) {
       this.selectedPersona = this.data.personaDto;
+      if (this.data.personaDto.uriFoto) {
+        this.imagePreview = this.data.personaDto.uriFoto;
+      }
       this.miembroForm.patchValue({
         ...this.data.personaDto,
         ...this.data
@@ -107,11 +110,29 @@ export class MiembroCreateComponent implements OnInit {
         fechaNac: this.selectedPersona.fechaNac,
         celular: this.selectedPersona.celular,
         sexo: this.selectedPersona.sexo,
-        direccion: this.selectedPersona.direccion,
-        uriFoto: this.selectedPersona.uriFoto
+        direccion: this.selectedPersona.direccion
       });
-
+      if (this.selectedPersona.uriFoto) {
+        this.imagePreview = this.selectedPersona.uriFoto;
+      }
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile);
+    }
+  }
+
+  removePhoto() {
+    this.selectedFile = null;
+    this.imagePreview = null;
   }
 
   public async onSubmit() {
@@ -122,7 +143,7 @@ export class MiembroCreateComponent implements OnInit {
       if (this.selectedPersona) {
         personaId = this.selectedPersona.id!;
       } else {
-        const personaData = {
+        const personaData: any = {
           nombre: formValue.nombre,
           apellido: formValue.apellido,
           ci: formValue.ci,
@@ -130,16 +151,18 @@ export class MiembroCreateComponent implements OnInit {
           celular: formValue.celular,
           sexo: formValue.sexo,
           direccion: formValue.direccion,
-          uriFoto: formValue.uriFoto
+          uriFoto: ''
         };
 
         const personaResponse = await this.personaService.createPersona(personaData).toPromise();
-        // const personaResponse = await firstValueFrom(this.personaService.createPersona(personaData));
         personaId = personaResponse.datos.id;
 
+        if (this.selectedFile && personaId) {
+          await this.personaService.uploadUserPhoto(personaId, this.selectedFile).toPromise();
+        }
       }
 
-      const miembroData = {...this.data,
+      const miembroData = {
         fechaConvercion: formValue.fechaConvercion,
         lugarConvercion: formValue.lugarConvercion,
         interventores: formValue.interventores,
@@ -147,15 +170,7 @@ export class MiembroCreateComponent implements OnInit {
         personaId: personaId!
       };
 
-      if (this.editMode && this.data.id) {
-        await this.miembroService.updateMiembro(miembroData).toPromise();
-        if (this.selectedPersona) {
-          await this.personaService.updatePersonax(this.selectedPersona).toPromise();
-        }
-      } else {
-        await this.miembroService.createMiembro(miembroData).toPromise();
-      }
-
+      await this.miembroService.createMiembro(miembroData).toPromise();
       this.dialogRef.close(true);
     }
   }

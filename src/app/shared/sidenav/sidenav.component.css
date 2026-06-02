@@ -10,9 +10,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 16px;
-  /* Adjust as needed */
   min-width: 0;
-  /* Allows flex item to shrink below content size */
 }
 
 .sidenav-wrapper {
@@ -28,18 +26,25 @@
 
 .sidenav {
   width: 250px;
-  background: #fafafa;
+  background: var(--bg-sidenav);
+  border-right: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .content {
   padding: 20px;
-  background: #fff;
+  background: var(--bg-content);
+  transition: background-color 0.25s ease;
 }
 
 mat-toolbar {
   position: sticky;
   top: 0;
   z-index: 1000;
+  background: var(--toolbar-bg) !important;
+  color: var(--toolbar-text) !important;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 .toolbar-spacer {
@@ -63,16 +68,19 @@ mat-toolbar {
 }
 
 .username-display {
-  margin-right: 8px;
+  margin-right: 16px;
   font-size: 14px;
+  color: var(--toolbar-text);
+  transition: color 0.25s ease;
 }
 
 .user-menu-header {
   display: flex;
   align-items: center;
   padding: 8px 16px;
-  color: rgba(0, 0, 0, 0.87);
-  background: #f5f5f5;
+  color: var(--text-primary);
+  background-color: var(--border-color);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .user-menu-header mat-icon {
@@ -92,6 +100,129 @@ mat-toolbar {
   overflow-x: hidden !important;
 }
 
+/* Scrollbar — Dark Mode Compatible */
+::ng-deep .mat-drawer-inner-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+::ng-deep .mat-drawer-inner-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::ng-deep .mat-drawer-inner-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+  transition: background-color 0.25s ease;
+}
+
+::ng-deep .mat-drawer-inner-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}
+
+/* ══════════════════════════════════════════════════
+   NAV LIST — Dark Mode Overrides (pierce encapsulation)
+   ══════════════════════════════════════════════════ */
+
+/* Text color for ALL nav list items */
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item {
+  color: var(--text-primary) !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item .mdc-list-item__primary-text {
+  color: var(--text-primary) !important;
+}
+
+/* Icon color for nav list items */
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item .mat-icon,
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item .mat-icon.matListItemIcon {
+  color: var(--text-secondary) !important;
+  transition: color 0.2s ease;
+}
+
+/* Hover state for ALL nav items */
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item:hover {
+  background-color: rgba(124, 77, 255, 0.05) !important;
+}
+
+/* ══════════════════════════════════════════
+   ACTIVE MENU ITEM — Purple highlight
+   ══════════════════════════════════════════ */
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active {
+  background-color: rgba(124, 77, 255, 0.12) !important;
+  color: #1f04e7 !important;
+  font-weight: 500;
+  border-radius: 8px;
+  margin: 2px 8px;
+  width: calc(100% - 16px);
+}
+
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mdc-list-item__primary-text {
+  color: #1f04e7 !important;
+}
+
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon,
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon.matListItemIcon {
+  color: #1f04e7 !important;
+}
+
+/* ══════════════════════════════════
+   PARENT MENU ITEM (expandable)
+   ══════════════════════════════════ */
+::ng-deep .mat-mdc-nav-list .parent-menu-item {
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 2px 8px;
+  width: calc(100% - 16px);
+}
+
+::ng-deep .mat-mdc-nav-list .parent-menu-item:hover {
+  background-color: rgba(124, 77, 255, 0.05) !important;
+}
+
+::ng-deep .mat-mdc-nav-list .parent-menu-item.expanded {
+  background-color: rgba(124, 77, 255, 0.08) !important;
+}
+
+.expand-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+  font-family: 'Material Icons' !important;
+}
+
+/* ══════════════════════════════════
+   SUBMENU
+   ══════════════════════════════════ */
+.submenu-container {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+  background-color: rgba(124, 77, 255, 0.02);
+}
+
+.submenu-container.expanded {
+  max-height: 1000px;
+  transition: max-height 0.3s ease-in;
+}
+
+/* Submenu items */
+::ng-deep .submenu-container .mat-mdc-list-item {
+  padding-left: 32px !important;
+}
+
+::ng-deep .submenu-container .mat-mdc-list-item .mdc-list-item__start {
+  margin-left: 16px;
+}
+
+::ng-deep .submenu-container .mat-mdc-list-item:hover {
+  background-color: rgba(124, 77, 255, 0.05) !important;
+}
+
+.sub-icon {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
 @media (max-width: 768px) {
   .content {
     padding: 16px;
@@ -104,84 +235,4 @@ mat-toolbar {
   .username-display {
     display: none;
   }
-}
-
-.active {
-  font-weight: bold;
-  color: #1976d2;
-  /* Color destacado */
-}
-
-
-
-.sidenav-container {
-  height: calc(100svh - 64px);
-}
-
-
-/* Active menu item styling */
-.mat-mdc-list-item.active {
-  background-color: rgba(0, 0, 0, 0.08);
-  color: #3f51b5;
-  font-weight: 500;
-}
-
-.mat-mdc-list-item.active .mat-icon {
-  color: #3f51b5;
-}
-
-.username-display {
-  margin-right: 16px;
-}
-
-.user-menu-header {
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.user-menu-header .mat-icon {
-  margin-right: 8px;
-}
-
-/* Submenu container */
-.submenu-container {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.3s ease-out;
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.submenu-container.expanded {
-  max-height: 1000px;
-  transition: max-height 0.3s ease-in;
-}
-
-/* Parent menu item styling */
-.parent-menu-item {
-  cursor: pointer;
-}
-
-.parent-menu-item.expanded {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-.expand-icon {
-  margin-left: auto;
-  transition: transform 0.3s ease;
-  font-family: 'Material Icons' !important;
-}
-
-/* Indentation for sub items */
-::ng-deep .submenu-container .mdc-list-item__start {
-  margin-left: 16px; 
-}
-::ng-deep .submenu-container .mat-mdc-list-item {
-  padding-left: 32px !important;
-}
-
-.sub-icon {
-  transform: scale(0.9);
-  opacity: 0.8;
 }

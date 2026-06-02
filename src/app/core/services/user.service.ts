@@ -100,6 +100,15 @@ export class UserService {
     return this.http.post(`${this.API_URL}/${id}/foto`, formData);
   }
 
+  /**
+   * Elimina la foto de un usuario
+   * @param id id del usuario
+   * @returns void
+   */
+  deleteUserPhoto(id: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${id}/foto`);
+  }
+
   // getUserByNameForToken(): Observable<CreateUserDto> {
   //   return this.http.get<CreateUserDto>(`${this.API_URL}/findbyusername`, {});
   // }

@@ -16,6 +16,8 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../core/services/user.service';
 import { CreateUserDto, SingleUserResponse, User, UserResponse } from '../../core/models/user.model';
+import { ThemeService } from '../../core/services/theme.service';
+import { ImageUrlPipe } from '../pipes/image-url.pipe';
 
 
 export interface MenuItem {
@@ -43,6 +45,7 @@ export interface MenuItem {
     MatDialogModule,
     RouterModule,
     MatTooltipModule,
+    ImageUrlPipe
   ],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']
@@ -62,6 +65,13 @@ export class SidenavComponent implements OnInit {
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
+  private themeService = inject(ThemeService);
+
+  isDarkMode = this.themeService.isDarkMode;
+  
+  toggleTheme() {
+    this.themeService.toggleTheme();
+  }
 
   filteredMenuItems: MenuItem[] = [];
 

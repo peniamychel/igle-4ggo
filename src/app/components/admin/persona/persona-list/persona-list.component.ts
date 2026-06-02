@@ -20,6 +20,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-persona-list',
@@ -44,6 +45,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatRadioModule,
     MatTooltipModule,
     MatCardModule,
+    ImageUrlPipe,
   ],
   templateUrl: './persona-list.component.html',
   styleUrls: ['./persona-list.component.css']
@@ -168,7 +170,10 @@ export class PersonaListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} la persona <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${persona.nombre} ${persona.apellido}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} a la persona <strong>${persona.nombre} ${persona.apellido}</strong>.`,
+          confirmText: persona.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 
@@ -194,6 +199,15 @@ export class PersonaListComponent implements OnInit {
 
     if (this.personas.paginator) {
       this.personas.paginator.firstPage();
+    }
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling as HTMLElement;
+    if (placeholder) {
+      placeholder.style.display = 'flex';
     }
   }
 

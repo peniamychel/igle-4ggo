@@ -205,7 +205,10 @@ export class ResponsableEventoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} este responsable de evento?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} este responsable de evento.`,
+          confirmText: responsable.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 

@@ -1,12 +1,175 @@
+/* DEBUG — quitar después */
+/*table, th, td,*/
+/*.mat-header-row, .mat-row, .mat-header-cell, .mat-cell {*/
+/*  outline: 1px solid red !important;*/
+/*}*/
+
 /* You can add global styles to this file, and also import other style files */
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 @import 'material-icons/iconfont/material-icons.css';
+@import './app/styles/table-shared.css';
 
 /*@import '@angular/material/prebuilt-themes/purple-green.css';*/
+:root {
+  --bg-app: #f5f7fa;
+  --bg-sidenav: #ffffff;
+  --text-primary: #1a1b2f;
+  --text-secondary: #78909c;
+  --border-color: #eceff1;
+  --bg-content: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #eceff1;
+  --toolbar-bg: #ffffff;
+  --toolbar-text: #1a1b2f;
+}
+
+.dark-theme {
+  /* Fondo general del body y superficies */
+  --mat-app-background-color: #0f0f12;
+  --mat-app-text-color: #e3e2e6;
+
+  /* Componentes comunes de Material */
+  --mat-table-background-color: #17171e;
+  --mat-table-row-item-label-text-color: #e3e2e6;
+  --mat-table-header-headline-color: #c4c6d0;
+
+  --mdc-dialog-container-color: #17171e;
+  --mdc-dialog-subhead-color: #e3e2e6;
+  --mdc-dialog-supporting-text-color: #c4c6d0;
+  --mat-dialog-container-color: #17171e;
+  --mat-dialog-heading-color: #e3e2e6;
+
+  --mat-select-panel-background-color: #23232c;
+  --mat-select-enabled-trigger-text-color: #e3e2e6;
+  --mat-select-placeholder-text-color: #8e9099;
+  --mat-select-dropdown-background-color: #23232c;
+  --mat-select-panel-text-color: #e3e2e6;
+
+  /* Option items inside select/autocomplete */
+  --mat-option-text-color: #e3e2e6;
+  --mat-option-hover-state-layer-color: rgba(124, 77, 255, 0.08);
+  --mat-option-active-state-layer-color: rgba(124, 77, 255, 0.12);
+  --mat-option-selected-state-layer-color: rgba(124, 77, 255, 0.12);
+  --mat-option-selected-state-text-color: #ab92ff;
+  --mat-option-label-text-color: #e3e2e6;
+  --mat-option-disabled-text-color: #555555;
+
+  /* Autocomplete panel */
+  --mat-autocomplete-background-color: #23232c;
+
+  /* Datepicker */
+  --mat-datepicker-calendar-background-color: #23232c;
+  --mat-datepicker-calendar-text-color: #e3e2e6;
+  --mat-datepicker-calendar-period-button-text-color: #e3e2e6;
+  --mat-datepicker-calendar-period-button-active-background-color: rgba(124, 77, 255, 0.12);
+  --mat-datepicker-calendar-period-button-active-text-color: #ab92ff;
+  --mat-datepicker-calendar-date-picker-toggle-button-color: #c4c6d0;
+  --mat-datepicker-calendar-arrow-color: #c4c6d0;
+  --mat-datepicker-calendar-day-label-color: #c4c6d0;
+  --mat-datepicker-calendar-day-label-active-background-color: transparent;
+  --mat-datepicker-calendar-day-label-active-text-color: #ab92ff;
+  --mat-datepicker-calendar-day-label-hover-background-color: rgba(124, 77, 255, 0.08);
+  --mat-datepicker-calendar-body-active-background-color: transparent;
+  --mat-datepicker-calendar-body-active-text-color: #e3e2e6;
+  --mat-datepicker-calendar-body-disabled-text-color: #555555;
+  --mat-datepicker-calendar-body-hover-background-color: rgba(124, 77, 255, 0.08);
+  --mat-datepicker-calendar-body-today-indicator-color: #ab92ff;
+  --mat-datepicker-calendar-body-range-background-color: rgba(124, 77, 255, 0.12);
+  --mat-datepicker-calendar-body-selected-background-color: #ab92ff;
+  --mat-datepicker-calendar-body-selected-text-color: #ffffff;
+  --mat-datepicker-calendar-header-divider-color: #2d2f39;
+
+  /* MDC List (used by mat-option, mat-select options) */
+  --mdc-list-list-item-label-text-color: #e3e2e6;
+  --mdc-list-list-item-leading-icon-color: #c4c6d0;
+  --mdc-list-list-item-trailing-supporting-text-color: #c4c6d0;
+  --mdc-list-list-item-hover-label-text-color: #e3e2e6;
+  --mdc-list-list-item-hover-leading-icon-color: #c4c6d0;
+  --mdc-list-list-item-hover-container-color: rgba(124, 77, 255, 0.08);
+  --mdc-list-list-item-pressed-label-text-color: #e3e2e6;
+  --mdc-list-list-item-pressed-container-color: rgba(124, 77, 255, 0.12);
+  --mdc-list-list-item-selected-label-text-color: #ab92ff;
+  --mdc-list-list-item-selected-container-color: rgba(124, 77, 255, 0.12);
+  --mdc-list-list-item-selected-leading-icon-color: #ab92ff;
+
+  --mat-menu-container-color: #17171e;
+  --mat-menu-item-label-text-color: #e3e2e6;
+  --mat-menu-item-icon-color: #c4c6d0;
+
+  --mdc-outlined-card-container-color: #17171e;
+  --mdc-outlined-card-outline-color: #2d2f39;
+  --mdc-elevated-card-container-color: #1f1f27;
+
+  /* Inputs y Formularios Outlined */
+  --mdc-outlined-text-field-input-text-color: #e3e2e6;
+  --mdc-outlined-text-field-label-text-color: #c4c6d0;
+  --mdc-outlined-text-field-outline-color: #2d2f39;
+  --mdc-outlined-text-field-hover-outline-color: #e3e2e6;
+  --mdc-outlined-text-field-focus-outline-color: #ab92ff;
+  --mdc-outlined-text-field-focus-label-text-color: #ab92ff;
+  --mdc-outlined-text-field-caret-color: #ab92ff;
+  --mat-form-field-focus-select-arrow-color: #ab92ff;
+  --mat-form-field-select-option-text-color: #e3e2e6;
+
+  /* Inputs Filled */
+  --mdc-filled-text-field-container-color: #1f2022;
+  --mdc-filled-text-field-input-text-color: #e3e2e6;
+  --mdc-filled-text-field-label-text-color: #c4c6d0;
+  --mdc-filled-text-field-hover-container-color: #292a2c;
+  --mdc-filled-text-field-focus-container-color: #1f2022;
+  --mdc-filled-text-field-focus-label-text-color: #ab92ff;
+  --mdc-filled-text-field-caret-color: #ab92ff;
+
+  /* Paginador */
+  --mat-paginator-container-background-color: #131318;
+  --mat-paginator-container-text-color: #e3e2e6;
+  --mat-paginator-enabled-icon-color: #c4c6d0;
+
+  /* Tabs */
+  --mat-tab-header-inactive-label-text-color: #a0a0b0;
+  --mat-tab-header-active-label-text-color: #ab92ff;
+  --mat-tab-header-active-focus-label-text-color: #ab92ff;
+  --mat-tab-header-active-hover-label-text-color: #ab92ff;
+  --mat-tab-header-divider-color: #23232c;
+
+  /* Botones e Iconos */
+  --mdc-icon-button-icon-color: #c4c6d0;
+  --mat-icon-button-state-layer-color: #ffffff;
+
+  /* Ripple */
+  --mat-ripple-color: rgba(255, 255, 255, 0.08);
+
+  /* Sidenav / Drawer */
+  --mat-drawer-container-background-color: #0f0f12;
+  --mat-drawer-container-text-color: #e3e2e6;
+  --mat-drawer-background-color: #17171e;
+  --mat-drawer-container-divider-color: #23232c;
+  --mat-nav-list-item-hover-container-color: rgba(124, 77, 255, 0.05);
+  --mat-nav-list-item-active-container-color: rgba(124, 77, 255, 0.08);
+  --mat-nav-list-item-active-text-color: #ab92ff;
+  --mat-nav-list-item-icon-color: #c4c6d0;
+  --mat-nav-list-item-text-color: #e3e2e6;
+
+  /* Nuestras Variables Propias */
+  --bg-app: #0f0f12;
+  --bg-sidenav: #17171e;
+  --text-primary: #e3e2e6;
+  --text-secondary: #90a4ae;
+  --border-color: #23232c;
+  --bg-content: #0f0f12;
+  --card-bg: #17171e;
+  --card-border: #23232c;
+  --toolbar-bg: #17171e;
+  --toolbar-text: #e3e2e6;
+}
+
 html,
 body {
   height: 100%;
   overflow-x: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -55,4 +218,255 @@ body {
     width: 95vw !important;
     max-width: 95vw !important;
   }
+}
+
+/* ══════════════════════════════════════
+   SCROLLBAR — Dark Mode Compatible
+   ══════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.25s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+/* ═══════════════════════════════════════════════
+   FORM DIALOG — Premium Design (Material Blocks style)
+   ═══════════════════════════════════════════════ */
+
+/* Dialog surface — rounded corners */
+.cdk-overlay-pane .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+}
+
+/* Dialog shape token */
+:root {
+  --mdc-dialog-container-shape: 16px;
+}
+
+/* Dialog title */
+[mat-dialog-title] {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  padding: 24px 24px 4px 24px !important;
+  margin: 0 !important;
+}
+
+/* Title icon */
+[mat-dialog-title] .title-icon {
+  color: var(--mat-tab-header-active-label-text-color, #7c4dff) !important;
+}
+
+/* Dialog content */
+.mdc-dialog__content {
+  padding: 8px 24px 16px 24px !important;
+}
+
+/* Dialog actions */
+.mdc-dialog__actions {
+  padding: 8px 16px 16px 16px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+/* Cancel button — outline */
+.mdc-dialog__actions button[mat-dialog-close] {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  padding: 6px 20px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.mdc-dialog__actions button[mat-dialog-close]:hover {
+  background-color: rgba(124, 77, 255, 0.05) !important;
+  border-color: var(--text-secondary) !important;
+}
+
+/* Submit button — filled */
+.mdc-dialog__actions button[type="submit"] {
+  border-radius: 8px !important;
+  padding: 6px 24px !important;
+  font-weight: 500 !important;
+}
+
+/* Form row — side by side */
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Search container */
+.search-container {
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  background-color: var(--card-bg);
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, background-color 0.25s ease, color 0.25s ease;
+}
+
+.search-input:focus {
+  border-color: var(--mat-tab-header-active-label-text-color, #7c4dff);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+/* ═══════════════════════════════════════
+   DATEPICKER — Dark Mode (CDK Overlay)
+   ═══════════════════════════════════════ */
+.dark-theme .mat-datepicker-content,
+.dark-theme .cdk-overlay-pane .mat-datepicker-content {
+  background-color: #23232c !important;
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar {
+  background-color: #23232c !important;
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-body-label {
+  color: #e3e2e6 !important;
+  opacity: 1 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-period-button {
+  color: #e3e2e6 !important;
+  border: 1px solid #2d2f39 !important;
+  border-radius: 8px !important;
+  padding: 4px 12px !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-period-button:hover {
+  background-color: rgba(124, 77, 255, 0.08) !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-table {
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-body {
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-body-cell-content {
+  color: #e3e2e6 !important;
+  opacity: 1 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-body-cell:not(.mat-calendar-body-disabled):not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-datepicker-content .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+  background-color: rgba(124, 77, 255, 0.15) !important;
+}
+
+/* Selected date — solid purple circle */
+.dark-theme .mat-datepicker-content .mat-calendar-body-selected .mat-calendar-body-cell-content {
+  background-color: #ab92ff !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* TODAY — purple ring around the number */
+.dark-theme .mat-datepicker-content .mat-calendar-body-today .mat-calendar-body-cell-content {
+  border: 2px solid #ab92ff !important;
+  color: #ab92ff !important;
+  font-weight: 700 !important;
+}
+
+/* TODAY when it's also selected — solid purple */
+.dark-theme .mat-datepicker-content .mat-calendar-body-today.mat-calendar-body-selected .mat-calendar-body-cell-content {
+  border: none !important;
+  background-color: #ab92ff !important;
+  color: #ffffff !important;
+}
+
+/* Navigation arrows < > */
+.dark-theme .mat-datepicker-content .mat-calendar-arrow,
+.dark-theme .mat-datepicker-content .mat-icon.mat-calendar-arrow,
+.dark-theme .mat-datepicker-content button .mat-icon {
+  color: #e3e2e6 !important;
+}
+
+/* Period button month/year label */
+.dark-theme .mat-datepicker-content .mat-calendar-period-button .mat-button-pseudo-label {
+  color: #e3e2e6 !important;
+}
+
+/* Row dividers */
+.dark-theme .mat-datepicker-content .mat-calendar-row {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Day-of-week headers S M T W T F S */
+.dark-theme .mat-datepicker-content .mat-calendar-table-header th {
+  color: #90a4ae !important;
+  border-bottom: none !important;
+}
+
+/* Datepicker toggle icon (calendar icon in the input) */
+.dark-theme .mat-datepicker-toggle .mat-icon {
+  color: #c4c6d0 !important;
+}
+
+.dark-theme .mat-datepicker-toggle:hover .mat-icon {
+  color: #e3e2e6 !important;
+}
+
+/* CDK Overlay backdrop for dark mode */
+.dark-theme .cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.5) !important;
 }

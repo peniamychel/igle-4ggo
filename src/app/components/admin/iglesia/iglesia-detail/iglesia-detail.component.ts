@@ -2,12 +2,13 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 
 @Component({
   selector: 'app-iglesia-detail',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
   templateUrl: './iglesia-detail.component.html',
   styleUrls: ['./iglesia-detail.component.css']
 })

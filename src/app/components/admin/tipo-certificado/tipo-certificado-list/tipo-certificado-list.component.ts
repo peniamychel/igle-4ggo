@@ -130,7 +130,10 @@ export class TipoCertificadoListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} el tipo de certificado <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${tipoCertificado.nombre}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} el tipo de certificado <strong>${tipoCertificado.nombre}</strong>.`,
+          confirmText: tipoCertificado.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 

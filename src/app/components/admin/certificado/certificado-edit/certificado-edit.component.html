@@ -7,7 +7,7 @@
   <mat-dialog-content>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Evento</mat-label>
         <mat-select formControlName="eventoId">
           <mat-option *ngFor="let evento of eventos" [value]="evento.id">
@@ -19,7 +19,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Tipo de Certificado</mat-label>
         <mat-select formControlName="tipoCertificadoId">
           <mat-option *ngFor="let tc of tiposCertificado" [value]="tc.id">
@@ -31,7 +31,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Código de Certificado</mat-label>
         <input matInput formControlName="codigoCertificado" placeholder="Ej. CERT-2026-001">
         <mat-error>{{ getError('codigoCertificado') }}</mat-error>
@@ -39,7 +39,7 @@
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Motivo del Certificado</mat-label>
         <textarea matInput formControlName="motivoCertificado" rows="2" placeholder="Certificado de Bautismo"></textarea>
         <mat-error>{{ getError('motivoCertificado') }}</mat-error>

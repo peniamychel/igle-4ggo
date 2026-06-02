@@ -1,66 +1,300 @@
-.detail-grid {
-  padding: 0;
+/* Header */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
 }
 
-.detail-section {
-  background-color: #f5f5f5;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.detail-section h3 {
-  margin: 0 0 16px 0;
-  color: #333;
-  font-size: 1.2em;
+.header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  padding: 6px;
+  box-sizing: content-box;
+  background: rgba(124, 77, 255, 0.12);
+  color: #ab92ff;
 }
 
-.detail-row {
+h2[mat-dialog-title] {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  transition: color 0.25s ease;
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: color 0.25s ease;
+}
+
+.close-btn {
+  margin-top: -4px;
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* Dialog Content */
+.dialog-content {
+  padding: 0 24px 16px !important;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* Photo Section */
+.photo-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.photo-container {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  flex-shrink: 0;
+  transition: border-color 0.25s ease;
+}
+
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 36px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Image Preview Overlay */
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.image-preview-container {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.preview-close-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Summary Card */
+.summary-card {
+  background: rgba(124, 77, 255, 0.05);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.summary-item + .summary-item {
+  border-top: 1px solid var(--border-color);
+  margin-top: 6px;
+  padding-top: 10px;
+}
+
+.summary-item .label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 140px;
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+
+.summary-item .val {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  transition: color 0.25s ease;
+}
+
+/* Estado Badge */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.estado-badge.activo { background: rgba(46, 125, 50, 0.15); color: #81c784; }
+.estado-badge.inactivo { background: rgba(198, 40, 40, 0.15); color: #e57373; }
+
+/* Section Title */
+.section-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  letter-spacing: 0.2px;
+  transition: color 0.25s ease;
+}
+
+/* Info Grid */
+.info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.detail-item {
-  padding: 8px;
-  background-color: white;
-  border-radius: 4px;
+.info-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
 }
 
-.detail-item strong {
+.info-cell:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: #ab92ff;
+}
+
+.cell-icon {
+  color: #ab92ff;
+  font-size: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cell-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  transition: color 0.25s ease;
+}
+
+.cell-value {
+  font-size: 0.88rem;
   font-weight: 500;
-  color: #666;
-  margin-right: 8px;
+  color: var(--text-primary);
+  word-break: break-word;
+  transition: color 0.25s ease;
 }
 
-mat-dialog-content {
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: 20px;
+.cell-subvalue {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transition: color 0.25s ease;
 }
 
-mat-dialog-actions {
-  display: flex !important;
-  justify-content: center;
-  padding: 16px 0 0 0;
-  margin-top: 16px;
-  box-sizing: border-box;
+/* Dialog Actions */
+.dialog-actions {
+  padding: 12px 24px 16px !important;
 }
 
-mat-dialog-actions button {
-  width: 100%;
-}
-
+/* Responsive */
 @media (max-width: 600px) {
-  .detail-row {
+  .info-grid {
     grid-template-columns: 1fr;
-    gap: 8px;
   }
 
-  .detail-section {
-    padding: 12px;
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .summary-item .label {
+    min-width: unset;
+  }
+
+  .dialog-header {
+    padding: 16px 16px 8px;
+  }
+
+  .dialog-content {
+    padding: 0 16px 12px !important;
   }
 }

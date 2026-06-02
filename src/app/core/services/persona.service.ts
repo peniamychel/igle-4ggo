@@ -106,4 +106,8 @@ export class PersonaService {
     formData.append('file', file);
     return this.http.post(`${this.apiUrl}/${id}/foto`, formData, { headers: this.getHeaders() });
   }
+
+  deleteProfilePhoto(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/foto`, { headers: this.getHeaders() });
+  }
 }

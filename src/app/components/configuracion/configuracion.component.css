@@ -1,0 +1,377 @@
+/* ═══════════════════════════════════════════════
+   CONFIGURACIÓN — Page Shell & Tab Styles
+   ═══════════════════════════════════════════════ */
+
+:host {
+  display: block;
+}
+
+.config-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 28px 40px;
+}
+
+/* ── Page Header ── */
+.page-header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Tab Group ── */
+.config-tabs {
+  background: transparent;
+}
+
+::ng-deep .config-tabs .mat-mdc-tab-header {
+  background: var(--card-bg);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  padding: 4px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+::ng-deep .config-tabs .mat-mdc-tab {
+  border-radius: 10px;
+  min-width: 140px;
+  transition: background 0.2s ease;
+}
+
+::ng-deep .config-tabs .mat-mdc-tab:hover:not(.mdc-tab--active) {
+  background: var(--border-color);
+}
+
+::ng-deep .config-tabs .mdc-tab--active {
+  background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+  border-radius: 10px;
+}
+
+::ng-deep .config-tabs .mdc-tab--active .mdc-tab__text-label {
+  color: #ffffff !important;
+}
+
+::ng-deep .config-tabs .mdc-tab--active .mat-icon {
+  color: #ffffff !important;
+}
+
+::ng-deep .config-tabs .mdc-tab-indicator__content--underline {
+  display: none;
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.tab-label-text {
+  font-weight: 500;
+  font-size: 0.88rem;
+}
+
+/* ── Tab Content ── */
+.tab-content {
+  padding-top: 4px;
+  min-height: 400px;
+}
+
+/* ── Placeholder Sections (Seguridad) ── */
+.placeholder-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 2px dashed var(--border-color);
+}
+
+.placeholder-icon {
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+  color: #b39ddb;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.placeholder-section h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.placeholder-section p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 360px;
+}
+
+/* ── Theme Settings Styles (General) ── */
+.theme-settings-container {
+  padding: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.section-header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #7c4dff;
+}
+
+.theme-section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.theme-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.theme-option-card {
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-app);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border-color: var(--text-secondary);
+}
+
+.theme-option-card.active {
+  border-color: #7c4dff;
+  box-shadow: 0 8px 32px rgba(124, 77, 255, 0.15);
+}
+
+/* Theme Preview Mock */
+.theme-preview {
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.light-preview {
+  background: #f5f7fa;
+}
+
+.light-preview .preview-header {
+  height: 24px;
+  background: #3f51b5;
+}
+
+.light-preview .preview-sidebar {
+  width: 40px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+
+.light-preview .preview-main {
+  flex: 1;
+  padding: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.light-preview .preview-line {
+  height: 8px;
+  border-radius: 4px;
+  background: #e0e0e0;
+}
+
+.light-preview .preview-line.long {
+  width: 80%;
+  background: #d0d0d0;
+}
+
+.light-preview .preview-line.short {
+  width: 45%;
+}
+
+.dark-preview {
+  background: #0f0f12;
+}
+
+.dark-preview .preview-header {
+  height: 24px;
+  background: #17171e;
+  border-bottom: 1px solid #23232c;
+}
+
+.dark-preview .preview-sidebar {
+  width: 40px;
+  background: #17171e;
+  border-right: 1px solid #23232c;
+}
+
+.dark-preview .preview-main {
+  flex: 1;
+  padding: 12px;
+  background: #0f0f12;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dark-preview .preview-line {
+  height: 8px;
+  border-radius: 4px;
+  background: #2d2f39;
+}
+
+.dark-preview .preview-line.long {
+  width: 80%;
+  background: #3c3e4c;
+}
+
+.dark-preview .preview-line.short {
+  width: 45%;
+}
+
+.preview-body {
+  flex: 1;
+  display: flex;
+}
+
+/* Card Footer */
+.theme-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card-bg);
+  transition: background-color 0.25s ease;
+}
+
+.option-icon {
+  color: var(--text-secondary);
+}
+
+.option-icon.checked {
+  color: #7c4dff;
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.option-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.option-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* ══════════ Responsive ══════════ */
+@media (max-width: 768px) {
+  .config-wrapper {
+    padding: 16px 14px 32px;
+  }
+
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.82rem;
+  }
+
+  ::ng-deep .config-tabs .mat-mdc-tab {
+    min-width: 100px;
+  }
+
+  .tab-label-text {
+    font-size: 0.78rem;
+  }
+
+  .placeholder-section {
+    padding: 40px 16px;
+  }
+
+  .placeholder-icon {
+    font-size: 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .theme-options-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .theme-settings-container {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-icon {
+    margin-right: 4px;
+  }
+
+  .tab-label-text {
+    display: none;
+  }
+
+  ::ng-deep .config-tabs .mat-mdc-tab {
+    min-width: 60px;
+  }
+}

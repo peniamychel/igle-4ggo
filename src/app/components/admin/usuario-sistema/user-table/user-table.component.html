@@ -1,129 +1,174 @@
+<!-- ════════════════════════════════════════════════
+     USUARIOS SISTEMA — Premium Table & Filters
+     ════════════════════════════════════════════════ -->
+
 <div class="user-table-container">
-  <div class="table-header">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+  <!-- ── Encabezado de la Página ── -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Usuarios del Sistema</h1>
+      <p class="page-subtitle">Gestiona las cuentas de usuario, asignación de roles y accesos al sistema de tu iglesia</p>
+    </div>
+  </div>
+
+  <!-- ── Barra de Filtros y Acciones ── -->
+  <div class="filters-bar">
+    <mat-form-field appearance="outline" class="filter-search">
+      <mat-label>Buscar usuarios...</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, email, rol, usuario..." autocomplete="off">
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" class="create-btn" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon>
       Nuevo Usuario
     </button>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Buscar usuarios...">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
   </div>
 
-  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 desktop-view">
-    <!-- Username Column -->
-    <ng-container matColumnDef="username">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Usuario </mat-header-cell>
-      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
-        <div class="user-avatar-container">
-          <div class="user-avatar" *ngIf="user.uriFoto">
-            <img [src]="user.uriFoto" [alt]="user.username">
+  <!-- ── Vista Desktop: Tabla ── -->
+  <div class="table-container mat-elevation-z1 desktop-view">
+    <table mat-table [dataSource]="dataSource" matSort class="user-table">
+
+      <!-- Columna: Nombre -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="user-cell">
+            <img *ngIf="user.uriFoto" [src]="user.uriFoto | imageUrl" [alt]="user.name || ''" class="user-avatar">
+            <div class="user-avatar placeholder-avatar" *ngIf="!user.uriFoto" [style.background-color]="getAvatarColor(user.name || user.username)">
+              {{ getInitials(user.name || user.username) }}
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{user.name}} {{user.apellidos}}</span>
+              <span class="user-email">{{user.email}}</span>
+            </div>
           </div>
-          <div class="user-avatar-placeholder" *ngIf="!user.uriFoto">
-            {{user.name?.charAt(0) || user.username.charAt(0)}}
+        </td>
+      </ng-container>
+
+      <!-- Columna: Roles -->
+      <ng-container matColumnDef="roles">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Roles</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="roles-container">
+            @for (role of user.roles; track role.id) {
+              <span class="roles-chip">{{role.name}}</span>
+            }
           </div>
-          <span>{{user.username}}</span>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Estado -->
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+        <td mat-cell *matCellDef="let user">
+          <span class="status-chip" [ngClass]="user.estado ? 'success' : 'failed'" (click)="$event.stopPropagation(); toggleUserStatus(user)">
+            <mat-icon class="status-chip-icon">{{ user.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ user.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Acciones -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="actions-cell">
+            <button mat-icon-button
+                    matTooltip="Ver detalles"
+                    class="action-btn view-btn"
+                    (click)="openViewDialog(user); $event.stopPropagation()">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button
+                    matTooltip="Editar"
+                    class="action-btn edit-btn"
+                    (click)="openEditDialog(user); $event.stopPropagation()">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row" (click)="openViewDialog(row)"></tr>
+
+      <!-- Empty state -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+          <div class="no-data">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron usuarios con los filtros actuales</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="table-footer">
+      <mat-paginator [pageSize]="pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [length]="dataSource.data.length"
+                     (page)="savePageSize($event.pageSize); onPageChanged()"
+                     showFirstLastButtons
+                     aria-label="Seleccionar página de usuarios">
+      </mat-paginator>
+    </div>
+  </div>
+
+  <!-- ── Vista Móvil: Tarjetas ── -->
+  <div class="mobile-view">
+    <div class="mobile-cards">
+      @for (user of pagedData; track user.id) {
+        <div class="mobile-card" (click)="openViewDialog(user)">
+          <div class="mobile-card-header">
+            <div class="mobile-card-avatar">
+              <img *ngIf="user.uriFoto" [src]="user.uriFoto | imageUrl" [alt]="user.name || ''">
+              <div *ngIf="!user.uriFoto" class="mobile-avatar-initials" [style.background-color]="getAvatarColor(user.name || user.username)">
+                {{ getInitials(user.name || user.username) }}
+              </div>
+            </div>
+            <div class="mobile-card-info">
+              <span class="mobile-card-name">{{ user.name }} {{ user.apellidos }}</span>
+              <span class="mobile-card-email">{{ user.email }}</span>
+            </div>
+            <span class="status-chip" [ngClass]="user.estado ? 'success' : 'failed'" (click)="$event.stopPropagation(); toggleUserStatus(user)">
+              <mat-icon class="status-chip-icon">{{ user.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+            </span>
+          </div>
+          <div class="mobile-card-roles">
+            @for (role of user.roles; track role.id) {
+              <span class="roles-chip">{{ role.name }}</span>
+            }
+          </div>
+          <div class="mobile-card-actions">
+            <button mat-icon-button class="action-btn view-btn" (click)="openViewDialog(user); $event.stopPropagation()">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver</span>
+            </button>
+            <button mat-icon-button class="action-btn edit-btn" (click)="openEditDialog(user); $event.stopPropagation()">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+          </div>
         </div>
-      </mat-cell>
-    </ng-container>
+      }
 
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </mat-header-cell>
-      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
-        {{user.name}} {{user.apellidos}}
-      </mat-cell>
-    </ng-container>
+      @if (pagedData.length === 0) {
+        <div class="mobile-no-data">
+          <mat-icon>search_off</mat-icon>
+          <span>No se encontraron usuarios</span>
+        </div>
+      }
+    </div>
 
-    <!-- Email Column -->
-    <ng-container matColumnDef="email">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Email </mat-header-cell>
-      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)"> {{user.email}} </mat-cell>
-    </ng-container>
-
-    <!-- Roles Column -->
-    <ng-container matColumnDef="roles">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Roles </mat-header-cell>
-      <mat-cell *matCellDef="let user" (click)="openViewDialog(user)">
-        {{user.roles | roles}}
-      </mat-cell>
-    </ng-container>
-
-    <!-- Estado Column -->
-    <ng-container matColumnDef="estado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
-      <mat-cell *matCellDef="let user">
-        <button mat-button [color]="user.estado ? 'primary' : 'warn'"
-          (click)="toggleUserStatus(user); $event.stopPropagation()">
-          {{user.estado ? 'Activo' : 'Inactivo'}}
-        </button>
-      </mat-cell>
-    </ng-container>
-
-    <!-- Actions Column -->
-    <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
-      <mat-cell *matCellDef="let user">
-        <button mat-icon-button color="primary" (click)="openEditDialog(user); $event.stopPropagation()">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
-
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></mat-row>
-  </mat-table>
-
-  <!-- Vista Tarjetas - Mobile -->
-  <div class="mobile-view" *ngIf="dataSource.filteredData.length > 0; else noDataMobile">
-    <div class="cards-container">
-      <mat-card *ngFor="let user of dataSource.filteredData" class="user-card" [class.inactive]="!user.estado">
-        <mat-card-header>
-          <div mat-card-avatar class="user-avatar-placeholder" *ngIf="!user.uriFoto">
-            {{user.name?.charAt(0) || user.username.charAt(0)}}
-          </div>
-          <div mat-card-avatar class="user-avatar" *ngIf="user.uriFoto">
-            <img [src]="user.uriFoto" [alt]="user.username">
-          </div>
-          <mat-card-title>{{user.username}}</mat-card-title>
-          <mat-card-subtitle>{{user.name}} {{user.apellidos}}</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <div class="info-row">
-            <span class="label">Email:</span>
-            <span class="value">{{user.email}}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Roles:</span>
-            <span class="value">{{user.roles | roles}}</span>
-          </div>
-        </mat-card-content>
-
-        <mat-card-actions>
-          <button mat-icon-button color="primary" (click)="openViewDialog(user)" matTooltip="Ver detalle">
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button mat-icon-button color="primary" (click)="openEditDialog(user)" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-button [color]="user.estado ? 'primary' : 'warn'" (click)="toggleUserStatus(user)">
-            {{user.estado ? 'Activo' : 'Inactivo'}}
-          </button>
-        </mat-card-actions>
-      </mat-card>
+    <div class="mobile-paginator">
+      <mat-paginator [pageSize]="pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [length]="dataSource.data.length"
+                     (page)="savePageSize($event.pageSize); onPageChanged()"
+                     showFirstLastButtons
+                     aria-label="Seleccionar página de usuarios">
+      </mat-paginator>
     </div>
   </div>
-
-  <ng-template #noDataMobile>
-    <div class="mobile-view">
-      <p class="no-data">No se encontraron usuarios que coincidan con la búsqueda.</p>
-    </div>
-  </ng-template>
-
-  <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" [length]="dataSource.data.length"
-    (page)="savePageSize($event.pageSize)" showFirstLastButtons>
-  </mat-paginator>
 </div>

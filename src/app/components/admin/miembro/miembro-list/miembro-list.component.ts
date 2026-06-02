@@ -12,16 +12,13 @@ import { MiembroDetailComponent } from '../miembro-detail/miembro-detail.compone
 import { MiembroFormEditarComponent } from '../miembro-edit/miembro-edit.component';
 import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { Persona } from '../../../../core/models/persona.model';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
-/**
- * Lista de todos los Miembros en una tabla
- */
 @Component({
   selector: 'app-miembro-list',
   standalone: true,
@@ -38,25 +35,19 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatSuffix,
     MatPaginator,
     MatSort,
-    MatSort,
     MatSortHeader,
-    MatTooltipModule
+    MatTooltipModule,
+    ImageUrlPipe
   ],
-
   templateUrl: './miembro-list.component.html',
   styleUrls: ['./miembro-list.component.css']
-
 })
-
 export class MiembroListComponent implements OnInit {
   miembros = new MatTableDataSource<Miembro>([]);
-  miembros2: Miembro[] = [];
   displayedColumns: string[] = ['foto', 'nombreCompleto', 'celular', 'direccion', 'fechaConvercion', 'sexo', 'acciones'];
 
   @ViewChild(MatSort) sort!: MatSort;
-  // @ViewChild(MatTable) table!: MatTable<Persona>;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  // @ViewChild('input') input!: ElementRef;
 
   constructor(
     private miembroService: MiembroService,
@@ -64,19 +55,11 @@ export class MiembroListComponent implements OnInit {
     private snackBar: MatSnackBar
   ) { }
 
-  /**
-   * Inicializa el componente.
-   * Configura los filtros, el ordenamiento de la tabla y carga la lista de miembros inicial.
-   */
   ngOnInit() {
     this.setupTableModifiers();
     this.loadMiembros();
   }
 
-  /**
-   * Configura las reglas de ordenamiento y filtrado personalizadas para la tabla.
-   * Maneja correctamente los campos anidados dentro de `personaDto` y formatea la `fechaConvercion` para el ordenamiento.
-   */
   private setupTableModifiers() {
     this.miembros.sortingDataAccessor = (item: Miembro, property: string) => {
       switch (property) {
@@ -107,9 +90,6 @@ export class MiembroListComponent implements OnInit {
     };
   }
 
-  /**
-   * Carga la lista de miembros desde el servicio backend y la asigna al `dataSource` de la tabla.
-   */
   loadMiembros() {
     this.miembroService.getMiembros().subscribe(response => {
       const data = [...response.datos];
@@ -122,19 +102,11 @@ export class MiembroListComponent implements OnInit {
     });
   }
 
-  /**
-   * Configura el paginador y el ordenamiento de la tabla una vez que la vista ha sido inicializada.
-   */
   ngAfterViewInit() {
     this.miembros.paginator = this.paginator;
     this.miembros.sort = this.sort;
   }
 
-  /**
-   * Formatea una fecha al formato local de España (ej. "1 de enero de 2023").
-   * @param date La fecha a formatear. Puede ser nula o indefinida.
-   * @returns Un string con la fecha formateada o 'No definido' si la fecha es nula.
-   */
   formatDate(date: Date | null | undefined): string {
     if (!date) return 'No definido';
     return new Date(date).toLocaleDateString('es-ES', {
@@ -144,13 +116,11 @@ export class MiembroListComponent implements OnInit {
     });
   }
 
-  /**
-   * Abre un cuadro de diálogo para crear un nuevo miembro.
-   * Al cerrar el diálogo, si hubo un resultado exitoso, recarga la lista de miembros.
-   */
   openCreateDialog() {
     const dialogRef = this.dialog.open(MiembroCreateComponent, {
-      width: '600px !important'
+      width: '600px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile'
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -160,39 +130,31 @@ export class MiembroListComponent implements OnInit {
     });
   }
 
-  /**
-   * Abre un cuadro de diálogo para editar un miembro existente.
-   * @param miembro El objeto Miembro a editar.
-   * Al cerrar el diálogo, recarga la lista si hubo cambios.
-   */
   openEditDialog(miembro: Miembro) {
     const dialogRef = this.dialog.open(MiembroFormEditarComponent, {
-      width: '600px !important',
-      data: miembro
+      width: '600px',
+      maxWidth: '95vw',
+      data: miembro,
+      panelClass: 'dialog-fullscreen-mobile'
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadMiembros();
+        this.messageSnackBar('Miembro actualizado exitosamente');
       }
     });
   }
 
-  /**
-   * Abre un cuadro de diálogo mostrando los detalles completos de un miembro.
-   * @param miembro El objeto Miembro a visualizar en detalle.
-   */
   openDetailDialog(miembro: Miembro) {
     this.dialog.open(MiembroDetailComponent, {
-      width: '600px !important',
-      data: miembro
+      width: '600px',
+      maxWidth: '95vw',
+      data: miembro,
+      panelClass: 'dialog-fullscreen-mobile'
     });
   }
 
-  /**
-   * Modifica el estado activo o inactivo de un miembro mediante el servicio backend tras confirmación.
-   * @param miembro El miembro cuyo estado se va a alternar.
-   */
   toggleEstado(miembro: Miembro) {
     if (miembro.id) {
       const action = miembro.estado ? 'desactivar' : 'activar';
@@ -200,7 +162,10 @@ export class MiembroListComponent implements OnInit {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
-          message: `¿Está seguro que desea ${action} al miembro <br><strong style="font-size: 1.25em; color: #1976d2; display: block; margin-top: 8px;">${miembro.personaDto?.nombre} ${miembro.personaDto?.apellido}</strong>?`
+          title: `¿Está seguro que desea ${action}?`,
+          message: `Está a punto de ${action} al miembro <strong>${miembro.personaDto?.nombre} ${miembro.personaDto?.apellido}</strong>.`,
+          confirmText: miembro.estado ? 'Desactivar' : 'Activar',
+          type: 'warning'
         }
       });
 
@@ -215,11 +180,6 @@ export class MiembroListComponent implements OnInit {
     }
   }
 
-  /**
-   * Aplica el texto ingresado por el usuario en el buscador como filtro sobre la tabla de miembros.
-   * Si hay un paginador activo, lo regresa a la primera página.
-   * @param event El evento desencadenado por el input de búsqueda.
-   */
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.miembros.filter = filterValue.trim().toLowerCase();
@@ -229,15 +189,19 @@ export class MiembroListComponent implements OnInit {
     }
   }
 
-  /**
-   * Despliega un aviso ('SnackBar') persistente por un periodo corto de tiempo.
-   * @param message El mensaje descriptivo a mostrar en la notificación.
-   */
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling as HTMLElement;
+    if (placeholder) {
+      placeholder.style.display = 'flex';
+    }
+  }
+
   messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {
     const panelClass = type === 'success' ? 'success-snackbar' : type === 'warning' ? 'warning-snackbar' : 'error-snackbar';
     this.snackBar.open(
       message, 'Cerrar', { duration: 3000, panelClass: [panelClass] }
     );
   }
-
 }

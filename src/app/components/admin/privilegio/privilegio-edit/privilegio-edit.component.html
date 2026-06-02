@@ -6,13 +6,13 @@
 <form [formGroup]="privilegioForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" placeholder="Ej. Gestionar Miembros">
       <mat-error>{{ getError('nombre') }}</mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label>Acto</mat-label>
       <input matInput formControlName="acto" placeholder="Ej. Crear, editar y eliminar miembros">
       <mat-error>{{ getError('acto') }}</mat-error>

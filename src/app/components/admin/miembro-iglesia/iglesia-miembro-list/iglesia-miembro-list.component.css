@@ -1,6 +1,5 @@
 .container {
   padding: 20px;
-  /*height: calc(100vh - 40px);*/
   height: 95%;
 }
 
@@ -16,6 +15,12 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 16px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .header-actions {
@@ -41,33 +46,30 @@ mat-table {
 }
 
 .mat-row:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background: rgba(124, 77, 255, 0.05) !important;
   cursor: pointer;
 }
 
 .mat-row.selected {
-  background-color: rgba(0, 0, 0, 0.08);
+  background: rgba(124, 77, 255, 0.12) !important;
 }
 
 .miembros-count {
   margin-top: 16px;
   text-align: right;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.25s ease;
 }
-
-
 
 .mat-column-acciones {
   width: 100px;
   text-align: center;
 }
 
-
-.selected {
-  background-color: #cfe8fc; /* Azul claro, puedes ajustar el color */
-}
-
-mat-row:hover {
-  background-color: #e0f7fa; /* Cambia este color a uno de tu preferencia */
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
 }

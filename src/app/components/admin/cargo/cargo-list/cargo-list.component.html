@@ -11,7 +11,8 @@
     </mat-form-field>
   </div>
 
-  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <div class="table-container">
+  <mat-table [dataSource]="dataSource" matSort>
 
     <ng-container matColumnDef="iglesia">
       <mat-header-cell *matHeaderCellDef mat-sort-header>Iglesia</mat-header-cell>
@@ -74,4 +75,5 @@
 
   <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de cargos">
   </mat-paginator>
+  </div>
 </div>

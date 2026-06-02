@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════════════
+   TABLE SHARED — Premium Dark-Mode-Compatible Table Styles
+   ═══════════════════════════════════════════════ */
+
+/* ── Table Container ── */
+.table-container {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ── Header ── */
+.table-container th.mat-header-cell,
+.table-container .mat-header-cell {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  padding: 14px 16px;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ── Rows ── */
+.table-container tr.mat-row:hover,
+.table-container .mat-row:hover,
+.table-container mat-row:hover {
+  background: rgba(124, 77, 255, 0.05) !important;
+}
+
+.table-container .clickable-row {
+  cursor: pointer;
+}
+
+/* ── Cells ── */
+.table-container td.mat-cell,
+.table-container .mat-cell {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  transition: border-color 0.25s ease;
+}
+
+/* ── Actions Column ── */
+.table-container .mat-column-acciones {
+  width: 130px;
+  text-align: center;
+}
+
+/* ── Paginator ── */
+.table-container mat-paginator {
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── No Data ── */
+.table-container .no-data-cell {
+  text-align: center;
+  padding: 48px 16px !important;
+}
+
+.table-container .no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.table-container .no-data mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.table-container .no-data span {
+  font-size: 0.9rem;
+}
+
+/* ── Estado Badge (Dark-Mode Aware) ── */
+.table-container .estado-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.table-container .estado-badge.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.table-container .estado-badge.inactivo {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+.dark-theme .table-container .estado-badge.activo {
+  background: rgba(46, 125, 50, 0.15);
+  color: #81c784;
+}
+
+.dark-theme .table-container .estado-badge.inactivo {
+  background: rgba(198, 40, 40, 0.15);
+  color: #e57373;
+}
+
+/* ══════════ Responsive ══════════ */
+@media (max-width: 768px) {
+  .table-container {
+    border-radius: 12px;
+  }
+}

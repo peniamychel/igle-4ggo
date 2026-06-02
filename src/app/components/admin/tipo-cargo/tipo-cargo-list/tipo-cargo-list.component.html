@@ -11,7 +11,8 @@
     </mat-form-field>
   </div>
 
-  <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <div class="table-container">
+  <mat-table [dataSource]="dataSource" matSort>
 
     <ng-container matColumnDef="tipo">
       <mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</mat-header-cell>
@@ -63,4 +64,5 @@
 
   <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de tipos de cargo">
   </mat-paginator>
+  </div>
 </div>

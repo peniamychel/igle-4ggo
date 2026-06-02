@@ -1,40 +1,55 @@
-<div class="dialog-container">
-  <div class="user-photo" *ngIf="user.uriFoto">
-    <img [src]="user.uriFoto" [alt]="user.username">
-  </div>
-  <div class="user-photo no-photo" *ngIf="!user.uriFoto">
-    <span class="initials">{{user.name?.charAt(0) || user.username.charAt(0)}}</span>
-  </div>
-
-  <h2 mat-dialog-title>{{user.name}} {{user.apellidos}}</h2>
-  
-  <mat-dialog-content>
-    <div class="info-grid">
-      <div class="info-item">
-        <label>Usuario:</label>
-        <span>{{user.username}}</span>
-      </div>
-      
-      <div class="info-item">
-        <label>Correo:</label>
-        <span>{{user.email}}</span>
-      </div>
-      
-      <div class="info-item">
-        <label>Estado:</label>
-        <span [class.active]="user.estado" [class.inactive]="!user.estado">
-          {{user.estado ? 'Activo' : 'Inactivo'}}
-        </span>
-      </div>
-      
-      <div class="info-item">
-        <label>Roles:</label>
-        <span>{{user.roles | roles}}</span>
-      </div>
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-avatar" *ngIf="user.uriFoto">
+      <img [src]="user.uriFoto | imageUrl" [alt]="user.username">
     </div>
-  </mat-dialog-content>
-
-  <mat-dialog-actions>
-    <button mat-button (click)="onClose()">Cerrar</button>
-  </mat-dialog-actions>
+    <div class="header-avatar header-avatar-initials" *ngIf="!user.uriFoto"
+         [style.background]="getAvatarColor()">
+      <span>{{ getInitials() }}</span>
+    </div>
+    <div>
+      <h2 mat-dialog-title>{{ user.name }} {{ user.apellidos }}</h2>
+      <p class="header-subtitle">&#64;{{ user.username }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
 </div>
+
+<mat-dialog-content class="dialog-content">
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Usuario</span>
+      <span class="val">{{ user.username }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Correo</span>
+      <span class="val">{{ user.email }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Nombres</span>
+      <span class="val">{{ user.name }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Apellidos</span>
+      <span class="val">{{ user.apellidos }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Roles</span>
+      <span class="val">{{ user.roles | roles }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Estado</span>
+      <span class="estado-badge" [ngClass]="user.estado ? 'activo' : 'inactivo'">
+        {{ user.estado ? 'Activo' : 'Inactivo' }}
+      </span>
+    </div>
+  </div>
+
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

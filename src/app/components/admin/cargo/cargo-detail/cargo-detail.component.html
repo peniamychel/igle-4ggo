@@ -1,72 +1,67 @@
-<h2 mat-dialog-title>
-  <mat-icon class="title-icon">info</mat-icon>
-  Detalle del Cargo
-</h2>
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">work</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Detalle del Cargo</h2>
+      <p class="header-subtitle">{{ data.iglesiaDto?.nombre }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
-<mat-dialog-content>
-  <div class="detail-grid">
-    <div class="detail-section">
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <span class="label">Iglesia</span>
-          <span class="value">{{ data.iglesiaDto?.nombre || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Cargo</span>
-          <span class="value">{{ data.tipoCargoDto?.nombre || 'N/A' }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <span class="label">Miembro</span>
-          <span class="value">{{ getMiembroNombreCompleto(data.miembroDto) }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <span class="label">Fecha de Inicio</span>
-          <span class="value">{{ formatDate(data.fechaInicio) }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Fecha de Fin</span>
-          <span class="value">{{ data.fechaFin ? formatDate(data.fechaFin) : 'Indefinido' }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item full-width-item">
-          <span class="label">Detalle / Descripción</span>
-          <span class="value">{{ data.detalle || 'Sin detalles' }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <span class="label">Estado</span>
-          <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">
-            {{ data.estado ? 'Activo' : 'Inactivo' }}
-          </span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Creado</span>
-          <span class="value">{{ formatDate(data.createdAt) }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <span class="label">Última Actualización</span>
-          <span class="value">{{ formatDate(data.updatedAt) }}</span>
-        </div>
-      </div>
-
+<mat-dialog-content class="dialog-content">
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Iglesia</span>
+      <span class="val">{{ data.iglesiaDto?.nombre || 'N/A' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Cargo</span>
+      <span class="val">{{ data.tipoCargoDto?.nombre || 'N/A' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Miembro</span>
+      <span class="val">{{ getMiembroNombreCompleto(data.miembroDto) }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Fecha Inicio</span>
+      <span class="val">{{ formatDate(data.fechaInicio) }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Fecha Fin</span>
+      <span class="val">{{ data.fechaFin ? formatDate(data.fechaFin) : 'Indefinido' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Detalle</span>
+      <span class="val">{{ data.detalle || 'Sin detalles' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Estado</span>
+      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
     </div>
   </div>
 
-  <mat-dialog-actions align="end">
-    <button mat-raised-button mat-dialog-close>Cerrar</button>
-  </mat-dialog-actions>
+  <h3 class="section-title">Información del Sistema</h3>
+  <div class="info-grid">
+    <div class="info-cell">
+      <mat-icon class="cell-icon">schedule</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Creado</span>
+        <span class="cell-value">{{ formatDate(data.createdAt) }}</span>
+      </div>
+    </div>
+    <div class="info-cell">
+      <mat-icon class="cell-icon">update</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Última Actualizacion</span>
+        <span class="cell-value">{{ formatDate(data.updatedAt) }}</span>
+      </div>
+    </div>
+  </div>
 </mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
