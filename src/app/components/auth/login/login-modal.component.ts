@@ -50,7 +50,7 @@ export class LoginModalComponent {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
           this.dialogRef.close(true);
-          this.router.navigate(['/']);
+          this.router.navigate(['/inicio']);
         },
         error: (error) => {
           this.error = 'Usuario o contraseña incorrectos';

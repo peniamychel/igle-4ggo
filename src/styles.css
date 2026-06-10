@@ -110,6 +110,9 @@
   --mdc-outlined-text-field-caret-color: #ab92ff;
   --mat-form-field-focus-select-arrow-color: #ab92ff;
   --mat-form-field-select-option-text-color: #e3e2e6;
+  --mat-form-field-placeholder-text-color: #8e9099;
+  --mat-form-field-prefix-text-color: #8e9099;
+  --mat-form-field-suffix-text-color: #8e9099;
 
   /* Inputs Filled */
   --mdc-filled-text-field-container-color: #1f2022;
@@ -161,6 +164,70 @@
   --card-border: #23232c;
   --toolbar-bg: #17171e;
   --toolbar-text: #e3e2e6;
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — Form field overrides (force over prebuilt theme)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-form-field .mdc-floating-label {
+  color: #8e9099 !important;
+}
+
+.dark-theme .mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #ab92ff !important;
+}
+
+.dark-theme .mat-mdc-text-field-wrapper {
+  background-color: #1f1f27 !important;
+}
+
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__notch {
+  border-color: #2d2f39 !important;
+}
+
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__notch {
+  border-color: #8e9099 !important;
+}
+
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch {
+  border-color: #ab92ff !important;
+}
+
+.dark-theme .mat-mdc-input-element {
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-mdc-input-element::placeholder,
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder {
+  color: #8e9099 !important;
+}
+
+.dark-theme .mat-mdc-form-field-icon-prefix,
+.dark-theme .mat-mdc-form-field-icon-suffix {
+  color: #8e9099 !important;
+}
+
+/* Login page form field specifics */
+.dark-theme .login-page .mat-mdc-text-field-wrapper,
+.dark-theme .mat-mdc-form-field .mdc-text-field--outlined .mdc-text-field__surface {
+  background-color: #1f1f27 !important;
+}
+
+.dark-theme .login-page .mat-mdc-floating-label,
+.dark-theme .mat-mdc-form-field .mdc-floating-label {
+  color: #9e9e9e !important;
+}
+
+.dark-theme .login-page .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
+.dark-theme .mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #ab92ff !important;
 }
 
 html,
