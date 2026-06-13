@@ -1,6 +1,6 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { PersonaListComponent } from './components/admin/persona/persona-list/persona-list.component';
+
 import { MiembroListComponent } from './components/admin/miembro/miembro-list/miembro-list.component';
 import { IglesiaListComponent } from './components/admin/iglesia/iglesia-list/iglesia-list.component';
 import { IglesiaMiembroListComponent } from './components/admin/miembro-iglesia/iglesia-miembro-list/iglesia-miembro-list.component';
@@ -46,12 +46,7 @@ export const routes: Routes = [
         title: 'Miembro',
         canActivate: [privilegioGuard]
       },
-      {
-        path: 'persona',
-        component: PersonaListComponent,
-        title: 'Persona',
-        canActivate: [privilegioGuard]
-      },
+
       {
         path: 'iglesia',
         component: IglesiaListComponent,

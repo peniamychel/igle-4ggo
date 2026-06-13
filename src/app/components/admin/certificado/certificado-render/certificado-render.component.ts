@@ -75,8 +75,8 @@ export class CertificadoRenderComponent implements OnInit {
   }
 
   getMiembroNombre(miembro?: Miembro): string {
-    if (!miembro || !miembro.personaDto) return '';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return '';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 
   loadConfig() {

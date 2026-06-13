@@ -20,7 +20,7 @@
         <mat-label>Nueva miembro</mat-label>
         <mat-select formControlName="miembroId" id="miembros">
           <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
-            {{miembro.personaDto?.nombre}} {{miembro.personaDto?.apellido}}
+            {{miembro.nombre}} {{miembro.apellido}}
           </mat-option>
         </mat-select>
 

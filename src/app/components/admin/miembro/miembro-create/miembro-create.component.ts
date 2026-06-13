@@ -11,9 +11,6 @@ import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {Miembro} from '../../../../core/models/miembro.model';
-import {PersonaService} from '../../../../core/services/persona.service';
-import {Persona} from '../../../../core/models/persona.model';
-import {MatSelectChange} from '@angular/material/select';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MiembroService} from '../../../../core/services/miembro.service';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
@@ -42,15 +39,12 @@ import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 export class MiembroCreateComponent implements OnInit {
   miembroForm!: FormGroup;
   editMode = false;
-  personas: Persona[] = [];
-  selectedPersona: Persona | null = null;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private miembroService: MiembroService,
-    private personaService: PersonaService,
     private dialogRef: MatDialogRef<MiembroCreateComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Miembro
   ) {
@@ -74,47 +68,20 @@ export class MiembroCreateComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadPersonas();
     if (this.data) {
       this.editMode = true;
       this.patchFormValues();
     }
   }
 
-  loadPersonas() {
-    this.personaService.personaNoMiembro().subscribe(response => {
-      this.personas = response.datos.filter(p => p.estado);
-    });
-  }
-
   patchFormValues() {
-    if (this.data.personaDto) {
-      this.selectedPersona = this.data.personaDto;
-      if (this.data.personaDto.uriFoto) {
-        this.imagePreview = this.data.personaDto.uriFoto;
+    if (this.data) {
+      if (this.data.uriFoto) {
+        this.imagePreview = this.data.uriFoto;
       }
       this.miembroForm.patchValue({
-        ...this.data.personaDto,
         ...this.data
       });
-    }
-  }
-
-  onPersonaSelect(event: MatSelectChange) {
-    this.selectedPersona = event.value;
-    if (this.selectedPersona && 'nombre' in this.selectedPersona) {
-      this.miembroForm.patchValue({
-        nombre: this.selectedPersona.nombre,
-        apellido: this.selectedPersona.apellido,
-        ci: this.selectedPersona.ci,
-        fechaNac: this.selectedPersona.fechaNac,
-        celular: this.selectedPersona.celular,
-        sexo: this.selectedPersona.sexo,
-        direccion: this.selectedPersona.direccion
-      });
-      if (this.selectedPersona.uriFoto) {
-        this.imagePreview = this.selectedPersona.uriFoto;
-      }
     }
   }
 
@@ -138,40 +105,33 @@ export class MiembroCreateComponent implements OnInit {
   public async onSubmit() {
     if (this.miembroForm.valid) {
       const formValue = this.miembroForm.value;
-      let personaId: number;
 
-      if (this.selectedPersona) {
-        personaId = this.selectedPersona.id!;
-      } else {
-        const personaData: any = {
-          nombre: formValue.nombre,
-          apellido: formValue.apellido,
-          ci: formValue.ci,
-          fechaNac: formValue.fechaNac,
-          celular: formValue.celular,
-          sexo: formValue.sexo,
-          direccion: formValue.direccion,
-          uriFoto: ''
-        };
-
-        const personaResponse = await this.personaService.createPersona(personaData).toPromise();
-        personaId = personaResponse.datos.id;
-
-        if (this.selectedFile && personaId) {
-          await this.personaService.uploadUserPhoto(personaId, this.selectedFile).toPromise();
-        }
-      }
-
-      const miembroData = {
+      const miembroData: Partial<Miembro> = {
+        nombre: formValue.nombre,
+        apellido: formValue.apellido,
+        ci: formValue.ci,
+        fechaNac: formValue.fechaNac,
+        celular: formValue.celular,
+        sexo: formValue.sexo,
+        direccion: formValue.direccion,
         fechaConvercion: formValue.fechaConvercion,
         lugarConvercion: formValue.lugarConvercion,
         interventores: formValue.interventores,
         detalles: formValue.detalles,
-        personaId: personaId!
+        uriFoto: ''
       };
 
-      await this.miembroService.createMiembro(miembroData).toPromise();
-      this.dialogRef.close(true);
+      try {
+        const response = await this.miembroService.createMiembro(miembroData).toPromise();
+        const miembroId = response.datos.id;
+
+        if (this.selectedFile && miembroId) {
+          await this.miembroService.uploadPhoto(miembroId, this.selectedFile).toPromise();
+        }
+        this.dialogRef.close(true);
+      } catch (error) {
+        console.error('Error al crear el miembro:', error);
+      }
     }
   }
 }

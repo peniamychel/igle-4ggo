@@ -150,11 +150,11 @@ export class IglesiaMiembroViewComponent implements OnInit {
     if (!this.selectedIglesia || !this.miembroDataSource.data.length) return;
 
     const data = this.miembroDataSource.data.map(m => ({
-      'Nombre': m.personaDto?.nombre,
-      'Apellido': m.personaDto?.apellido,
-      'CI': m.personaDto?.ci,
-      'Celular': m.personaDto?.celular,
-      'Dirección': m.personaDto?.direccion,
+      'Nombre': m.nombre,
+      'Apellido': m.apellido,
+      'CI': m.ci,
+      'Celular': m.celular,
+      'Dirección': m.direccion,
       'Fecha Conversión': new Date(m.fechaConvercion!).toLocaleDateString()
     }));
 
@@ -170,11 +170,11 @@ export class IglesiaMiembroViewComponent implements OnInit {
     const doc = new jsPDF();
     const tableColumn = ['Nombre', 'Apellido', 'CI', 'Celular', 'Dirección', 'Fecha Conversión'];
     const tableRows = this.miembroDataSource.data.map(m => [
-      m.personaDto?.nombre,
-      m.personaDto?.apellido,
-      m.personaDto?.ci,
-      m.personaDto?.celular,
-      m.personaDto?.direccion,
+      m.nombre,
+      m.apellido,
+      m.ci,
+      m.celular,
+      m.direccion,
       new Date(m.fechaConvercion!).toLocaleDateString()
     ]);
 

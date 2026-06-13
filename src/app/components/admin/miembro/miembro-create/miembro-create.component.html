@@ -23,14 +23,6 @@
       </button>
     </div>
 
-    <mat-form-field appearance="outline" *ngIf="!editMode">
-      <mat-label>Seleccionar Persona Existente</mat-label>
-      <mat-select (selectionChange)="onPersonaSelect($event)">
-        <mat-option *ngFor="let persona of personas" [value]="persona">
-          {{persona.nombre}} {{persona.apellido}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
 
     <div class="row">
       <mat-form-field appearance="outline">

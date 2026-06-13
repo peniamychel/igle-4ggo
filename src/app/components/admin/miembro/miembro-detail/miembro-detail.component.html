@@ -3,7 +3,7 @@
     <mat-icon class="header-icon">people</mat-icon>
     <div>
       <h2 mat-dialog-title>Detalles del Miembro</h2>
-      <p class="header-subtitle">{{ data.personaDto?.nombre }} {{ data.personaDto?.apellido }}</p>
+      <p class="header-subtitle">{{ data.nombre }} {{ data.apellido }}</p>
     </div>
   </div>
   <button mat-icon-button mat-dialog-close class="close-btn">
@@ -15,12 +15,12 @@
   <!-- Photo Section -->
   <div class="photo-section" *ngIf="getProfilePhoto()">
     <div class="photo-container" (click)="toggleImagePreview()" style="cursor: pointer;">
-      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.personaDto?.nombre" class="profile-photo">
+      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.nombre" class="profile-photo">
     </div>
   </div>
   <div class="photo-section" *ngIf="!getProfilePhoto()">
     <div class="photo-placeholder">
-      {{data.personaDto?.nombre?.charAt(0) || '?'}}
+      {{data.nombre.charAt(0) || '?'}}
     </div>
   </div>
 
@@ -30,7 +30,7 @@
       <button mat-icon-button class="preview-close-btn" (click)="toggleImagePreview()">
         <mat-icon>close</mat-icon>
       </button>
-      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.personaDto?.nombre" class="preview-image">
+      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.nombre" class="preview-image">
     </div>
   </div>
 
@@ -38,31 +38,31 @@
   <div class="summary-card">
     <div class="summary-item">
       <span class="label">Nombre</span>
-      <span class="val">{{ data.personaDto?.nombre }}</span>
+      <span class="val">{{ data.nombre }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Apellido</span>
-      <span class="val">{{ data.personaDto?.apellido }}</span>
+      <span class="val">{{ data.apellido }}</span>
     </div>
     <div class="summary-item">
       <span class="label">CI</span>
-      <span class="val">{{ data.personaDto?.ci }}</span>
+      <span class="val">{{ data.ci }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Fecha Nacimiento</span>
-      <span class="val">{{ formatDate(data.personaDto?.fechaNac) }}</span>
+      <span class="val">{{ formatDate(data.fechaNac) }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Celular</span>
-      <span class="val">{{ data.personaDto?.celular }}</span>
+      <span class="val">{{ data.celular }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Sexo</span>
-      <span class="val">{{ data.personaDto?.sexo }}</span>
+      <span class="val">{{ data.sexo }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Direccion</span>
-      <span class="val">{{ data.personaDto?.direccion }}</span>
+      <span class="val">{{ data.direccion }}</span>
     </div>
   </div>
 

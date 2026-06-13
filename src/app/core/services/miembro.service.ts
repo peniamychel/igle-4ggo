@@ -36,4 +36,22 @@ export class MiembroService {
   toggleEstado(id: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/estado/${id}`,{}, { headers: this.getHeaders() });
   }
+
+  uploadPhoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/foto`, formData, { headers: this.getHeaders() });
+  }
+
+  deletePhoto(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/foto`, { headers: this.getHeaders() });
+  }
+
+  buscarCi(ci: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/buscarci/${ci}`, { headers: this.getHeaders() });
+  }
+
+  deleteMiembro(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+  }
 }

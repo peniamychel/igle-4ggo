@@ -19,13 +19,13 @@
       <mat-header-cell *matHeaderCellDef> Foto </mat-header-cell>
       <mat-cell *matCellDef="let miembro">
         <div class="miembro-avatar-container">
-          <img *ngIf="miembro.personaDto?.uriFoto"
-               [src]="miembro.personaDto.uriFoto | imageUrl"
-               [alt]="miembro.personaDto?.nombre"
+          <img *ngIf="miembro.uriFoto"
+               [src]="miembro.uriFoto | imageUrl"
+               [alt]="miembro.nombre"
                class="miembro-avatar-img"
                (error)="onImageError($event)">
-          <div class="miembro-avatar-placeholder" *ngIf="!miembro.personaDto?.uriFoto">
-            {{miembro.personaDto?.nombre?.charAt(0) || '?'}}
+          <div class="miembro-avatar-placeholder" *ngIf="!miembro.uriFoto">
+            {{miembro.nombre?.charAt(0) || '?'}}
           </div>
         </div>
       </mat-cell>
@@ -34,18 +34,18 @@
     <ng-container matColumnDef="nombreCompleto">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo</mat-header-cell>
       <mat-cell *matCellDef="let miembro">
-        {{miembro.personaDto?.nombre}} {{miembro.personaDto?.apellido}}
+        {{miembro.nombre}} {{miembro.apellido}}
       </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="celular">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Celular</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.celular}} </mat-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.celular}} </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="direccion">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.direccion}} </mat-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.direccion}} </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="fechaConvercion">
@@ -55,18 +55,22 @@
 
     <ng-container matColumnDef="sexo">
       <mat-header-cell *matHeaderCellDef> Sexo</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.sexo}} </mat-cell>
+      <mat-cell *matCellDef="let miembro"> {{miembro.sexo}} </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
       <mat-cell *matCellDef="let miembro">
-        <button mat-icon-button color="primary" matTooltip="Editar: {{miembro.personaDto?.nombre}}" matTooltipPosition="left"
+        <button mat-icon-button color="primary" matTooltip="Editar: {{miembro.nombre}}" matTooltipPosition="left"
           (click)="$event.stopPropagation(); openEditDialog(miembro)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button [color]="miembro.estado ? 'accent' : 'warn'" (click)="$event.stopPropagation(); toggleEstado(miembro)">
+        <button mat-icon-button [color]="miembro.estado ? 'accent' : 'warn'" matTooltip="{{miembro.estado ? 'Desactivar' : 'Activar'}}" (click)="$event.stopPropagation(); toggleEstado(miembro)">
           <mat-icon>{{miembro.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" matTooltip="Eliminar: {{miembro.nombre}}" matTooltipPosition="right"
+          (click)="$event.stopPropagation(); deleteMiembro(miembro)">
+          <mat-icon>delete</mat-icon>
         </button>
       </mat-cell>
     </ng-container>

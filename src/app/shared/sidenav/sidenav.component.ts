@@ -94,7 +94,6 @@ export class SidenavComponent implements OnInit {
       icon: 'people',
       children: [
         { label: 'Lista Miembros', route: '/miembro', icon: 'list' },
-        { label: 'Personas', route: '/persona', icon: 'person_outline' },
         { label: 'Cambios iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
         { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' }
       ]

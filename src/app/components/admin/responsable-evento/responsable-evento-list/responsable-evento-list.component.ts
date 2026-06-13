@@ -128,8 +128,8 @@ export class ResponsableEventoListComponent implements OnInit {
   }
 
   getResponsableNombre(item: ResponsableEvento): string {
-    if (!item.cargoDto || !item.cargoDto.miembroDto || !item.cargoDto.miembroDto.personaDto) return 'N/A';
-    const p = item.cargoDto.miembroDto.personaDto;
+    if (!item.cargoDto || !item.cargoDto.miembroDto) return 'N/A';
+    const p = item.cargoDto.miembroDto;
     const tipo = item.cargoDto.tipoCargoDto?.nombre || '';
     const iglesia = item.cargoDto.iglesiaDto?.nombre || '';
     const nombreBase = `${p.nombre} ${p.apellido}${tipo ? ` (${tipo})` : ''}`;

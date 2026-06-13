@@ -28,8 +28,8 @@ export class ResponsableEventoDetailComponent {
   }
 
   getResponsableNombre(): string {
-    if (!this.data.cargoDto || !this.data.cargoDto.miembroDto || !this.data.cargoDto.miembroDto.personaDto) return 'N/A';
-    const p = this.data.cargoDto.miembroDto.personaDto;
+    if (!this.data.cargoDto || !this.data.cargoDto.miembroDto) return 'N/A';
+    const p = this.data.cargoDto.miembroDto;
     const tipo = this.data.cargoDto.tipoCargoDto?.nombre || '';
     const iglesia = this.data.cargoDto.iglesiaDto?.nombre || '';
     const nombreBase = `${p.nombre} ${p.apellido}${tipo ? ` (${tipo})` : ''}`;

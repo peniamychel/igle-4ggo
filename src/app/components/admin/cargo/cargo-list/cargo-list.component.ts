@@ -133,8 +133,8 @@ export class CargoListComponent implements OnInit {
   }
 
   getMiembroNombreCompleto(miembro?: Miembro): string {
-    if (!miembro || !miembro.personaDto) return 'N/A';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return 'N/A';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 
   applyFilter(event: Event) {

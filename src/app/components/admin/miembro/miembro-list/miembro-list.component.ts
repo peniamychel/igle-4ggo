@@ -64,15 +64,15 @@ export class MiembroListComponent implements OnInit {
     this.miembros.sortingDataAccessor = (item: Miembro, property: string) => {
       switch (property) {
         case 'nombreCompleto':
-          return (item.personaDto?.nombre || '').toLowerCase() + ' ' + (item.personaDto?.apellido || '').toLowerCase();
+          return (item.nombre || '').toLowerCase() + ' ' + (item.apellido || '').toLowerCase();
         case 'celular':
-          return item.personaDto?.celular || '';
+          return item.celular || '';
         case 'direccion':
-          return (item.personaDto?.direccion || '').toLowerCase();
+          return (item.direccion || '').toLowerCase();
         case 'fechaConvercion':
           return item.fechaConvercion ? new Date(item.fechaConvercion).getTime() : 0;
         case 'sexo':
-          return (item.personaDto?.sexo || '').toLowerCase();
+          return (item.sexo || '').toLowerCase();
         default:
           return (item as any)[property];
       }
@@ -80,11 +80,11 @@ export class MiembroListComponent implements OnInit {
 
     this.miembros.filterPredicate = (data: Miembro, filter: string) => {
       const searchString = (
-        (data.personaDto?.nombre || '') + ' ' +
-        (data.personaDto?.apellido || '') + ' ' +
-        (data.personaDto?.celular || '') + ' ' +
-        (data.personaDto?.direccion || '') + ' ' +
-        (data.personaDto?.sexo || '')
+        (data.nombre || '') + ' ' +
+        (data.apellido || '') + ' ' +
+        (data.celular || '') + ' ' +
+        (data.direccion || '') + ' ' +
+        (data.sexo || '')
       ).toLowerCase();
       return searchString.indexOf(filter) !== -1;
     };
@@ -163,7 +163,7 @@ export class MiembroListComponent implements OnInit {
         width: '400px',
         data: {
           title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} al miembro <strong>${miembro.personaDto?.nombre} ${miembro.personaDto?.apellido}</strong>.`,
+          message: `Está a punto de ${action} al miembro <strong>${miembro.nombre} ${miembro.apellido}</strong>.`,
           confirmText: miembro.estado ? 'Desactivar' : 'Activar',
           type: 'warning'
         }
@@ -173,7 +173,35 @@ export class MiembroListComponent implements OnInit {
         if (result && miembro.id) {
           this.miembroService.toggleEstado(miembro.id).subscribe(() => {
             this.loadMiembros();
-            this.messageSnackBar(`Miembro '${miembro.personaDto?.nombre}' ${miembro.estado ? 'desactivado' : 'activado'}`);
+            this.messageSnackBar(`Miembro '${miembro.nombre}' ${miembro.estado ? 'desactivado' : 'activado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteMiembro(miembro: Miembro) {
+    if (miembro.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente al miembro <strong>${miembro.nombre} ${miembro.apellido}</strong>. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && miembro.id) {
+          this.miembroService.deleteMiembro(miembro.id).subscribe({
+            next: () => {
+              this.loadMiembros();
+              this.messageSnackBar(`Miembro '${miembro.nombre} ${miembro.apellido}' eliminado exitosamente.`);
+            },
+            error: (err) => {
+              this.messageSnackBar('No se pudo eliminar al miembro. Verifique si tiene cargos, registros o participaciones asociadas.', 'error');
+            }
           });
         }
       });

@@ -12,8 +12,6 @@ import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {Miembro} from '../../../../core/models/miembro.model';
-import {Persona} from '../../../../core/models/persona.model';
-import {PersonaService} from '../../../../core/services/persona.service';
 import {MiembroService} from '../../../../core/services/miembro.service';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 
@@ -41,7 +39,6 @@ import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 export class MiembroFormEditarComponent implements OnInit {
   miembroForm!: FormGroup;
   editMode = false;
-  selectedPersona: Persona | null = null;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
   photoRemoved = false;
@@ -49,7 +46,6 @@ export class MiembroFormEditarComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private miembroService: MiembroService,
-    private personaService: PersonaService,
     private dialogRef: MatDialogRef<MiembroFormEditarComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Miembro
   ) {
@@ -80,13 +76,11 @@ export class MiembroFormEditarComponent implements OnInit {
   }
 
   patchFormValues() {
-    if (this.data.personaDto) {
-      this.selectedPersona = this.data.personaDto;
-      if (this.data.personaDto.uriFoto) {
-        this.imagePreview = this.data.personaDto.uriFoto;
+    if (this.data) {
+      if (this.data.uriFoto) {
+        this.imagePreview = this.data.uriFoto;
       }
       this.miembroForm.patchValue({
-        ...this.data.personaDto,
         ...this.data
       });
     }
@@ -114,37 +108,29 @@ export class MiembroFormEditarComponent implements OnInit {
     if (this.miembroForm.valid) {
       const formValue = this.miembroForm.value;
 
-      const persona: any = {
-        ...this.data.personaDto,
+      const miembroData: Partial<Miembro> = {
+        ...this.data,
         nombre: formValue.nombre,
         apellido: formValue.apellido,
         ci: formValue.ci,
         fechaNac: formValue.fechaNac,
         celular: formValue.celular,
         sexo: formValue.sexo,
-        direccion: formValue.direccion
+        direccion: formValue.direccion,
+        fechaConvercion: formValue.fechaConvercion,
+        lugarConvercion: formValue.lugarConvercion,
+        interventores: formValue.interventores,
+        detalles: formValue.detalles,
+        id: this.data.id
       };
 
-      this.personaService.updatePersonax(persona).subscribe(async () => {
-        if (this.selectedFile && this.data.personaDto?.id) {
-          await this.personaService.uploadUserPhoto(this.data.personaDto.id, this.selectedFile).toPromise();
-        } else if (this.photoRemoved && this.data.personaDto?.id) {
-          await this.personaService.deleteProfilePhoto(this.data.personaDto.id).toPromise();
+      this.miembroService.updateMiembro(miembroData).subscribe(async () => {
+        if (this.selectedFile && this.data.id) {
+          await this.miembroService.uploadPhoto(this.data.id, this.selectedFile).toPromise();
+        } else if (this.photoRemoved && this.data.id) {
+          await this.miembroService.deletePhoto(this.data.id).toPromise();
         }
-
-        const miembroData = {
-          ...this.data,
-          fechaConvercion: formValue.fechaConvercion,
-          lugarConvercion: formValue.lugarConvercion,
-          interventores: formValue.interventores,
-          detalles: formValue.detalles,
-          personaId: this.data.personaDto!.id,
-          id: this.data.id
-        };
-
-        this.miembroService.updateMiembro(miembroData).subscribe(() => {
-          this.dialogRef.close(true);
-        });
+        this.dialogRef.close(true);
       });
     }
   }

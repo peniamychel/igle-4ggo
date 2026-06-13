@@ -1,13 +1,17 @@
-import { Persona } from './persona.model';
-
 export interface Miembro {
   id?: number;
   fechaConvercion?: Date;
   lugarConvercion: string;
   interventores: string;
   detalles: string;
-  personaId: number;
-  personaDto?: Persona;
+  nombre: string;
+  apellido: string;
+  ci?: number;
+  fechaNac: Date;
+  celular: string;
+  sexo: string;
+  direccion: string;
+  uriFoto: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

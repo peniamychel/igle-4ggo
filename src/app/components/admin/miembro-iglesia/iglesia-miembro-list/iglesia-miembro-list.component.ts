@@ -197,11 +197,11 @@ export class IglesiaMiembroListComponent implements OnInit {
     if (!this.selectedIglesia || !this.miembrosDataSource.data.length) return;
 
     const data = this.miembrosDataSource.data.map(m => ({
-      'Nombre': m.personaDto?.nombre,
-      'Apellido': m.personaDto?.apellido,
-      'CI': m.personaDto?.ci,
-      'Celular': m.personaDto?.celular,
-      'Dirección': m.personaDto?.direccion,
+      'Nombre': m.nombre,
+      'Apellido': m.apellido,
+      'CI': m.ci,
+      'Celular': m.celular,
+      'Dirección': m.direccion,
       'Fecha Conversión': new Date(m.fechaConvercion!).toLocaleDateString()
     }));
 
@@ -220,11 +220,11 @@ export class IglesiaMiembroListComponent implements OnInit {
 
 
     const tableRows = this.miembrosDataSource.data.map(m => [
-      m.personaDto?.nombre,
-      m.personaDto?.apellido,
-      m.personaDto?.ci,
-      m.personaDto?.celular,
-      m.personaDto?.direccion,
+      m.nombre,
+      m.apellido,
+      m.ci,
+      m.celular,
+      m.direccion,
       new Date(m.fechaConvercion!).toLocaleDateString()
     ]);
 
@@ -259,11 +259,11 @@ export class IglesiaMiembroListComponent implements OnInit {
 
       // Asegurarse de que no haya valores undefined en tableRows
       const tableRows: RowInput[] = this.miembrosDataSource.data.map(m => [
-        m.personaDto?.nombre || '',    // Si es undefined, se reemplaza con ''
-        m.personaDto?.apellido || '',
-        m.personaDto?.ci || '',
-        m.personaDto?.celular || '',
-        m.personaDto?.direccion || '',
+        m.nombre || '',    // Si es undefined, se reemplaza con ''
+        m.apellido || '',
+        m.ci || '',
+        m.celular || '',
+        m.direccion || '',
         m.fechaConvercion ? new Date(m.fechaConvercion).toLocaleDateString() : 'N/A'
       ]);
 

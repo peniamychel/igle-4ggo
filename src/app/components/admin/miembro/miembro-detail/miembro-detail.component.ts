@@ -22,7 +22,7 @@ export class MiembroDetailComponent {
   ) {}
 
   getProfilePhoto(): string | null {
-    return this.data?.personaDto?.uriFoto || null;
+    return this.data?.uriFoto || null;
   }
 
   toggleImagePreview(): void {

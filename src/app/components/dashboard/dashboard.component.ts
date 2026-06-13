@@ -9,7 +9,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import {PersonaService} from '../../core/services/persona.service';
+import {MiembroService} from '../../core/services/miembro.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,19 +28,18 @@ import {PersonaService} from '../../core/services/persona.service';
 export class DashboardComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private http = inject(HttpClient);
-  private personaService = inject(PersonaService)
+  private miembroService = inject(MiembroService)
 
   constructor() {
   }
 
-  users$ = this.personaService.getPersonas();
-  //users$ = this.http.get<UsuarioResponse>(this.apiUrl);
+  miembros$ = this.miembroService.getMiembros();
 
-  totalUsers$ = this.users$.pipe(
+  totalUsers$ = this.miembros$.pipe(
     map(response => response.datos.length)
   );
 
-  activeUsers$ = this.users$.pipe(
+  activeUsers$ = this.miembros$.pipe(
     map(response => response.datos.filter(u => u.estado).length)
   );
 

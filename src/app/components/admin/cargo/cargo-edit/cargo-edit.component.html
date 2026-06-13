@@ -41,7 +41,7 @@
             <input #searchMiembro matInput placeholder="Buscar miembro..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
           </div>
           <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
-            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.ci }})
           </mat-option>
         </mat-select>
         <mat-error>{{ getError('idMiembro') }}</mat-error>

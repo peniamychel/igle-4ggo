@@ -104,7 +104,7 @@ export class CargoCreateComponent implements OnInit {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
     this.filteredMiembros = this.miembros.filter(miembro => {
       const nombreCompleto = this.getMiembroNombreCompleto(miembro).toLowerCase();
-      const ci = (miembro.personaDto?.ci?.toString() || '').toLowerCase();
+      const ci = (miembro.ci?.toString() || '').toLowerCase();
       return nombreCompleto.includes(filterValue) || ci.includes(filterValue);
     });
   }
@@ -136,7 +136,7 @@ export class CargoCreateComponent implements OnInit {
   }
 
   getMiembroNombreCompleto(miembro: Miembro): string {
-    if (!miembro || !miembro.personaDto) return 'N/A';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return 'N/A';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 }

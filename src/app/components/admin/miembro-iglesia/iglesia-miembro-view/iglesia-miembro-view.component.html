@@ -61,12 +61,12 @@
     <mat-table [dataSource]="miembroDataSource" matSort #miembroSort="matSort">
       <ng-container matColumnDef="nombre">
         <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </mat-header-cell>
-        <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.nombre}} </mat-cell>
+        <mat-cell *matCellDef="let miembro"> {{miembro.nombre}} </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="apellido">
         <mat-header-cell *matHeaderCellDef mat-sort-header> Apellido </mat-header-cell>
-        <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.apellido}} </mat-cell>
+        <mat-cell *matCellDef="let miembro"> {{miembro.apellido}} </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="fechaConvercion">
