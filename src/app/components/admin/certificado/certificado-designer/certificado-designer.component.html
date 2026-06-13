@@ -1,0 +1,100 @@
+<div class="designer-container">
+  <div class="toolbar mat-elevation-z4">
+    <div class="toolbar-header">
+      <h2 class="title"><mat-icon>brush</mat-icon> Diseñador de Plantilla</h2>
+      <div class="action-buttons">
+        <button mat-button (click)="dialogRef.close()">Cancelar</button>
+        <button mat-flat-button color="primary" (click)="save()">
+          <mat-icon>save</mat-icon> Guardar
+        </button>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+
+    <div class="controls">
+      <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
+        <mat-label>Nombre Plantilla</mat-label>
+        <input matInput [(ngModel)]="plantilla.nombre" placeholder="Nombre" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
+        <mat-label>Orientación</mat-label>
+        <mat-select [(ngModel)]="orientacion">
+          <mat-option value="horizontal">Horizontal (A4)</mat-option>
+          <mat-option value="vertical">Vertical (A4)</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="upload-group">
+        <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic" style="width: 200px;">
+          <mat-label>Tipo de Imagen</mat-label>
+          <mat-select [(ngModel)]="imageUploadType" (selectionChange)="fileInput.value = ''">
+            <mat-option value="marcaAgua">Fondo / Marca de Agua</mat-option>
+            <mat-option value="logo">Logo</mat-option>
+            <mat-option value="firma">Firma</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="accent" (click)="fileInput.click()">
+          <mat-icon>cloud_upload</mat-icon> Subir
+        </button>
+        <input type="file" hidden (change)="onFileSelected($event, imageUploadType)" accept="image/*" #fileInput />
+      </div>
+
+      <div class="properties-panel mat-elevation-z1" *ngIf="selectedElement">
+        <h4><mat-icon>tune</mat-icon> {{ selectedElement.type === 'text' ? 'Texto' : 'Imagen' }}</h4>
+        
+        <div *ngIf="selectedElement.type === 'text'" class="props-row">
+          <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
+            <mat-label>Tamaño (px)</mat-label>
+            <input matInput type="number" [(ngModel)]="selectedElement.fontSize" />
+          </mat-form-field>
+          <div class="color-picker-wrapper">
+             <input type="color" [(ngModel)]="selectedElement.color" title="Color de Texto" />
+          </div>
+        </div>
+        
+        <div *ngIf="selectedElement.type === 'logo' || selectedElement.type === 'firma' || selectedElement.type === 'qr' || selectedElement.type === 'marcaAgua'" class="props-row">
+          <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
+            <mat-label>Ancho (px)</mat-label>
+            <input matInput type="number" [(ngModel)]="selectedElement.width" />
+          </mat-form-field>
+          <button *ngIf="selectedElement.type !== 'qr'" mat-icon-button color="warn" (click)="removeImage(selectedElement.type)" matTooltip="Eliminar Imagen">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper" (click)="selectedElement = null">
+    <div class="canvas" 
+         [ngClass]="orientacion"
+         [style.zoom]="scale"
+         id="certificate-canvas">
+
+         <!-- Elementos arrastrables -->
+         <div *ngFor="let element of elements" 
+              class="drag-element" 
+              [class.selected]="selectedElement === element"
+              [style.zIndex]="element.type === 'marcaAgua' ? 0 : 10"
+              cdkDrag 
+              [cdkDragFreeDragPosition]="{x: element.x, y: element.y}"
+              (cdkDragEnded)="onDragEnded($event, element)"
+              (click)="$event.stopPropagation(); selectElement(element)"
+              [style.fontSize.px]="element.fontSize"
+              [style.color]="element.color">
+              
+              <span *ngIf="element.type === 'text'">{{ element.label }}</span>
+              
+              <div *ngIf="element.type === 'qr'" class="qr-placeholder" [style.width.px]="element.width">
+                  <mat-icon [style.fontSize.px]="element.width" [style.width.px]="element.width" [style.height.px]="element.width">qr_code_2</mat-icon>
+              </div>
+
+              <img *ngIf="element.type === 'logo' && logoPreview" [src]="logoPreview" [style.width.px]="element.width" />
+              <img *ngIf="element.type === 'firma' && firmaPreview" [src]="firmaPreview" [style.width.px]="element.width" />
+              <img *ngIf="element.type === 'marcaAgua' && marcaAguaPreview" [src]="marcaAguaPreview" [style.width.px]="element.width" />
+         </div>
+    </div>
+  </div>
+</div>

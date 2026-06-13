@@ -23,6 +23,7 @@ import { CertificadoDetailComponent } from '../certificado-detail/certificado-de
 import { CertificadoEditComponent } from '../certificado-edit/certificado-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
 
 @Component({
   selector: 'app-certificado-list',
@@ -156,6 +157,40 @@ export class CertificadoListComponent implements OnInit {
     });
   }
 
+  openDesignerDialog(certificado: Certificado) {
+    const dialogRef = this.dialog.open(CertificadoDesignerComponent, {
+      width: '100vw',
+      maxWidth: '100vw',
+      height: '100vh',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { plantillaId: certificado.plantillaCertificadoId }
+    });
+
+    dialogRef.afterClosed().subscribe((savedPlantillaId: number) => {
+      console.log('Dialog closed. savedPlantillaId:', savedPlantillaId, 'current:', certificado.plantillaCertificadoId, 'certId:', certificado.id);
+      if (savedPlantillaId && savedPlantillaId !== certificado.plantillaCertificadoId && certificado.id) {
+        // Link the new/updated template to this certificate
+        certificado.plantillaCertificadoId = savedPlantillaId;
+        console.log('Updating certificado:', certificado);
+        this.certificadoService.updateCertificado(certificado).subscribe({
+          next: (res) => {
+            console.log('Update success:', res);
+            this.loadCertificados();
+            this.messageSnackBar('Diseño guardado y vinculado exitosamente');
+          },
+          error: (err) => {
+            console.error('Update error:', err);
+            this.messageSnackBar('Error al vincular el diseño al certificado', 'error');
+          }
+        });
+      } else if (savedPlantillaId) {
+        console.log('No update needed, or already linked.');
+        this.loadCertificados();
+        this.messageSnackBar('Diseño actualizado exitosamente');
+      }
+    });
+  }
+
   openDetailDialog(certificado: Certificado) {
     this.dialog.open(CertificadoDetailComponent, {
       width: '600px',
@@ -183,6 +218,35 @@ export class CertificadoListComponent implements OnInit {
           this.certificadoService.toggleEstado(certificado.id).subscribe(newEstado => {
             certificado.estado = newEstado;
             this.messageSnackBar(`Certificado ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteCertificado(certificado: Certificado) {
+    if (certificado.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: `¿Está seguro que desea eliminar este certificado?`,
+          message: `Está a punto de eliminar el certificado <strong>${certificado.codigoCertificado}</strong>.<br><br>Esta acción también eliminará permanentemente la plantilla de diseño y sus imágenes asociadas. No se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && certificado.id) {
+          this.certificadoService.deleteCertificado(certificado.id).subscribe({
+            next: () => {
+              this.loadCertificados();
+              this.messageSnackBar('Certificado y plantilla eliminados exitosamente');
+            },
+            error: (err) => {
+              console.error('Error al eliminar certificado', err);
+              this.messageSnackBar('Error al eliminar el certificado', 'error');
+            }
           });
         }
       });

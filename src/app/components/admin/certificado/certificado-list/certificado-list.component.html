@@ -51,10 +51,20 @@
                 (click)="$event.stopPropagation(); openEditDialog(item)">
           <mat-icon>edit</mat-icon>
         </button>
+        <button mat-icon-button color="accent"
+                matTooltip="Diseñar Plantilla" matTooltipPosition="above"
+                (click)="$event.stopPropagation(); openDesignerDialog(item)">
+          <mat-icon>brush</mat-icon>
+        </button>
         <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
                 [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
                 (click)="$event.stopPropagation(); toggleEstado(item)">
           <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                matTooltip="Eliminar" matTooltipPosition="right"
+                (click)="$event.stopPropagation(); deleteCertificado(item)">
+          <mat-icon>delete</mat-icon>
         </button>
       </mat-cell>
     </ng-container>

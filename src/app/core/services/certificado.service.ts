@@ -55,4 +55,11 @@ export class CertificadoService {
       { headers: this.getHeaders() }
     );
   }
+
+  deleteCertificado(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(
+      `${this.apiUrl}/delete/${id}`,
+      { headers: this.getHeaders() }
+    );
+  }
 }

@@ -1,0 +1,46 @@
+<div class="render-dialog" *ngIf="!loading && plantilla">
+  <h2>Vista Previa del Certificado</h2>
+  
+  <div class="canvas-wrapper">
+    <!-- El lienzo real (no visible directamente sino su contenido) -->
+    <div class="canvas" 
+         [ngClass]="orientacion"
+         id="render-canvas">
+         
+         <div *ngFor="let element of elements" 
+              class="render-element" 
+              [style.left.px]="element.x"
+              [style.top.px]="element.y"
+              [style.fontSize.px]="element.fontSize"
+              [style.color]="element.color"
+              [style.zIndex]="element.type === 'marcaAgua' ? 0 : 10">
+              
+              <span *ngIf="element.type === 'text'">{{ element.value }}</span>
+              
+              <div *ngIf="element.type === 'qr'" class="qr-container" [style.width.px]="element.width">
+                  <qrcode [qrdata]="qrData" [width]="element.width || 80" [errorCorrectionLevel]="'M'"></qrcode>
+              </div>
+
+              <img *ngIf="element.type === 'logo' && logoUrl" [src]="logoUrl" [style.width.px]="element.width" />
+              <img *ngIf="element.type === 'firma' && firmaUrl" [src]="firmaUrl" [style.width.px]="element.width" />
+              <img *ngIf="element.type === 'marcaAgua' && marcaAguaUrl" [src]="marcaAguaUrl" [style.width.px]="element.width" />
+         </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button mat-button (click)="dialogRef.close()">Cerrar</button>
+    <button mat-raised-button color="primary" (click)="downloadPdf()">
+      <mat-icon>download</mat-icon> Descargar PDF
+    </button>
+  </div>
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <p>Cargando plantilla...</p>
+</div>
+
+<div class="error-state" *ngIf="!loading && !plantilla">
+  <p>Este certificado no tiene una plantilla asociada o no se pudo cargar.</p>
+  <button mat-button (click)="dialogRef.close()">Cerrar</button>
+</div>

@@ -8,9 +8,11 @@ export interface ParticipacionEvento {
   eventoId: number;
   certificadoId: number | null;
   fecha: string;
+  entregadoPorId?: number;
+  codigoUnico?: string;
   estado?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 
   miembroDto?: Miembro;
   eventoDto?: Evento;

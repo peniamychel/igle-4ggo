@@ -20,12 +20,20 @@
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
   transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .mat-table {
   width: 100%;
+  min-width: 600px;
+}
+
+.mat-column-acciones {
+  flex: 0 0 180px;
+  min-width: 180px;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .clickable-row {

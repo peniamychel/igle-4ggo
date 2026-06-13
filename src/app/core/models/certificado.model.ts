@@ -5,6 +5,7 @@ export interface Certificado {
   id?: number;
   eventoId: number;
   tipoCertificadoId: number;
+  plantillaCertificadoId?: number;
   motivoCertificado: string;
   codigoCertificado: string;
   estado?: boolean;

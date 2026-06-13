@@ -25,6 +25,7 @@ import { ParticipacionEventoDetailComponent } from '../participacion-evento-deta
 import { ParticipacionEventoEditComponent } from '../participacion-evento-edit/participacion-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { CertificadoRenderComponent } from '../../certificado/certificado-render/certificado-render.component';
 
 @Component({
   selector: 'app-participacion-evento-list',
@@ -177,6 +178,19 @@ export class ParticipacionEventoListComponent implements OnInit {
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: participacion
+    });
+  }
+
+  downloadPdf(participacion: ParticipacionEvento) {
+    if (!participacion.certificadoDto) {
+      this.messageSnackBar('Esta participación no tiene un certificado asignado', 'error');
+      return;
+    }
+    this.dialog.open(CertificadoRenderComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { participacion }
     });
   }
 

@@ -214,6 +214,55 @@
   color: #8e9099 !important;
 }
 
+/* ══════════════════════════════════════════════════
+   DARK MODE — Active Basic Buttons (Fix Global)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-button:not(:disabled):not([color]) {
+  color: var(--text-primary) !important;
+}
+
+.dark-theme .mat-mdc-outlined-button:not(:disabled):not([color]) {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — Disabled Buttons (Fix Global)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-button:disabled,
+.dark-theme .mat-mdc-raised-button:disabled,
+.dark-theme .mat-mdc-unelevated-button:disabled,
+.dark-theme .mat-mdc-outlined-button:disabled,
+.dark-theme .mat-mdc-icon-button:disabled,
+.dark-theme .mat-mdc-fab:disabled,
+.dark-theme .mat-mdc-mini-fab:disabled,
+.dark-theme button:disabled,
+.dark-theme button[disabled] {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.dark-theme .mat-mdc-raised-button:disabled,
+.dark-theme .mat-mdc-unelevated-button:disabled,
+.dark-theme .mat-mdc-fab:disabled,
+.dark-theme .mat-mdc-mini-fab:disabled {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark-theme .mat-mdc-outlined-button:disabled {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: transparent !important;
+}
+
+.dark-theme .mat-mdc-button:disabled .mat-icon,
+.dark-theme .mat-mdc-raised-button:disabled .mat-icon,
+.dark-theme .mat-mdc-unelevated-button:disabled .mat-icon,
+.dark-theme .mat-mdc-outlined-button:disabled .mat-icon,
+.dark-theme .mat-mdc-icon-button:disabled .mat-icon,
+.dark-theme button:disabled mat-icon,
+.dark-theme button[disabled] mat-icon {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
 /* Login page form field specifics */
 .dark-theme .login-page .mat-mdc-text-field-wrapper,
 .dark-theme .mat-mdc-form-field .mdc-text-field--outlined .mdc-text-field__surface {

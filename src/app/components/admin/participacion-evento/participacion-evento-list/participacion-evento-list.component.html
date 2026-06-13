@@ -51,6 +51,11 @@
                 (click)="$event.stopPropagation(); openEditDialog(item)">
           <mat-icon>edit</mat-icon>
         </button>
+        <button mat-icon-button color="primary" *ngIf="item.certificadoDto"
+                matTooltip="Descargar Certificado PDF" matTooltipPosition="above"
+                (click)="$event.stopPropagation(); downloadPdf(item)">
+          <mat-icon>picture_as_pdf</mat-icon>
+        </button>
         <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
                 [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
                 (click)="$event.stopPropagation(); toggleEstado(item)">
