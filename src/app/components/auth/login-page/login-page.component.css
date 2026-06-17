@@ -314,3 +314,165 @@
     height: 46px;
   }
 }
+
+/* ══════════════════════════════════════════════════
+   SELECTION STYLES
+   ══════════════════════════════════════════════════ */
+.selection-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.selection-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a2e);
+  margin: 0;
+  text-align: center;
+}
+
+:host-context(.dark-theme) .selection-title {
+  color: #ffffff;
+}
+
+.selection-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+:host-context(.dark-theme) .selection-subtitle {
+  color: #a0a0b0;
+}
+
+.church-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.church-list::-webkit-scrollbar {
+  width: 6px;
+}
+.church-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color, rgba(0, 0, 0, 0.1));
+  border-radius: 3px;
+}
+
+.church-option-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background-color: var(--bg-hover, #f8f6ff);
+  border: 1px solid var(--border-color, rgba(124, 77, 255, 0.1));
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+:host-context(.dark-theme) .church-option-button {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.church-option-button:hover:not(:disabled) {
+  background-color: rgba(124, 77, 255, 0.06);
+  border-color: rgba(124, 77, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+:host-context(.dark-theme) .church-option-button:hover:not(:disabled) {
+  background-color: rgba(156, 107, 255, 0.1);
+  border-color: rgba(156, 107, 255, 0.4);
+}
+
+.church-option-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.church-icon {
+  color: #7c4dff;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.church-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.church-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a2e);
+}
+
+:host-context(.dark-theme) .church-name {
+  color: #ffffff;
+}
+
+.church-cargo {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+:host-context(.dark-theme) .church-cargo {
+  color: #a0a0b0;
+}
+
+.arrow-icon {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.church-option-button:hover .arrow-icon {
+  transform: translateX(2px);
+  color: #7c4dff;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px !important;
+  color: var(--text-secondary, #6b7280) !important;
+  border-radius: 12px;
+}
+
+:host-context(.dark-theme) .back-button {
+  color: #a0a0b0 !important;
+}
+
+.back-button:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+:host-context(.dark-theme) .back-button:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}

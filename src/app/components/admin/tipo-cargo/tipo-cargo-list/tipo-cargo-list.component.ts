@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -41,7 +41,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
   styleUrls: ['./tipo-cargo-list.component.css']
 })
 export class TipoCargoListComponent implements OnInit {
-  displayedColumns: string[] = ['tipo', 'nombre', 'estado', 'acciones'];
+  displayedColumns: string[] = ['tipo', 'nombre', 'nombreRol', 'estado', 'acciones'];
   dataSource: MatTableDataSource<TipoCargo>;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -50,7 +50,8 @@ export class TipoCargoListComponent implements OnInit {
   constructor(
     private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    @Optional() public dialogRef?: MatDialogRef<TipoCargoListComponent>
   ) {
     this.dataSource = new MatTableDataSource<TipoCargo>([]);
   }
@@ -94,7 +95,7 @@ export class TipoCargoListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadTipoCargos();
-        this.messageSnackBar(`Tipo de Cargo '${result.nombre}' creado`);
+        this.messageSnackBar(`Tipo Ministerio '${result.nombre}' creado`);
       }
     });
   }
@@ -110,7 +111,7 @@ export class TipoCargoListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadTipoCargos();
-        this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' modificado`);
+        this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' modificado`);
       }
     });
   }
@@ -131,7 +132,7 @@ export class TipoCargoListComponent implements OnInit {
         width: '400px',
         data: {
           title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} el tipo de cargo <strong>${tipoCargo.nombre}</strong>.`,
+          message: `Está a punto de ${action} el tipo ministerio <strong>${tipoCargo.nombre}</strong>.`,
           confirmText: tipoCargo.estado ? 'Desactivar' : 'Activar',
           type: 'warning'
         }
@@ -141,7 +142,7 @@ export class TipoCargoListComponent implements OnInit {
         if (result && tipoCargo.id) {
           this.tipoCargoService.toggleEstado(tipoCargo.id).subscribe(response => {
             tipoCargo.estado = response.datos.estado;
-            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' ${response.datos.estado ? 'activado' : 'desactivado'}`);
+            this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' ${response.datos.estado ? 'activado' : 'desactivado'}`);
           });
         }
       });
@@ -155,7 +156,7 @@ export class TipoCargoListComponent implements OnInit {
       width: '400px',
       data: {
         title: '¿Está seguro que desea eliminar?',
-        message: `Está a punto de eliminar el tipo de cargo <strong>${tipoCargo.nombre}</strong>. Esta acción no se puede deshacer.`,
+        message: `Está a punto de eliminar el tipo ministerio <strong>${tipoCargo.nombre}</strong>. Esta acción no se puede deshacer.`,
         confirmText: 'Eliminar',
         type: 'danger'
       }
@@ -166,10 +167,10 @@ export class TipoCargoListComponent implements OnInit {
         this.tipoCargoService.deleteTipoCargo(tipoCargo.id).subscribe({
           next: () => {
             this.loadTipoCargos();
-            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' eliminado`);
+            this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' eliminado`);
           },
           error: () => {
-            this.messageSnackBar('Error al eliminar el tipo de cargo', 'error');
+            this.messageSnackBar('Error al eliminar el tipo ministerio', 'error');
           }
         });
       }

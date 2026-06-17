@@ -9,7 +9,7 @@ import { ApiResponse } from '../models/interfaces/api.response';
   providedIn: 'root'
 })
 export class TipoCargoService {
-  private apiUrl = `${environment.apiUrl}/api/tipocargo/v1`;
+  private apiUrl = `${environment.apiUrl}/api/rol-cargo/v1`;
 
   constructor(private http: HttpClient) { }
 

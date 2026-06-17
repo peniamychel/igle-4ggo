@@ -100,4 +100,14 @@ export class IglesiaService {
     return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesiaexceptoid/${nameIglesia}/${id}`, { headers: this.getHeaders() });
   }
 
+  uploadFoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/foto`, formData, { headers: this.getHeaders() });
+  }
+
+  deleteFoto(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/foto`, { headers: this.getHeaders() });
+  }
+
 }

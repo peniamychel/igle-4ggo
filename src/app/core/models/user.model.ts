@@ -34,7 +34,7 @@ export interface CreateUserDto {
   apellidos: string;
   uriFoto: string;
   password: string;
-  roles: string[];
+  roles?: string[];
 }
 
 
@@ -44,11 +44,6 @@ export interface UpdateUserDto {
   email: string;
   name: string;
   apellidos: string;
-}
-
-export interface UpdateUserRolesDto {
-  id: number;
-  roles: string[];
 }
 
 export interface ChangePasswordDto {

@@ -8,7 +8,6 @@ import {
   SingleUserResponse,
   CreateUserDto,
   UpdateUserDto,
-  UpdateUserRolesDto,
   ChangePasswordDto,
   AdminResetPasswordDto
 } from '../models/user.model';
@@ -59,15 +58,6 @@ export class UserService {
     username: any
   }): Observable<User> {
     return this.http.put<User>(`${this.API_URL}/update`, user);
-  }
-
-  /**
-   * Actualiza los roles de un usuario
-   * @param updateRoles roles del usuario a actualizar
-   * @returns usuario actualizado
-   */
-  updateUserRoles(updateRoles: UpdateUserRolesDto): Observable<User> {
-    return this.http.put<User>(`${this.API_URL}/update-roles`, updateRoles);
   }
 
   /**

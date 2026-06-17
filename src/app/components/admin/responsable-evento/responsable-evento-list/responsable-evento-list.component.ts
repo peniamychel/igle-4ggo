@@ -105,7 +105,7 @@ export class ResponsableEventoListComponent implements OnInit {
 
   private resolveCargos() {
     this.cargos.forEach(cargo => {
-      cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.tipoCargoId);
+      cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.rolCargoId);
       cargo.miembroDto = this.miembros.find(m => m.id === cargo.idMiembro);
       cargo.iglesiaDto = this.iglesias.find(i => i.id === cargo.iglesiaId);
     });

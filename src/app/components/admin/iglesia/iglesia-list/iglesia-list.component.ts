@@ -41,7 +41,7 @@ import { ApiResponse } from '../../../../core/models/interfaces/api.response';
   styleUrls: ['./iglesia-list.component.css']
 })
 export class IglesiaListComponent implements OnInit {
-  displayedColumns: string[] = ['nombre', 'direccion', 'telefono', 'fechaFundacion', 'acciones'];
+  displayedColumns: string[] = ['foto', 'nombre', 'direccion', 'telefono', 'fechaFundacion', 'acciones'];
   dataSource: MatTableDataSource<Iglesia>;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

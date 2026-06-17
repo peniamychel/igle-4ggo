@@ -49,3 +49,41 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   padding: 6px 24px;
   font-weight: 500;
 }
+
+/* FOTO SECTION */
+.foto-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  margin-bottom: 8px;
+}
+.foto-preview-wrapper { position: relative; flex-shrink: 0; }
+.foto-preview {
+  width: 90px; height: 90px; border-radius: 12px;
+  object-fit: cover; border: 2px solid var(--border-color, #e0e0e0); display: block;
+}
+.foto-placeholder {
+  width: 90px; height: 90px; border-radius: 12px;
+  background: rgba(99,102,241,0.08); border: 2px dashed rgba(99,102,241,0.3);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; color: #6366f1; font-size: 11px; gap: 4px;
+}
+.delete-foto-btn {
+  position: absolute; top: -10px; right: -10px;
+  background: #f44336 !important; color: white !important;
+  width: 28px !important; height: 28px !important; line-height: 28px !important;
+}
+.delete-foto-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
+.foto-actions { display: flex; flex-direction: column; gap: 8px; }
+.upload-label {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.4);
+  color: #6366f1; font-size: 13px; font-weight: 500;
+  transition: all 0.2s ease; background: rgba(99,102,241,0.05);
+}
+.upload-label:hover { background: rgba(99,102,241,0.12); }
+.upload-label mat-icon { font-size: 18px; width: 18px; height: 18px; }
+.foto-hint { font-size: 11px; color: #4caf50; font-weight: 500; }
+.btn-spinner { display: inline-block; margin-right: 6px; }

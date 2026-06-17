@@ -33,6 +33,10 @@ export class LoginPageComponent {
   loading = false;
   error: string = '';
 
+  requiresSelection = false;
+  preAuthToken = '';
+  iglesias: any[] = [];
+
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -57,14 +61,41 @@ export class LoginPageComponent {
       this.error = '';
 
       this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.router.navigate(['/inicio']);
+        next: (response) => {
+          if (response.requiresSelection) {
+            this.requiresSelection = true;
+            this.preAuthToken = response.preAuthToken || '';
+            this.iglesias = response.iglesias || [];
+            this.loading = false;
+          } else {
+            this.router.navigate(['/inicio']);
+          }
         },
-        error: () => {
-          this.error = 'Usuario o contraseña incorrectos';
+        error: (err) => {
+          this.error = err.error?.message || 'Usuario o contraseña incorrectos';
           this.loading = false;
         }
       });
     }
+  }
+
+  onSelectIglesia(iglesiaId: number): void {
+    this.loading = true;
+    this.authService.selectCargo(this.preAuthToken, iglesiaId).subscribe({
+      next: () => {
+        this.router.navigate(['/inicio']);
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Error al seleccionar congregación';
+        this.loading = false;
+      }
+    });
+  }
+
+  cancelSelection(): void {
+    this.requiresSelection = false;
+    this.preAuthToken = '';
+    this.iglesias = [];
+    this.error = '';
   }
 }

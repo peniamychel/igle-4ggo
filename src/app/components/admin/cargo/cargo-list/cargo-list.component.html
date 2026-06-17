@@ -1,13 +1,80 @@
 <div class="container">
-  <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      {{ filterRole === 'pastor' ? 'Asignar Nuevo Pastor' : filterRole === 'encargado' ? 'Asignar Nuevo Encargado' : 'Asignar Cargo' }}
-    </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan, Pastor, etc." #input>
-      <mat-icon matSuffix>search</mat-icon>
+  <div class="header-section">
+    <div class="title-area">
+      <h2>Obreros</h2>
+      <p class="subtitle">Gestiona el registro y cargos de los obreros de la iglesia</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="accent" (click)="openTiposMinisterioDialog()">
+        <mat-icon>church</mat-icon>
+        Tipos Ministerios
+      </button>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Asignar Cargo
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjetas de Métricas (KPIs) -->
+  <div class="metrics-grid">
+    <div class="metric-card card-total">
+      <div class="icon-wrapper">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="metric-info">
+        <span class="value">{{ totalObrerosCount }}</span>
+        <span class="label">Total Obreros</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-activos">
+      <div class="icon-wrapper">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="metric-info">
+        <span class="value">{{ obrerosActivosCount }}</span>
+        <span class="label">Activos</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-inactivos">
+      <div class="icon-wrapper">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="metric-info">
+        <span class="value">{{ obrerosInactivosCount }}</span>
+        <span class="label">Inactivos</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-ministerios">
+      <div class="icon-wrapper">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+      <div class="metric-info">
+        <span class="value">{{ tiposMinisterioCount }}</span>
+        <span class="label">Ministerios</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="filters-container">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar obrero</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan, Pastor..." #input>
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Ministerio</mat-label>
+      <mat-select [(value)]="selectedTipoCargoId" (selectionChange)="onFilterChange()">
+        <mat-option [value]="null">Todos</mat-option>
+        <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
+          {{ tipo.nombre }}
+        </mat-option>
+      </mat-select>
     </mat-form-field>
   </div>
 

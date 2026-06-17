@@ -7,6 +7,7 @@ export interface Iglesia {
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  uriFoto?: string;
 }
 
 export interface IglesiasResponse {

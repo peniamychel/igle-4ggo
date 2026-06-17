@@ -24,7 +24,7 @@
         <p class="login-subtitle">Inicia sesión para continuar</p>
       </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <form *ngIf="!requiresSelection" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Usuario</mat-label>
           <input matInput formControlName="username" placeholder="Ingrese su usuario" autocomplete="username">
@@ -64,6 +64,31 @@
           <span *ngIf="!loading">Iniciar Sesión</span>
         </button>
       </form>
+
+      <div *ngIf="requiresSelection" class="selection-container">
+        <h3 class="selection-title">Selecciona una Congregación</h3>
+        <p class="selection-subtitle">Tienes cargos asignados en múltiples iglesias. Elige una para iniciar sesión:</p>
+        
+        <div class="church-list">
+          <button type="button" *ngFor="let igl of iglesias" class="church-option-button" (click)="onSelectIglesia(igl.iglesiaId)" [disabled]="loading">
+            <mat-icon class="church-icon">church</mat-icon>
+            <div class="church-info">
+              <span class="church-name">{{ igl.iglesiaNombre }}</span>
+              <span class="church-cargo">{{ igl.cargos.join(', ') }}</span>
+            </div>
+            <mat-icon class="arrow-icon">chevron_right</mat-icon>
+          </button>
+        </div>
+
+        <div *ngIf="error" class="error-message" style="margin-top: 15px;">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <button mat-button class="back-button" (click)="cancelSelection()" [disabled]="loading">
+          <mat-icon>arrow_back</mat-icon> Volver al Login
+        </button>
+      </div>
     </div>
   </div>
 </div>

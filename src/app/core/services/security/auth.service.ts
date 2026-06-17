@@ -29,6 +29,26 @@ export class AuthService {
     }
   }
 
+  private handleSuccessfulLogin(response: LoginResponse): void {
+    if (response.token) {
+      localStorage.setItem(this.TOKEN_KEY, response.token);
+    }
+    localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+    if (response.iglesias) {
+      localStorage.setItem('user_iglesias', JSON.stringify(response.iglesias));
+    }
+    if (response.roles) {
+      const roleAuthority = response.roles.find(r => r.authority.startsWith('ROLE_'));
+      localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : (response.roles[0]?.authority || ''));
+      const privilegios = response.roles
+        .filter(r => !r.authority.startsWith('ROLE_'))
+        .map(r => r.authority);
+      localStorage.setItem('privilegios', JSON.stringify(privilegios));
+    }
+    localStorage.setItem("nombreuser", response.username);
+    this.currentUserSubject.next(response);
+  }
+
   //Login de usuario
   /**
    * Inicia sesión en el sistema
@@ -39,18 +59,79 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${environment.apiUrl}/login`, credentials)
       .pipe(
         tap(response => {
-          localStorage.setItem(this.TOKEN_KEY, response.token);
-          localStorage.setItem(this.USER_KEY, JSON.stringify(response));
-          const roleAuthority = response.roles.find(r => r.authority.startsWith('ROLE_'));
-          localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : response.roles[0].authority);
-          const privilegios = response.roles
-            .filter(r => !r.authority.startsWith('ROLE_'))
-            .map(r => r.authority);
-          localStorage.setItem('privilegios', JSON.stringify(privilegios));
-          localStorage.setItem("nombreuser", response.username)
-          this.currentUserSubject.next(response);
+          if (!response.requiresSelection) {
+            this.handleSuccessfulLogin(response);
+          }
         })
       );
+  }
+
+  /**
+   * Selecciona el cargo/iglesia para el inicio de sesión
+   * @param preAuthToken token de pre-autenticación
+   * @param iglesiaId ID de la iglesia seleccionada
+   * @returns respuesta del inicio de sesión final
+   */
+  selectCargo(preAuthToken: string, iglesiaId: number): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/select-cargo`, { preAuthToken, iglesiaId })
+      .pipe(
+        tap(response => {
+          this.handleSuccessfulLogin(response);
+        })
+      );
+  }
+
+  /**
+   * Cambia la iglesia/cargo activa de forma dinámica
+   * @param iglesiaId ID de la iglesia a la cual cambiar
+   * @returns respuesta del inicio de sesión con el nuevo token
+   */
+  switchChurch(iglesiaId: number): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/switch-church`, { iglesiaId })
+      .pipe(
+        tap(response => {
+          this.handleSuccessfulLogin(response);
+        })
+      );
+  }
+
+  /**
+   * Obtiene la decodificación del token actual
+   */
+  getDecodedToken(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decodedJson = atob(payloadBase64);
+      return JSON.parse(decodedJson);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene el nombre de la iglesia del contexto del token actual
+   */
+  getCurrentIglesiaNombre(): string | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.iglesiaNombre : null;
+  }
+
+  /**
+   * Obtiene el nombre del cargo del contexto del token actual
+   */
+  getCurrentCargoNombre(): string | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.cargoNombre : null;
+  }
+
+  /**
+   * Obtiene el ID de la iglesia del contexto del token actual
+   */
+  getCurrentIglesiaId(): number | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.iglesiaId : null;
   }
 
 
@@ -64,6 +145,7 @@ export class AuthService {
     localStorage.removeItem("nombreuser");
     localStorage.removeItem("datosUsuario");
     localStorage.removeItem("privilegios");
+    localStorage.removeItem("user_iglesias");
     this.currentUserSubject.next(null);
   }
 

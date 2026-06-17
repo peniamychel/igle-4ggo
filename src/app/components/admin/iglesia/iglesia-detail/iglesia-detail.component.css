@@ -23,6 +23,20 @@
   color: #ab92ff;
 }
 
+.header-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-foto-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--border-color, #e0e0e0);
+}
+
 h2[mat-dialog-title] {
   margin: 0;
   font-size: 1.2rem;

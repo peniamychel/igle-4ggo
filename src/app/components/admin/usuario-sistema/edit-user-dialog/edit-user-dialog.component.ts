@@ -15,15 +15,6 @@ import { ImagePreviewDialogComponent } from '../imagen-preview-dialog/image-prev
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-
-interface RoleDefinition {
-  key: string;
-  label: string;
-  description: string;
-  icon: string;
-  color: string;
-}
-
 @Component({
   selector: 'app-edit-user-dialog',
   standalone: true,
@@ -53,41 +44,6 @@ export class EditUserDialogComponent {
   previewUrl: string | null = null;
   imageDeleted = false;
 
-  roleDefinitions: RoleDefinition[] = [
-    {
-      key: 'ADMIN',
-      label: 'Administrador',
-      description: 'Acceso total al sistema y configuración',
-      icon: 'shield',
-      color: '#f44336'
-    },
-    {
-      key: 'ENCARGADO_IGLESIA',
-      label: 'Encargado de Iglesia',
-      description: 'Gestión de miembros y actividades de la iglesia',
-      icon: 'church',
-      color: '#7c4dff'
-    },
-    {
-      key: 'ENCARGADO_EVENTO',
-      label: 'Encargado de Eventos',
-      description: 'Organización y gestión de eventos',
-      icon: 'event',
-      color: '#00bfa5'
-    },
-    {
-      key: 'TESORERO',
-      label: 'Tesorero',
-      description: 'Gestión financiera y donaciones',
-      icon: 'account_balance',
-      color: '#ff9800'
-    }
-  ];
-
-  get availableRoles(): string[] {
-    return this.roleDefinitions.map(r => r.key);
-  }
-
   get hasChanges(): boolean {
     const basicDetailsChanged =
       this.userForm.value.username !== this.data.username ||
@@ -95,18 +51,11 @@ export class EditUserDialogComponent {
       this.userForm.value.name !== this.data.name ||
       this.userForm.value.apellidos !== this.data.apellidos;
 
-    const originalRoles = this.data.roles.map(r => r.name);
-    const selectedRoles = this.availableRoles.filter((_, i) =>
-      this.userForm.get('roles')?.value[i]
-    );
-    const rolesChanged = selectedRoles.length !== originalRoles.length ||
-      selectedRoles.some(r => !originalRoles.includes(r));
-
     const photoChanged = !!this.selectedFile;
     const photoDeleted = this.imageDeleted && !!this.data.uriFoto;
     const passwordChanged = this.changePassword && this.passwordForm.valid;
 
-    return basicDetailsChanged || rolesChanged || photoChanged || photoDeleted || passwordChanged;
+    return basicDetailsChanged || photoChanged || photoDeleted || passwordChanged;
   }
 
   constructor(
@@ -121,10 +70,7 @@ export class EditUserDialogComponent {
       username: [data.username, [Validators.required]],
       email: [data.email, [Validators.required, Validators.email]],
       name: [data.name, Validators.required],
-      apellidos: [data.apellidos, Validators.required],
-      roles: this.fb.array(this.roleDefinitions.map(role =>
-        data.roles.some(userRole => userRole.name === role.key)
-      ))
+      apellidos: [data.apellidos, Validators.required]
     });
 
     this.passwordForm = this.fb.group({
@@ -165,19 +111,11 @@ export class EditUserDialogComponent {
 
   onSubmit(): void {
     if (this.userForm.valid && (!this.changePassword || this.passwordForm.valid)) {
-      const selectedRoles = this.availableRoles.filter((_, i) =>
-        this.userForm.get('roles')?.value[i]
-      );
-
       const basicDetailsChanged =
         this.userForm.value.username !== this.data.username ||
         this.userForm.value.email !== this.data.email ||
         this.userForm.value.name !== this.data.name ||
         this.userForm.value.apellidos !== this.data.apellidos;
-
-      const originalRoles = this.data.roles.map(r => r.name);
-      const rolesChanged = selectedRoles.length !== originalRoles.length ||
-        selectedRoles.some(r => !originalRoles.includes(r));
 
       const photoChanged = !!this.selectedFile;
       const photoDeleted = this.imageDeleted && this.data.uriFoto && !this.selectedFile;
@@ -194,13 +132,6 @@ export class EditUserDialogComponent {
           apellidos: this.userForm.value.apellidos
         };
         obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
-      }
-
-      if (rolesChanged) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.updateUserRoles({
-          id: this.data.id!,
-          roles: selectedRoles
-        })));
       }
 
       if (photoDeleted) {

@@ -52,7 +52,7 @@ export class CargoCreateComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[], filterRole?: string }
   ) {
     this.cargoForm = this.fb.group({
-      tipoCargoId: ['', Validators.required],
+      rolCargoId: ['', Validators.required],
       iglesiaId: ['', Validators.required],
       idMiembro: ['', Validators.required],
       fechaInicio: ['', Validators.required],
@@ -77,7 +77,7 @@ export class CargoCreateComponent implements OnInit {
           return nombre.includes(this.filterRole.toLowerCase());
         });
         if (tipoCargoMatch) {
-          this.cargoForm.patchValue({ tipoCargoId: tipoCargoMatch.id });
+          this.cargoForm.patchValue({ rolCargoId: tipoCargoMatch.id });
         }
       }
     }

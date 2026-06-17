@@ -37,6 +37,43 @@
   cursor: pointer;
 }
 
+.mat-column-foto {
+  max-width: 64px;
+  width: 64px;
+  padding: 6px 4px !important;
+}
+
+.church-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.church-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color, #e0e0e0);
+  transition: transform 0.2s ease;
+}
+
+.church-thumb:hover {
+  transform: scale(1.1);
+}
+
+.church-thumb-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.1);
+  border: 2px dashed rgba(99, 102, 241, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+}
+
 /* vista movil */
 @media (max-width: 768px) {
 

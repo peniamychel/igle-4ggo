@@ -14,6 +14,19 @@
 
   <div class="table-container">
   <mat-table [dataSource]="dataSource" matSort>
+
+    <ng-container matColumnDef="foto">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let iglesia">
+        <div class="church-avatar">
+          <img *ngIf="iglesia.uriFoto" [src]="iglesia.uriFoto" [alt]="iglesia.nombre" class="church-thumb">
+          <div *ngIf="!iglesia.uriFoto" class="church-thumb-placeholder">
+            <mat-icon>church</mat-icon>
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="nombre">
       <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
       <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
@@ -52,11 +65,9 @@
     <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
     <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="5">No se encontraron datos que coincidan con el filtro "{{input.value}}"</td>
+      <td class="mat-cell" colspan="6">No se encontraron datos que coincidan con el filtro "{{input.value}}"</td>
     </tr>
   </mat-table>
-
-
 
   <mat-paginator [pageSizeOptions]="[10,25, 100]" aria-label="Seleccionar página de iglesias">
   </mat-paginator>

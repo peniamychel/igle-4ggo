@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
 import { CargoService } from '../../../../core/services/cargo.service';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
@@ -23,6 +24,7 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { CargoCreateComponent } from '../cargo-create/cargo-create.component';
 import { CargoDetailComponent } from '../cargo-detail/cargo-detail.component';
 import { CargoEditComponent } from '../cargo-edit/cargo-edit.component';
+import { TipoCargoListComponent } from '../../tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -44,6 +46,7 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatSelectModule
   ],
   templateUrl: './cargo-list.component.html',
   styleUrls: ['./cargo-list.component.css']
@@ -55,7 +58,14 @@ export class CargoListComponent implements OnInit {
   iglesias: Iglesia[] = [];
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
-  filterRole: string = '';
+  selectedTipoCargoId: number | null = null;
+  allCargos: Cargo[] = [];
+
+  // Métricas para el Dashboard
+  totalObrerosCount: number = 0;
+  obrerosActivosCount: number = 0;
+  obrerosInactivosCount: number = 0;
+  tiposMinisterioCount: number = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -73,15 +83,35 @@ export class CargoListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
-      this.filterRole = data['filterRole'] || '';
-    });
     this.loadInitialData();
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    this.configureSorting();
+  }
+
+  configureSorting() {
+    this.dataSource.sortingDataAccessor = (item: Cargo, property: string) => {
+      switch (property) {
+        case 'iglesia':
+          return item.iglesiaDto?.nombre ? item.iglesiaDto.nombre.toLowerCase() : '';
+        case 'tipoCargo':
+          return item.tipoCargoDto?.nombre ? item.tipoCargoDto.nombre.toLowerCase() : '';
+        case 'miembro':
+          return item.miembroDto ? `${item.miembroDto.nombre} ${item.miembroDto.apellido}`.toLowerCase() : '';
+        case 'fechaInicio':
+          return item.fechaInicio ? new Date(item.fechaInicio).getTime() : 0;
+        case 'fechaFin':
+          return item.fechaFin ? new Date(item.fechaFin).getTime() : 0;
+        case 'estado':
+          return item.estado ? 1 : 0;
+        default:
+          const value = (item as any)[property];
+          return typeof value === 'string' ? value.toLowerCase() : value;
+      }
+    };
   }
 
   loadInitialData() {
@@ -98,9 +128,6 @@ export class CargoListComponent implements OnInit {
   }
 
   get displayedColumnsForView(): string[] {
-    if (this.filterRole) {
-      return this.displayedColumns.filter(col => col !== 'tipoCargo' && col !== 'fechaFin');
-    }
     return this.displayedColumns.filter(col => col !== 'fechaFin');
   }
 
@@ -114,22 +141,33 @@ export class CargoListComponent implements OnInit {
       });
       cargos.forEach(cargo => {
         cargo.iglesiaDto = this.iglesias.find(i => i.id === cargo.iglesiaId);
-        cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.tipoCargoId);
+        cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.rolCargoId);
         cargo.miembroDto = this.miembros.find(m => m.id === cargo.idMiembro);
       });
       
-      this.route.data.subscribe(data => {
-        const filterRole = data['filterRole'];
-        if (filterRole) {
-          const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
-          this.dataSource.data = cargos.filter(cargo => 
-            cargo.tipoCargoDto && normalize(cargo.tipoCargoDto.nombre).includes(normalize(filterRole))
-          );
-        } else {
-          this.dataSource.data = cargos;
-        }
-      });
+      this.allCargos = cargos;
+      this.calculateMetrics();
+      this.applyLocalFilters();
     });
+  }
+
+  calculateMetrics() {
+    this.totalObrerosCount = this.allCargos.length;
+    this.obrerosActivosCount = this.allCargos.filter(c => c.estado).length;
+    this.obrerosInactivosCount = this.allCargos.filter(c => !c.estado).length;
+    this.tiposMinisterioCount = this.tiposCargo.filter(tc => tc.estado).length;
+  }
+
+  applyLocalFilters() {
+    if (this.selectedTipoCargoId !== null && this.selectedTipoCargoId !== undefined) {
+      this.dataSource.data = this.allCargos.filter(cargo => cargo.rolCargoId === this.selectedTipoCargoId);
+    } else {
+      this.dataSource.data = this.allCargos;
+    }
+  }
+
+  onFilterChange() {
+    this.applyLocalFilters();
   }
 
   getMiembroNombreCompleto(miembro?: Miembro): string {
@@ -164,7 +202,7 @@ export class CargoListComponent implements OnInit {
         iglesias: this.iglesias,
         tiposCargo: this.tiposCargo,
         miembros: this.miembros,
-        filterRole: this.filterRole
+        filterRole: ''
       }
     });
 
@@ -203,6 +241,18 @@ export class CargoListComponent implements OnInit {
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: cargo
+    });
+  }
+
+  openTiposMinisterioDialog() {
+    const dialogRef = this.dialog.open(TipoCargoListComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialData();
     });
   }
 

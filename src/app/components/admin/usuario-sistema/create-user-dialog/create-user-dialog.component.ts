@@ -11,14 +11,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../../core/services/user.service';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
-interface RoleDefinition {
-  key: string;
-  label: string;
-  description: string;
-  icon: string;
-  color: string;
-}
-
 @Component({
   selector: 'app-create-user-dialog',
   standalone: true,
@@ -44,41 +36,6 @@ export class CreateUserDialogComponent {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
 
-  roleDefinitions: RoleDefinition[] = [
-    {
-      key: 'ADMIN',
-      label: 'Administrador',
-      description: 'Acceso total al sistema y configuración',
-      icon: 'shield',
-      color: '#f44336'
-    },
-    {
-      key: 'ENCARGADO_IGLESIA',
-      label: 'Encargado de Iglesia',
-      description: 'Gestión de miembros y actividades de la iglesia',
-      icon: 'church',
-      color: '#7c4dff'
-    },
-    {
-      key: 'ENCARGADO_EVENTO',
-      label: 'Encargado de Eventos',
-      description: 'Organización y gestión de eventos',
-      icon: 'event',
-      color: '#00bfa5'
-    },
-    {
-      key: 'TESORERO',
-      label: 'Tesorero',
-      description: 'Gestión financiera y donaciones',
-      icon: 'account_balance',
-      color: '#ff9800'
-    }
-  ];
-
-  get availableRoles(): string[] {
-    return this.roleDefinitions.map(r => r.key);
-  }
-
   constructor(
     private dialogRef: MatDialogRef<CreateUserDialogComponent>,
     private fb: FormBuilder,
@@ -90,8 +47,7 @@ export class CreateUserDialogComponent {
       email: ['', [Validators.required, Validators.email]],
       name: ['', Validators.required],
       apellidos: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(4)]],
-      roles: this.fb.array(this.roleDefinitions.map(() => false))
+      password: ['', [Validators.required, Validators.minLength(4)]]
     });
   }
 
@@ -114,13 +70,8 @@ export class CreateUserDialogComponent {
 
   onSubmit(): void {
     if (this.userForm.valid) {
-      const selectedRoles = this.availableRoles.filter((_, i) =>
-        this.userForm.get('roles')?.value[i]
-      );
-
       const userData = {
         ...this.userForm.value,
-        roles: selectedRoles,
         uriFoto: ''
       };
 

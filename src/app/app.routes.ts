@@ -68,35 +68,19 @@ export const routes: Routes = [
       {
         path: 'tipocargo',
         component: TipoCargoListComponent,
-        title: 'Tipo de Cargo',
+        title: 'Tipo Ministerio',
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'obreros',
+        component: CargoListComponent,
+        title: 'Obreros',
         canActivate: [privilegioGuard]
       },
       {
         path: 'cargo',
-        component: CargoListComponent,
-        title: 'Cargos Miembros',
-        canActivate: [privilegioGuard]
-      },
-      {
-        path: 'pastores',
-        component: CargoListComponent,
-        title: 'Pastores',
-        data: { filterRole: 'pastor' },
-        canActivate: [privilegioGuard]
-      },
-      {
-        path: 'encargados',
-        component: CargoListComponent,
-        title: 'Encargados',
-        data: { filterRole: 'encargado' },
-        canActivate: [privilegioGuard]
-      },
-      {
-        path: 'lideres',
-        component: CargoListComponent,
-        title: 'Líderes',
-        data: { filterRole: 'lider' },
-        canActivate: [privilegioGuard]
+        redirectTo: 'obreros',
+        pathMatch: 'full'
       },
       {
         path: 'cambios-iglesia',

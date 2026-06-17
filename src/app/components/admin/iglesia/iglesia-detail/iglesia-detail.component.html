@@ -1,6 +1,9 @@
 <div class="dialog-header">
   <div class="header-title">
-    <mat-icon class="header-icon">church</mat-icon>
+    <div class="header-foto">
+      <img *ngIf="data.uriFoto" [src]="data.uriFoto" [alt]="data.nombre" class="header-foto-img">
+      <mat-icon *ngIf="!data.uriFoto" class="header-icon">church</mat-icon>
+    </div>
     <div>
       <h2 mat-dialog-title>Detalles de la Iglesia</h2>
       <p class="header-subtitle">{{ data.nombre }}</p>

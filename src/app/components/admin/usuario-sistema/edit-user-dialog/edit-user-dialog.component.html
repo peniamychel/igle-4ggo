@@ -80,26 +80,7 @@
       </mat-form-field>
     </div>
 
-    <div class="roles-section">
-      <h3 class="section-title">
-        <mat-icon>admin_panel_settings</mat-icon>
-        Roles del Sistema
-      </h3>
-      <p class="section-hint">Selecciona los roles que tendrá este usuario</p>
-      <div class="roles-grid" formArrayName="roles">
-        <label class="role-card" *ngFor="let role of roleDefinitions; let i = index">
-          <input type="checkbox" [formControlName]="i" class="role-checkbox-hidden">
-          <div class="role-card-content">
-            <mat-icon class="role-icon" [style.color]="role.color">{{ role.icon }}</mat-icon>
-            <div class="role-info">
-              <span class="role-name">{{ role.label }}</span>
-              <span class="role-description">{{ role.description }}</span>
-            </div>
-            <mat-icon class="role-check">check_circle</mat-icon>
-          </div>
-        </label>
-      </div>
-    </div>
+
 
     <div class="password-section">
       <div class="password-toggle">

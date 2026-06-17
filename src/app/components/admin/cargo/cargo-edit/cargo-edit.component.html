@@ -24,12 +24,12 @@
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Cargo</mat-label>
-        <mat-select formControlName="tipoCargoId">
+        <mat-select formControlName="rolCargoId">
           <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
             {{ tipo.nombre }}
           </mat-option>
         </mat-select>
-        <mat-error>{{ getError('tipoCargoId') }}</mat-error>
+        <mat-error>{{ getError('rolCargoId') }}</mat-error>
       </mat-form-field>
     </div>
 

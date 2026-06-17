@@ -59,9 +59,13 @@ export class SidenavComponent implements OnInit {
 
   user: CreateUserDto | null = null;
 
+  activeIglesiaNombre: string | null = null;
+  activeCargoNombre: string | null = null;
+  iglesiasDisponibles: any[] = [];
+
   private router = inject(Router);
   private breakpointObserver: BreakpointObserver = inject(BreakpointObserver);
-  private authService: AuthService = inject(AuthService);
+  public authService: AuthService = inject(AuthService);
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
@@ -73,6 +77,21 @@ export class SidenavComponent implements OnInit {
     this.themeService.toggleTheme();
   }
 
+  loadActiveContext(): void {
+    this.activeIglesiaNombre = this.authService.getCurrentIglesiaNombre();
+    this.activeCargoNombre = this.authService.getCurrentCargoNombre();
+    const storedIglesias = localStorage.getItem('user_iglesias');
+    if (storedIglesias) {
+      try {
+        this.iglesiasDisponibles = JSON.parse(storedIglesias);
+      } catch (e) {
+        this.iglesiasDisponibles = [];
+      }
+    } else {
+      this.iglesiasDisponibles = [];
+    }
+  }
+
   filteredMenuItems: MenuItem[] = [];
 
 
@@ -80,14 +99,8 @@ export class SidenavComponent implements OnInit {
     { label: 'Inicio', route: '/', icon: 'home' },
     {
       label: 'Obreros',
-      icon: 'work',
-      children: [
-        { label: 'Pastores', route: '/pastores', icon: 'person' },
-        { label: 'Encargados', route: '/encargados', icon: 'assignment' },
-        { label: 'Líderes', route: '/lideres', icon: 'star' },
-        { label: 'Tipo Cargo', route: '/tipocargo', icon: 'badge' },
-        { label: 'Cargos Miembros', route: '/cargo', icon: 'assignment_ind' }
-      ]
+      route: '/obreros',
+      icon: 'work'
     },
     {
       label: 'Miembros',
@@ -150,6 +163,7 @@ export class SidenavComponent implements OnInit {
     '/graficoiglesias':  'Iglesias',
     '/tipocargo':        'Tipos de Cargo',
     '/cargo':            'Cargos',
+    '/obreros':          'Cargos',
     '/pastores':         'Cargos',
     '/encargados':       'Cargos',
     '/lideres':          'Cargos',
@@ -349,7 +363,25 @@ export class SidenavComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.username = user?.username || '';
       this.isAuthenticated = !!user;
+      this.loadActiveContext();
       this.updateFilteredMenuItems();
+    });
+  }
+
+  onSwitchChurch(iglesiaId: number): void {
+    if (this.authService.getCurrentIglesiaId() === iglesiaId) return;
+
+    this.authService.switchChurch(iglesiaId).subscribe({
+      next: () => {
+        this.loadActiveContext();
+        this.router.navigate(['/inicio']).then(() => {
+          this.updateFilteredMenuItems();
+          window.location.reload();
+        });
+      },
+      error: (err) => {
+        console.error('Error al cambiar de iglesia:', err);
+      }
     });
   }
 

@@ -4,7 +4,7 @@ import { Miembro } from './miembro.model';
 
 export interface Cargo {
   id?: number;
-  tipoCargoId: number;
+  rolCargoId: number;
   iglesiaId: number;
   idMiembro: number;
   detalle: string;

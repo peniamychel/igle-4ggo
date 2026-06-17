@@ -2,6 +2,7 @@ export interface TipoCargo {
   id?: number;
   tipo: string;
   nombre: string;
+  nombreRol?: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

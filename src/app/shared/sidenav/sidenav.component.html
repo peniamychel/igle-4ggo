@@ -34,7 +34,8 @@
       </div>
       <div class="user-info">
         <span class="user-name">{{user?.name}} {{user?.apellidos}}</span>
-        <span class="user-email">{{user?.email}}</span>
+        <span class="user-email" *ngIf="activeIglesiaNombre">{{activeIglesiaNombre}} ({{activeCargoNombre}})</span>
+        <span class="user-email" *ngIf="!activeIglesiaNombre">{{user?.email}}</span>
       </div>
       <mat-icon class="user-chevron">expand_more</mat-icon>
     </div>
@@ -55,7 +56,7 @@
         </div>
       </div>
 
-      <!-- Menu Items -->
+      <!-- Menu Actions -->
       <div class="menu-actions">
         <button mat-menu-item [routerLink]="'/perfil'" class="menu-item-perfil">
           <mat-icon>person_outline</mat-icon>
@@ -65,6 +66,11 @@
         <button mat-menu-item [routerLink]="'/configuracion'" class="menu-item-config">
           <mat-icon>tune</mat-icon>
           <span>Configuración</span>
+        </button>
+
+        <button mat-menu-item *ngIf="iglesiasDisponibles.length > 1" [matMenuTriggerFor]="churchSwitchMenu" class="menu-item-switch">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Cambiar Congregación</span>
         </button>
       </div>
 
@@ -85,6 +91,14 @@
           <span>Cerrar Sesión</span>
         </button>
       </div>
+    </mat-menu>
+
+    <!-- Sub-menu de cambio de iglesia -->
+    <mat-menu #churchSwitchMenu="matMenu" class="user-dropdown-menu">
+      <button mat-menu-item *ngFor="let igl of iglesiasDisponibles" (click)="onSwitchChurch(igl.iglesiaId)" [disabled]="igl.iglesiaId === authService.getCurrentIglesiaId()">
+        <mat-icon>{{ igl.iglesiaId === authService.getCurrentIglesiaId() ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        <span>{{ igl.iglesiaNombre }}</span>
+      </button>
     </mat-menu>
   </mat-toolbar>
 

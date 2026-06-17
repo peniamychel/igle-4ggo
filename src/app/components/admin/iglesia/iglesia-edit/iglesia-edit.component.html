@@ -1,43 +1,71 @@
-<h2 mat-dialog-title>Editar Iglesia</h2>
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">edit</mat-icon>
+  Editar Iglesia
+</h2>
 <form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+
+    <!-- FOTO -->
+    <div class="foto-section">
+      <div class="foto-preview-wrapper">
+        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de la iglesia" class="foto-preview">
+        <div *ngIf="!previewUrl" class="foto-placeholder">
+          <mat-icon>church</mat-icon>
+          <span>Sin imagen</span>
+        </div>
+        <button mat-icon-button type="button" class="delete-foto-btn"
+                *ngIf="previewUrl"
+                matTooltip="Eliminar foto"
+                (click)="deletingFoto ? null : (selectedFile ? clearFile() : deleteFoto())"
+                [disabled]="deletingFoto">
+          <mat-icon *ngIf="!deletingFoto">delete</mat-icon>
+          <mat-spinner *ngIf="deletingFoto" diameter="18"></mat-spinner>
+        </button>
+      </div>
+      <div class="foto-actions">
+        <label class="upload-label" for="fotoInputEdit">
+          <mat-icon>upload</mat-icon>
+          {{ previewUrl ? 'Cambiar imagen' : 'Subir imagen' }}
+        </label>
+        <input id="fotoInputEdit" type="file" accept="image/*" hidden (change)="onFileSelected($event)">
+        <span class="foto-hint" *ngIf="selectedFile">✓ {{ selectedFile.name }}</span>
+      </div>
+    </div>
+
     <mat-form-field appearance="outline">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" placeholder="Nombre de la iglesia">
-      <mat-error>
-        {{ getErrorMessageNombre('nombre') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageNombre('nombre') }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Dirección</mat-label>
       <input matInput formControlName="direccion" placeholder="Dirección de la iglesia">
-      <mat-error>
-        {{ getErrorMessageDireccion('direccion') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageDireccion('direccion') }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Teléfono</mat-label>
       <input matInput formControlName="telefono" placeholder="Teléfono de contacto">
-      <mat-error>
-        {{ getErrorMessageTelefono('telefono') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageTelefono('telefono') }}</mat-error>
     </mat-form-field>
-
 
     <mat-form-field appearance="outline">
       <mat-label>Fecha de Fundación</mat-label>
-      <input matInput [matDatepicker]="picker">
+      <input matInput [matDatepicker]="picker" formControlName="fechaFundacion">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
 
-    <mat-dialog-actions>
+    <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="!iglesiaForm.valid">
+      <button mat-raised-button color="primary" type="submit"
+              [disabled]="!iglesiaForm.valid || uploadingFoto">
+        <mat-spinner *ngIf="uploadingFoto" diameter="18" class="btn-spinner"></mat-spinner>
+        <mat-icon *ngIf="!uploadingFoto">save</mat-icon>
         Actualizar
       </button>
     </mat-dialog-actions>
+
   </mat-dialog-content>
 </form>

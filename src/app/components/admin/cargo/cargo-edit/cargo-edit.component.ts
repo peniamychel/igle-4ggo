@@ -51,7 +51,7 @@ export class CargoEditComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { cargo: Cargo, iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
   ) {
     this.cargoForm = this.fb.group({
-      tipoCargoId: ['', Validators.required],
+      rolCargoId: ['', Validators.required],
       iglesiaId: ['', Validators.required],
       idMiembro: ['', Validators.required],
       fechaInicio: ['', Validators.required],
@@ -70,7 +70,7 @@ export class CargoEditComponent implements OnInit {
       this.filteredMiembros = [...this.miembros];
       
       this.cargoForm.patchValue({
-        tipoCargoId: this.cargo.tipoCargoId,
+        rolCargoId: this.cargo.rolCargoId,
         iglesiaId: this.cargo.iglesiaId,
         idMiembro: this.cargo.idMiembro,
         fechaInicio: this.cargo.fechaInicio,
