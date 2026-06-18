@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,14 +7,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../../core/services/user.service';
+import { MiembroService } from '../../../../core/services/miembro.service';
+import { Miembro } from '../../../../core/models/miembro.model';
 import { User } from '../../../../core/models/user.model';
-import { ImagePreviewDialogComponent } from '../imagen-preview-dialog/image-preview-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+
 @Component({
   selector: 'app-edit-user-dialog',
   standalone: true,
@@ -27,6 +30,7 @@ import { switchMap } from 'rxjs/operators';
     MatCheckboxModule,
     MatIconModule,
     MatSlideToggleModule,
+    MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
     MatSnackBarModule,
@@ -35,27 +39,22 @@ import { switchMap } from 'rxjs/operators';
   templateUrl: './edit-user-dialog.component.html',
   styleUrls: ['./edit-user-dialog.component.css']
 })
-export class EditUserDialogComponent {
+export class EditUserDialogComponent implements OnInit {
   userForm: FormGroup;
   passwordForm: FormGroup;
-  selectedFile: File | null = null;
   hideNewPassword = true;
   changePassword = false;
-  previewUrl: string | null = null;
-  imageDeleted = false;
+  miembros: Miembro[] = [];
 
   get hasChanges(): boolean {
     const basicDetailsChanged =
       this.userForm.value.username !== this.data.username ||
       this.userForm.value.email !== this.data.email ||
-      this.userForm.value.name !== this.data.name ||
-      this.userForm.value.apellidos !== this.data.apellidos;
+      this.userForm.value.miembroId !== this.data.miembroId;
 
-    const photoChanged = !!this.selectedFile;
-    const photoDeleted = this.imageDeleted && !!this.data.uriFoto;
     const passwordChanged = this.changePassword && this.passwordForm.valid;
 
-    return basicDetailsChanged || photoChanged || photoDeleted || passwordChanged;
+    return basicDetailsChanged || passwordChanged;
   }
 
   constructor(
@@ -63,14 +62,15 @@ export class EditUserDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: User,
     private fb: FormBuilder,
     private userService: UserService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private miembroService: MiembroService,
+    private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
+      miembroId: [data.miembroId || '', Validators.required],
       username: [data.username, [Validators.required]],
       email: [data.email, [Validators.required, Validators.email]],
-      name: [data.name, Validators.required],
-      apellidos: [data.apellidos, Validators.required]
+      name: [{ value: data.name || '', disabled: true }, Validators.required],
+      apellidos: [{ value: data.apellidos || '', disabled: true }, Validators.required]
     });
 
     this.passwordForm = this.fb.group({
@@ -78,35 +78,37 @@ export class EditUserDialogComponent {
     });
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      this.imageDeleted = false;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.previewUrl = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
+  ngOnInit(): void {
+    this.loadMiembros();
+    this.userForm.get('miembroId')?.valueChanges.subscribe(miembroId => {
+      const selectedMiembro = this.miembros.find(m => m.id === miembroId);
+      if (selectedMiembro) {
+        this.userForm.patchValue({
+          name: selectedMiembro.nombre,
+          apellidos: selectedMiembro.apellido
+        });
+      } else {
+        this.userForm.patchValue({
+          name: '',
+          apellidos: ''
+        });
+      }
+    });
   }
 
-  openImagePreview(): void {
-    const imageUrl = this.previewUrl || this.data.uriFoto;
-    if (imageUrl) {
-      this.dialog.open(ImagePreviewDialogComponent, {
-        data: { imageUrl, alt: this.data.username },
-        maxWidth: '100vw',
-        maxHeight: '100vh',
-        panelClass: 'image-preview-dialog'
-      });
-    }
-  }
-
-  deletePhoto(): void {
-    this.imageDeleted = true;
-    this.selectedFile = null;
-    this.previewUrl = null;
+  loadMiembros(): void {
+    this.miembroService.getMiembros().subscribe({
+      next: (response) => {
+        this.miembros = response.datos.filter(m => m.estado);
+      },
+      error: (error) => {
+        console.error('Error al cargar miembros:', error);
+        this.snackBar.open('Error al cargar miembros', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
   }
 
   onSubmit(): void {
@@ -114,32 +116,24 @@ export class EditUserDialogComponent {
       const basicDetailsChanged =
         this.userForm.value.username !== this.data.username ||
         this.userForm.value.email !== this.data.email ||
-        this.userForm.value.name !== this.data.name ||
-        this.userForm.value.apellidos !== this.data.apellidos;
+        this.userForm.value.miembroId !== this.data.miembroId;
 
-      const photoChanged = !!this.selectedFile;
-      const photoDeleted = this.imageDeleted && this.data.uriFoto && !this.selectedFile;
       const passwordChanged = this.changePassword && this.passwordForm.valid;
 
       let obs$ = of<any>(null);
 
       if (basicDetailsChanged) {
+        // Get raw value to include disabled controls (name/apellidos)
+        const formRaw = this.userForm.getRawValue();
         const updateUserData = {
           id: this.data.id,
-          username: this.userForm.value.username,
-          email: this.userForm.value.email,
-          name: this.userForm.value.name,
-          apellidos: this.userForm.value.apellidos
+          username: formRaw.username,
+          email: formRaw.email,
+          name: formRaw.name,
+          apellidos: formRaw.apellidos,
+          miembroId: formRaw.miembroId
         };
         obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
-      }
-
-      if (photoDeleted) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.deleteUserPhoto(this.data.id!)));
-      }
-
-      if (photoChanged) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.uploadUserPhoto(this.data.id!, this.selectedFile!)));
       }
 
       if (passwordChanged) {

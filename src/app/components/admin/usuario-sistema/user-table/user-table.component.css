@@ -327,6 +327,15 @@
   transform: scale(1.15);
 }
 
+.delete-btn {
+  color: #ff5252;
+}
+
+.delete-btn:hover {
+  color: #ff1744;
+  transform: scale(1.15);
+}
+
 /* ── No Data ── */
 .no-data-cell {
   text-align: center;

@@ -3,7 +3,7 @@
     <mat-icon class="header-icon">person_add</mat-icon>
     <div>
       <h2 mat-dialog-title>Crear Nuevo Usuario</h2>
-      <p class="header-subtitle">Complete los datos del nuevo usuario</p>
+      <p class="header-subtitle">Complete los datos del nuevo usuario del sistema</p>
     </div>
   </div>
   <button mat-icon-button mat-dialog-close class="close-btn">
@@ -13,26 +13,22 @@
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
-    <div class="photo-section">
-      <div class="photo-container" (click)="fileInput.click()">
-        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de perfil" class="profile-photo">
-        <div class="no-photo" *ngIf="!previewUrl">
-          <mat-icon>person</mat-icon>
-        </div>
-        <div class="photo-overlay">
-          <mat-icon>photo_camera</mat-icon>
-          <span>{{ previewUrl ? 'Cambiar foto' : 'Click para agregar foto' }}</span>
-        </div>
-      </div>
-      <input #fileInput type="file"
-             (change)="onFileSelected($event)"
-             accept="image/*"
-             style="display: none">
-      <button *ngIf="previewUrl" mat-icon-button type="button" class="remove-photo-btn"
-              (click)="removePhoto(); $event.stopPropagation()" matTooltip="Quitar foto">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+    
+    <!-- Selección de Miembro -->
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Seleccionar Miembro</mat-label>
+      <mat-select formControlName="miembroId" placeholder="Seleccione un miembro de la iglesia">
+        @for (miembro of miembros; track miembro.id) {
+          <mat-option [value]="miembro.id">
+            {{ miembro.nombre }} {{ miembro.apellido }} (CI: {{ miembro.ci }})
+          </mat-option>
+        }
+      </mat-select>
+      <mat-icon matPrefix>badge</mat-icon>
+      <mat-error *ngIf="userForm.get('miembroId')?.hasError('required')">
+        Debe asociar un miembro para crear el usuario
+      </mat-error>
+    </mat-form-field>
 
     <div class="form-row">
       <mat-form-field appearance="outline">
@@ -60,7 +56,7 @@
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Nombres</mat-label>
-        <input matInput formControlName="name" placeholder="Ingrese nombres">
+        <input matInput formControlName="name" placeholder="Nombres del miembro (se autocompletan)">
         <mat-icon matPrefix>badge</mat-icon>
         <mat-error *ngIf="userForm.get('name')?.hasError('required')">
           Los nombres son requeridos
@@ -69,7 +65,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Apellidos</mat-label>
-        <input matInput formControlName="apellidos" placeholder="Ingrese apellidos">
+        <input matInput formControlName="apellidos" placeholder="Apellidos del miembro (se autocompletan)">
         <mat-icon matPrefix>badge</mat-icon>
         <mat-error *ngIf="userForm.get('apellidos')?.hasError('required')">
           Los apellidos son requeridos
@@ -93,7 +89,6 @@
         La contraseña debe tener al menos 4 caracteres
       </mat-error>
     </mat-form-field>
-
 
   </mat-dialog-content>
 

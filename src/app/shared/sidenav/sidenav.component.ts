@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
 
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -15,9 +15,13 @@ import { LoginModalComponent } from '../../components/auth/login/login-modal.com
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../core/services/user.service';
+import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
 import { CreateUserDto, SingleUserResponse, User, UserResponse } from '../../core/models/user.model';
 import { ThemeService } from '../../core/services/theme.service';
 import { ImageUrlPipe } from '../pipes/image-url.pipe';
+import { SolicitudListComponent } from '../../components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
+import { Subscription, interval } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 
 
 export interface MenuItem {
@@ -50,7 +54,7 @@ export interface MenuItem {
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']
 })
-export class SidenavComponent implements OnInit {
+export class SidenavComponent implements OnInit, OnDestroy {
   @ViewChild('drawer') sidenav!: MatSidenav;
   isSmallScreen = false;
   username: string = '';
@@ -62,14 +66,17 @@ export class SidenavComponent implements OnInit {
   activeIglesiaNombre: string | null = null;
   activeCargoNombre: string | null = null;
   iglesiasDisponibles: any[] = [];
+  pendingSolicitudesCount: number = 0;
 
   private router = inject(Router);
   private breakpointObserver: BreakpointObserver = inject(BreakpointObserver);
   public authService: AuthService = inject(AuthService);
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
+  private miembroIglesiaService = inject(MiembroIglesiaService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
   private themeService = inject(ThemeService);
+  private pollingSub?: Subscription;
 
   isDarkMode = this.themeService.isDarkMode;
   
@@ -365,7 +372,54 @@ export class SidenavComponent implements OnInit {
       this.isAuthenticated = !!user;
       this.loadActiveContext();
       this.updateFilteredMenuItems();
+
+      if (this.isAuthenticated) {
+        this.startPolling();
+      } else {
+        this.stopPolling();
+        this.pendingSolicitudesCount = 0;
+      }
     });
+  }
+
+  startPolling() {
+    this.stopPolling();
+    // Poll every 15 seconds
+    this.pollingSub = interval(15000).pipe(
+      startWith(0)
+    ).subscribe(() => {
+      this.loadPendingSolicitudesCount();
+    });
+  }
+
+  stopPolling() {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
+  }
+
+  loadPendingSolicitudesCount(): void {
+    if (!this.isAuthenticated) return;
+
+    if (!this.hasSolicitudesPrivilege()) {
+      this.pendingSolicitudesCount = 0;
+      return;
+    }
+
+    const iglesiaId = this.authService.getCurrentIglesiaId() || 0;
+    this.miembroIglesiaService.getSolicitudesPendientes(iglesiaId).subscribe({
+      next: (response) => {
+        this.pendingSolicitudesCount = response?.datos?.length || 0;
+      },
+      error: (error) => {
+        console.error('Error al cargar conteo de solicitudes:', error);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
   }
 
   onSwitchChurch(iglesiaId: number): void {
@@ -444,6 +498,21 @@ export class SidenavComponent implements OnInit {
         this.errorMessage = 'Error al obtener el usuario.';
         console.error('Error:', error);
       }
+    });
+  }
+
+  hasSolicitudesPrivilege(): boolean {
+    if (!this.isAuthenticated) return false;
+    const isAdmin = this.authService.isLoggedRolAdmin();
+    if (isAdmin) return true;
+    return this.hasPrivilegeForRoute('/solicitudes', 'Solicitudes');
+  }
+
+  openSolicitudesModal(): void {
+    this.dialog.open(SolicitudListComponent, {
+      width: '1000px',
+      maxHeight: '90vh',
+      panelClass: 'solicitudes-dialog-panel'
     });
   }
 

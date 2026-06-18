@@ -1,0 +1,164 @@
+<div class="container" [class.dialog-mode]="dialogRef">
+  <div class="header-section">
+    <div>
+      <h2>Solicitudes de Traspaso Pendientes</h2>
+      <p class="subtitle" *ngIf="currentIglesiaNombre">
+        Iglesia Destino: <strong>{{currentIglesiaNombre}}</strong>
+      </p>
+    </div>
+    <button mat-icon-button *ngIf="dialogRef" (click)="dialogRef.close()" class="close-btn" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="loading-shade" *ngIf="loading">
+    <span>Cargando solicitudes...</span>
+  </div>
+
+  <div class="no-requests" *ngIf="!loading && dataSource.data.length === 0">
+    <mat-icon class="info-icon">info</mat-icon>
+    <p>No hay solicitudes de traspaso pendientes {{ currentIglesiaId ? 'para esta iglesia' : 'en el sistema' }} en este momento.</p>
+  </div>
+
+  <!-- Desktop View -->
+  <div class="table-container mat-elevation-z8 desktop-view" *ngIf="!loading && dataSource.data.length > 0">
+    <mat-table [dataSource]="dataSource">
+      <!-- Miembro Column -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef>Miembro</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.miembroNombre}}</mat-cell>
+      </ng-container>
+
+      <!-- CI Column -->
+      <ng-container matColumnDef="ci">
+        <mat-header-cell *matHeaderCellDef>CI</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.miembroCI}}</mat-cell>
+      </ng-container>
+
+      <!-- Origen Column -->
+      <ng-container matColumnDef="origen">
+        <mat-header-cell *matHeaderCellDef>Iglesia Origen</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.iglesiaOrigenNombre}}</mat-cell>
+      </ng-container>
+
+      <!-- Destino Column -->
+      <ng-container matColumnDef="destino">
+        <mat-header-cell *matHeaderCellDef>Iglesia Destino</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.iglesiaDestinoNombre}}</mat-cell>
+      </ng-container>
+
+      <!-- Fecha Column -->
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef>Fecha de Solicitud</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{formatDate(row.fechaTraspaso)}}</mat-cell>
+      </ng-container>
+
+      <!-- Motivo Column -->
+      <ng-container matColumnDef="motivo">
+        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="motivo-cell">{{row.motivoTraspaso || 'No especificado'}}</mat-cell>
+      </ng-container>
+
+      <!-- Carta / Documento Column -->
+      <ng-container matColumnDef="documento">
+        <mat-header-cell *matHeaderCellDef>Documento</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <a *ngIf="row.uriCartaTraspaso" [href]="row.uriCartaTraspaso" target="_blank" class="doc-link">
+            <mat-icon>description</mat-icon> Ver Carta
+          </a>
+          <span *ngIf="!row.uriCartaTraspaso" class="text-muted">Ninguno</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef class="actions-header">Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="actions-cell">
+          <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
+          <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+            <button mat-raised-button color="primary" class="btn-action btn-accept" (click)="aceptar(row)" matTooltip="Aceptar Traspaso">
+              <mat-icon>check</mat-icon> Aceptar
+            </button>
+            <button mat-raised-button color="warn" class="btn-action btn-reject" (click)="rechazar(row)" matTooltip="Rechazar Traspaso">
+              <mat-icon>close</mat-icon> Rechazar
+            </button>
+          </ng-container>
+
+          <!-- Solicitó el traspaso: Modificar / Cancelar -->
+          <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+            <button mat-stroked-button color="accent" class="btn-action btn-modify" (click)="modificar(row)" matTooltip="Modificar Solicitud" style="margin-right: 8px;">
+              <mat-icon>edit</mat-icon> Modificar
+            </button>
+            <button mat-stroked-button color="warn" class="btn-action btn-cancel" (click)="cancelar(row)" matTooltip="Cancelar Solicitud">
+              <mat-icon>delete_forever</mat-icon> Cancelar
+            </button>
+          </ng-container>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+  </div>
+
+  <!-- Mobile View -->
+  <div class="mobile-view" *ngIf="!loading && dataSource.data.length > 0">
+    <div class="mobile-cards">
+      <div class="mobile-card" *ngFor="let row of dataSource.data">
+        <div class="card-header">
+          <span class="member-name">{{row.miembroNombre}}</span>
+          <span class="member-ci">CI: {{row.miembroCI}}</span>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="info-label">Origen:</span>
+            <span class="info-value">{{row.iglesiaOrigenNombre}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Destino:</span>
+            <span class="info-value">{{row.iglesiaDestinoNombre}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Fecha:</span>
+            <span class="info-value">{{formatDate(row.fechaTraspaso)}}</span>
+          </div>
+          <div class="info-row" *ngIf="row.motivoTraspaso">
+            <span class="info-label">Motivo:</span>
+            <span class="info-value motive-text">{{row.motivoTraspaso}}</span>
+          </div>
+          <div class="info-row align-items-center" *ngIf="row.uriCartaTraspaso">
+            <span class="info-label">Documento:</span>
+            <a [href]="row.uriCartaTraspaso" target="_blank" class="doc-link">
+              <mat-icon>description</mat-icon> Ver Carta
+            </a>
+          </div>
+        </div>
+        <div class="card-actions">
+          <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
+          <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+            <button mat-raised-button color="primary" class="btn-action btn-accept" (click)="aceptar(row)">
+              <mat-icon>check</mat-icon> Aceptar
+            </button>
+            <button mat-raised-button color="warn" class="btn-action btn-reject" (click)="rechazar(row)">
+              <mat-icon>close</mat-icon> Rechazar
+            </button>
+          </ng-container>
+
+          <!-- Solicitó el traspaso: Modificar / Cancelar -->
+          <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+            <button mat-stroked-button color="accent" class="btn-action btn-modify" (click)="modificar(row)" style="margin-right: 8px;">
+              <mat-icon>edit</mat-icon> Modificar
+            </button>
+            <button mat-stroked-button color="warn" class="btn-action btn-cancel" (click)="cancelar(row)">
+              <mat-icon>delete_forever</mat-icon> Cancelar
+            </button>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-actions-container" *ngIf="dialogRef" style="display: flex; justify-content: flex-end; margin-top: 20px;">
+    <button mat-stroked-button (click)="dialogRef.close()">Cerrar</button>
+  </div>
+</div>

@@ -38,6 +38,26 @@
     </div>
   </div>
 
+  <div *ngIf="data.latitud && data.longitud" class="ubicacion-section">
+    <h3 class="section-title">Ubicación Geográfica</h3>
+    <div class="map-frame">
+      <div id="map-container-detail" class="map-container"></div>
+    </div>
+    <div class="ubicacion-footer-box">
+      <div class="coords-display">
+        <mat-icon>gps_fixed</mat-icon>
+        <div class="coords-values">
+          <div>{{ data.latitud }}</div>
+          <div>{{ data.longitud }}</div>
+        </div>
+      </div>
+      <a [href]="'https://www.google.com/maps/search/?api=1&query=' + data.latitud + ',' + data.longitud"
+         target="_blank" class="gmaps-link">
+        Ver en Google Maps &rarr;
+      </a>
+    </div>
+  </div>
+
   <h3 class="section-title">Información del Sistema</h3>
   <div class="info-grid">
     <div class="info-cell">

@@ -24,6 +24,8 @@ import { ParticipacionEventoListComponent } from './components/admin/participaci
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
 import { LoginPageComponent } from './components/auth/login-page/login-page.component';
 
+import { SolicitudListComponent } from './components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
+
 export const routes: Routes = [
   {
     path: '',
@@ -84,13 +86,13 @@ export const routes: Routes = [
       },
       {
         path: 'cambios-iglesia',
-        component: DashboardComponent,
+        component: IglesiaMiembroListComponent,
         title: 'Cambios Iglesia',
         canActivate: [privilegioGuard]
       },
       {
         path: 'solicitudes',
-        component: DashboardComponent,
+        component: SolicitudListComponent,
         title: 'Solicitudes',
         canActivate: [privilegioGuard]
       },

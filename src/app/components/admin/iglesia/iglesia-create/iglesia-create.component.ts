@@ -56,6 +56,81 @@ export class IglesiaCreateComponent implements OnInit {
       direccion: ['', [Validators.required]],
       telefono: ['', [Validators.pattern('^[0-9]*$')]],
       fechaFundacion: [null],
+      latitud: [null],
+      longitud: [null]
+    });
+  }
+
+  map: any;
+  marker: any;
+  defaultLat = -17.288672;
+  defaultLng = -65.918849;
+
+  loadLeaflet(): Promise<any> {
+    if ((window as any).L) {
+      return Promise.resolve((window as any).L);
+    }
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => resolve((window as any).L);
+      script.onerror = (err) => reject(err);
+      document.head.appendChild(script);
+    });
+  }
+
+  initMap(L: any, lat: number, lng: number, hasMarker: boolean) {
+    const coords: [number, number] = [lat, lng];
+    this.map = L.map('map-container').setView(coords, 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.map);
+
+    if (hasMarker) {
+      this.createMarker(L, lat, lng);
+    }
+
+    this.map.on('click', (e: any) => {
+      const position = e.latlng;
+      if (!this.marker) {
+        this.createMarker(L, position.lat, position.lng);
+      } else {
+        this.marker.setLatLng(position);
+      }
+      this.updateCoords(position.lat, position.lng);
+    });
+  }
+
+  createMarker(L: any, lat: number, lng: number) {
+    const coords: [number, number] = [lat, lng];
+    this.marker = L.marker(coords, { draggable: true }).addTo(this.map);
+    this.marker.on('dragend', () => {
+      const position = this.marker.getLatLng();
+      this.updateCoords(position.lat, position.lng);
+    });
+  }
+
+  updateCoords(lat: number, lng: number) {
+    this.iglesiaForm.patchValue({
+      latitud: lat,
+      longitud: lng
+    });
+  }
+
+  clearLocation() {
+    if (this.marker) {
+      this.map.removeLayer(this.marker);
+      this.marker = null;
+    }
+    this.iglesiaForm.patchValue({
+      latitud: null,
+      longitud: null
     });
   }
 
@@ -63,6 +138,16 @@ export class IglesiaCreateComponent implements OnInit {
     if (this.data) {
       this.iglesiaForm.patchValue(this.data);
     }
+    setTimeout(() => {
+      this.loadLeaflet().then(L => {
+        const hasMarker = !!(this.iglesiaForm.value.latitud && this.iglesiaForm.value.longitud);
+        const lat = this.iglesiaForm.value.latitud || this.defaultLat;
+        const lng = this.iglesiaForm.value.longitud || this.defaultLng;
+        this.initMap(L, lat, lng, hasMarker);
+      }).catch(err => {
+        console.error('Error al cargar Leaflet:', err);
+      });
+    }, 150);
   }
 
   onFileSelected(event: Event) {

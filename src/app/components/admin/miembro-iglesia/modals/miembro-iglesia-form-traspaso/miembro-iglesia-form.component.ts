@@ -8,6 +8,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MiembroIglesiaService } from '../../../../../core/services/miembro-iglesia.service';
 import { IglesiaService } from '../../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../../core/models/iglesia.model';
@@ -25,7 +26,8 @@ import { Miembro } from '../../../../../core/models/miembro.model';
     MatDatepickerModule,
     MatSelectModule,
     MatDialogModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatIconModule
   ],
   templateUrl: './miembro-iglesia-form.component.html',
   styleUrls: ['./miembro-iglesia-form.component.css']
@@ -33,20 +35,36 @@ import { Miembro } from '../../../../../core/models/miembro.model';
 export class MiembroIglesiaFormTraspasoComponent {
   form: FormGroup;
   iglesias: Iglesia[] = [];
+  selectedFile: File | null = null;
+  selectedFileName: string = '';
 
   constructor(
     private fb: FormBuilder,
     private miembroIglesiaService: MiembroIglesiaService,
     private iglesiaService: IglesiaService,
     private dialogRef: MatDialogRef<MiembroIglesiaFormTraspasoComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { miembro: Miembro; iglesia: Iglesia }
+    @Inject(MAT_DIALOG_DATA) public data: {
+      miembro: Miembro;
+      iglesia: Iglesia;
+      isEdit?: boolean;
+      miembroIglesia?: any;
+    }
   ) {
+    const isEdit = this.data?.isEdit || false;
+    const req = this.data?.miembroIglesia;
+
     this.form = this.fb.group({
-      iglesiaId: ['', Validators.required],
-      motivoTraspaso: ['', Validators.required],
-      fechaTraspaso: ['', Validators.required],
-      uriCartaTraspaso: ['', Validators.required]
+      iglesiaId: [req?.iglesiaDestinoId || '', Validators.required],
+      motivoTraspaso: [req?.motivoTraspaso || '', Validators.required],
+      fechaTraspaso: [req?.fechaTraspaso ? new Date(req.fechaTraspaso) : new Date(), Validators.required],
+      uriCartaTraspaso: [req?.uriCartaTraspaso || '', isEdit ? [] : [Validators.required]]
     });
+
+    if (isEdit && req?.uriCartaTraspaso) {
+      const parts = req.uriCartaTraspaso.split('/');
+      this.selectedFileName = parts[parts.length - 1];
+    }
+
     this.loadIglesias();
   }
 
@@ -56,18 +74,62 @@ export class MiembroIglesiaFormTraspasoComponent {
     });
   }
 
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.selectedFileName = file.name;
+      this.form.patchValue({
+        uriCartaTraspaso: file.name
+      });
+      this.form.get('uriCartaTraspaso')?.markAsTouched();
+    }
+  }
+
   onSubmit() {
     if (this.form.valid) {
-      const data = {
+      const isEdit = this.data?.isEdit || false;
+      const req = this.data?.miembroIglesia;
+
+      const payload: any = {
         miembroId: this.data.miembro.id,
-        iglesiaId: this.form.value.iglesiaId,
+        iglesiaId: this.data.iglesia.id,
+        iglesiaDestinoId: this.form.value.iglesiaId,
         motivoTraspaso: this.form.value.motivoTraspaso,
         fechaTraspaso: this.form.value.fechaTraspaso,
-        uriCartaTraspaso: this.form.value.uriCartaTraspaso
+        uriCartaTraspaso: req?.uriCartaTraspaso || ''
       };
 
-      this.miembroIglesiaService.traspaso(data).subscribe(() => {
-        this.dialogRef.close(true);
+      if (isEdit && req) {
+        payload.id = req.id;
+        payload.estado = req.estado;
+        payload.estadoTraspaso = req.estadoTraspaso;
+      }
+
+      const requestObservable = isEdit
+        ? this.miembroIglesiaService.updateMiembroIglesia(payload)
+        : this.miembroIglesiaService.traspaso(payload);
+
+      requestObservable.subscribe({
+        next: (response) => {
+          const requestId = response.datos?.id || req?.id;
+          if (this.selectedFile && requestId) {
+            this.miembroIglesiaService.uploadCartaTraspaso(requestId, this.selectedFile).subscribe({
+              next: () => {
+                this.dialogRef.close(true);
+              },
+              error: (err) => {
+                console.error('Error al subir la carta de traspaso', err);
+                this.dialogRef.close(true);
+              }
+            });
+          } else {
+            this.dialogRef.close(true);
+          }
+        },
+        error: (err) => {
+          console.error('Error al procesar el traspaso', err);
+        }
       });
     }
   }

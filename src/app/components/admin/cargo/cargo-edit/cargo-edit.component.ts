@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CargoService } from '../../../../core/services/cargo.service';
+import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { Miembro } from '../../../../core/models/miembro.model';
@@ -47,6 +48,7 @@ export class CargoEditComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private cargoService: CargoService,
+    private miembroIglesiaService: MiembroIglesiaService,
     private dialogRef: MatDialogRef<CargoEditComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { cargo: Cargo, iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
   ) {
@@ -66,18 +68,57 @@ export class CargoEditComponent implements OnInit {
       this.iglesias = this.data.iglesias;
       this.filteredIglesias = [...this.iglesias];
       this.tiposCargo = this.data.tiposCargo;
-      this.miembros = this.data.miembros;
-      this.filteredMiembros = [...this.miembros];
       
-      this.cargoForm.patchValue({
-        rolCargoId: this.cargo.rolCargoId,
-        iglesiaId: this.cargo.iglesiaId,
-        idMiembro: this.cargo.idMiembro,
-        fechaInicio: this.cargo.fechaInicio,
-        fechaFin: this.cargo.fechaFin,
-        detalle: this.cargo.detalle
-      });
+      if (this.cargo.iglesiaId) {
+        this.miembroIglesiaService.getMiembrosPorIglesia(this.cargo.iglesiaId).subscribe(response => {
+          this.miembros = response.datos || [];
+          this.filteredMiembros = [...this.miembros];
+          
+          this.cargoForm.patchValue({
+            rolCargoId: this.cargo.rolCargoId,
+            iglesiaId: this.cargo.iglesiaId,
+            idMiembro: this.cargo.idMiembro,
+            fechaInicio: this.cargo.fechaInicio,
+            fechaFin: this.cargo.fechaFin,
+            detalle: this.cargo.detalle
+          });
+
+          this.registerIglesiaChangeHandler();
+        });
+      } else {
+        this.miembros = [];
+        this.filteredMiembros = [];
+        this.cargoForm.patchValue({
+          rolCargoId: this.cargo.rolCargoId,
+          fechaInicio: this.cargo.fechaInicio,
+          fechaFin: this.cargo.fechaFin,
+          detalle: this.cargo.detalle
+        });
+        this.registerIglesiaChangeHandler();
+      }
     }
+  }
+
+  registerIglesiaChangeHandler() {
+    if (!this.cargoForm.get('iglesiaId')?.value) {
+      this.cargoForm.get('idMiembro')?.disable();
+    }
+
+    this.cargoForm.get('iglesiaId')?.valueChanges.subscribe(iglesiaId => {
+      if (iglesiaId) {
+        this.cargoForm.get('idMiembro')?.enable();
+        this.miembroIglesiaService.getMiembrosPorIglesia(iglesiaId).subscribe(response => {
+          this.miembros = response.datos || [];
+          this.filteredMiembros = [...this.miembros];
+          this.cargoForm.get('idMiembro')?.setValue('');
+        });
+      } else {
+        this.miembros = [];
+        this.filteredMiembros = [];
+        this.cargoForm.get('idMiembro')?.setValue('');
+        this.cargoForm.get('idMiembro')?.disable();
+      }
+    });
   }
 
   filterIglesias(event: Event) {

@@ -55,6 +55,7 @@ export class IglesiaMiembroListComponent implements OnInit {
   selectedIglesia?: Iglesia;
   miembrosCount = 0;
 
+  miembroIglesiaRecords: MiembroIglesia[] = [];
   selectedRowIndex: number | null = null; //numero de la fila seleccionada
 
 
@@ -76,24 +77,22 @@ export class IglesiaMiembroListComponent implements OnInit {
 
   ngOnInit() {
     this.loadIglesias();
-    this.loadStoredPaginationSettings();
   }
 
   ngAfterViewInit() {
     this.iglesiasDataSource.paginator = this.iglesiaPaginator;
     this.iglesiasDataSource.sort = this.iglesiaSort;
-    this.miembrosDataSource.paginator = this.miembroPaginator;
-    this.miembrosDataSource.sort = this.miembroSort;
+    this.loadStoredPaginationSettings();
   }
 
   loadStoredPaginationSettings() {
     const iglesiaPageSize = localStorage.getItem('iglesiaPageSize');
     const miembroPageSize = localStorage.getItem('miembroPageSize');
 
-    if (iglesiaPageSize) {
+    if (iglesiaPageSize && this.iglesiaPaginator) {
       this.iglesiaPaginator.pageSize = parseInt(iglesiaPageSize, 10);
     }
-    if (miembroPageSize) {
+    if (miembroPageSize && this.miembroPaginator) {
       this.miembroPaginator.pageSize = parseInt(miembroPageSize, 10);
     }
   }
@@ -113,9 +112,8 @@ export class IglesiaMiembroListComponent implements OnInit {
   loadMiembros(iglesia: Iglesia) {
     this.selectedIglesia = iglesia;
     this.miembroIglesiaService.getMiembrosIglesia().subscribe(response => {
-      const miembroIds = response.datos
-        .filter(mi => mi.iglesiaId === iglesia.id && mi.estado)
-        .map(mi => mi.miembroId);
+      this.miembroIglesiaRecords = response.datos.filter(mi => mi.iglesiaId === iglesia.id && mi.estado);
+      const miembroIds = this.miembroIglesiaRecords.map(mi => mi.miembroId);
 
       this.miembroService.getMiembros().subscribe(miembrosResponse => {
         const miembros = miembrosResponse.datos.filter(m =>
@@ -129,7 +127,60 @@ export class IglesiaMiembroListComponent implements OnInit {
         this.miembrosDataSource.data = miembros;
         this.miembrosCount = miembros.length;
 
+        // Configurar paginación y ordenamiento una vez que el DOM se ha actualizado
+        setTimeout(() => {
+          if (this.miembroPaginator) {
+            this.miembrosDataSource.paginator = this.miembroPaginator;
+            this.miembrosDataSource.sort = this.miembroSort;
+            const miembroPageSize = localStorage.getItem('miembroPageSize');
+            if (miembroPageSize) {
+              this.miembroPaginator.pageSize = parseInt(miembroPageSize, 10);
+            }
+          }
+        });
       });
+    });
+  }
+
+  deleteMiembroAsignacion(miembro: Miembro) {
+    const record = this.miembroIglesiaRecords.find(mi => mi.miembroId === miembro.id);
+    if (!record || !record.id) {
+      this.snackBar.open('No se encontró la asignación del miembro', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: '¿Está seguro que desea eliminar la asignación?',
+        message: `Está a punto de eliminar al miembro <strong>${miembro.nombre} ${miembro.apellido}</strong> de la iglesia <strong>${this.selectedIglesia?.nombre}</strong>.`,
+        confirmText: 'Eliminar',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.miembroIglesiaService.deleteMiembroIglesia(record.id!).subscribe({
+          next: () => {
+            this.snackBar.open('Miembro eliminado de la iglesia exitosamente', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.loadMiembros(this.selectedIglesia!);
+          },
+          error: (err) => {
+            const mensajeError = err.error?.message || "Error al eliminar al miembro de la iglesia";
+            this.snackBar.open(mensajeError, 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
     });
   }
 

@@ -27,6 +27,7 @@ export class MiembroIglesiaDetailComponent implements OnInit {
   historialIglesias: Array<{
     miembroIglesia: MiembroIglesia;
     iglesia: Iglesia;
+    iglesiaDestino?: Iglesia;
   }> = [];
 
   constructor(
@@ -41,17 +42,15 @@ export class MiembroIglesiaDetailComponent implements OnInit {
   }
 
   loadHistorial() {
-    this.miembroIglesiaService.getMiembrosIglesia().subscribe(response => {
-      const miembroIglesias = response.datos.filter(mi =>
-        mi.miembroId === this.data.miembro.id
-      ).sort((a, b) =>
-        new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-      );
+    if (!this.data.miembro.id) return;
+    this.miembroIglesiaService.getHistorialMiembro(this.data.miembro.id).subscribe(response => {
+      const miembroIglesias = response.datos;
 
       this.iglesiaService.getIglesias().subscribe(iglesiasResponse => {
         this.historialIglesias = miembroIglesias.map(mi => ({
           miembroIglesia: mi,
-          iglesia: iglesiasResponse.datos.find(i => i.id === mi.iglesiaId)!
+          iglesia: iglesiasResponse.datos.find(i => i.id === mi.iglesiaId)!,
+          iglesiaDestino: mi.iglesiaDestinoId ? iglesiasResponse.datos.find(i => i.id === mi.iglesiaDestinoId) : undefined
         }));
       });
     });

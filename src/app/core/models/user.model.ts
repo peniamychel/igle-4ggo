@@ -8,11 +8,14 @@ export interface User {
   estado: boolean;
   password?: string;
   roles: Role[];
+  miembroId?: number;
 }
 
 export interface Role {
   id: number;
-  name: string;
+  name?: string;
+  nombre?: string;
+  nombreRol?: string;
 }
 
 export interface UserResponse {
@@ -35,6 +38,7 @@ export interface CreateUserDto {
   uriFoto: string;
   password: string;
   roles?: string[];
+  miembroId?: number;
 }
 
 
@@ -44,6 +48,7 @@ export interface UpdateUserDto {
   email: string;
   name: string;
   apellidos: string;
+  miembroId?: number;
 }
 
 export interface ChangePasswordDto {

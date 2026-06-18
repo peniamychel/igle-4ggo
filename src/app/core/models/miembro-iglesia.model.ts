@@ -6,6 +6,8 @@ export interface MiembroIglesia {
   motivoTraspaso?: string;
   fechaTraspaso?: Date;
   uriCartaTraspaso?: string;
+  iglesiaDestinoId?: number;
+  estadoTraspaso?: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

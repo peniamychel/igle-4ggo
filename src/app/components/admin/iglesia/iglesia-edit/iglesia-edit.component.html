@@ -57,6 +57,44 @@
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
 
+    <!-- SECCIÓN UBICACIÓN -->
+    <div class="ubicacion-header">
+      <span class="ubicacion-title">
+        <mat-icon>location_on</mat-icon> Ubicación
+      </span>
+      <span class="ubicacion-status" *ngIf="iglesiaForm.get('latitud')?.value && iglesiaForm.get('longitud')?.value">
+        <span class="dot-green"></span> Ubicación guardada
+      </span>
+    </div>
+
+    <div class="map-frame">
+      <div id="map-container" class="map-container"></div>
+      <button mat-icon-button type="button" class="clear-map-btn" *ngIf="iglesiaForm.get('latitud')?.value" (click)="clearLocation()" matTooltip="Limpiar ubicación">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="ubicacion-footer-box">
+      <div class="coords-display">
+        <mat-icon>gps_fixed</mat-icon>
+        <div class="coords-values" *ngIf="iglesiaForm.get('latitud')?.value">
+          <div>{{ iglesiaForm.get('latitud')?.value }}</div>
+          <div>{{ iglesiaForm.get('longitud')?.value }}</div>
+        </div>
+        <div class="coords-values" *ngIf="!iglesiaForm.get('latitud')?.value">
+          Sin marcar
+        </div>
+      </div>
+      <a *ngIf="iglesiaForm.get('latitud')?.value"
+         [href]="'https://www.google.com/maps/search/?api=1&query=' + iglesiaForm.get('latitud')?.value + ',' + iglesiaForm.get('longitud')?.value"
+         target="_blank" class="gmaps-link">
+        Ver en Google Maps &rarr;
+      </a>
+    </div>
+    <span class="map-help-text">
+      <mat-icon>mouse</mat-icon> Click para marcar · Rueda del mouse para zoom · Arrastrar para mover
+    </span>
+
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close type="button">Cancelar</button>
       <button mat-raised-button color="primary" type="submit"

@@ -33,13 +33,20 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>URI Carta de Traspaso</mat-label>
-        <input matInput formControlName="uriCartaTraspaso">
-        <mat-error *ngIf="form.get('uriCartaTraspaso')?.hasError('required')">
-          La URI de la carta es requerida
+      <div class="file-upload-container">
+        <button type="button" mat-stroked-button (click)="fileInput.click()">
+          <mat-icon>upload_file</mat-icon> Seleccionar Carta de Traspaso
+        </button>
+        <input #fileInput type="file" style="display: none;" (change)="onFileSelected($event)" accept="image/*,application/pdf">
+        <span class="file-name" *ngIf="selectedFileName" style="display: flex; align-items: center; gap: 4px;">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #00875a;">check_circle</mat-icon>
+          {{selectedFileName}}
+        </span>
+        <input type="hidden" formControlName="uriCartaTraspaso">
+        <mat-error *ngIf="form.get('uriCartaTraspaso')?.hasError('required') && form.get('uriCartaTraspaso')?.touched" style="font-size: 0.75rem; margin-top: -4px; color: #f44336;">
+          La carta de traspaso es requerida
         </mat-error>
-      </mat-form-field>
+      </div>
     </div>
   </mat-dialog-content>
 

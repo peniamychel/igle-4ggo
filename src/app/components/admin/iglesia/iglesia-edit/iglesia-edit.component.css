@@ -147,3 +147,124 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   display: inline-block;
   margin-right: 6px;
 }
+
+/* MAPA DE UBICACION */
+.ubicacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.ubicacion-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+}
+
+.ubicacion-title mat-icon {
+  color: #2e7d32;
+}
+
+.ubicacion-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.dot-green {
+  width: 8px;
+  height: 8px;
+  background-color: #2e7d32;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.map-frame {
+  position: relative;
+  width: 100%;
+}
+
+.map-container {
+  height: 220px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.clear-map-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white !important;
+  color: #d32f2f !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.ubicacion-footer-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-top: 10px;
+}
+
+.dark-theme .ubicacion-footer-box {
+  background-color: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coords-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+}
+
+.coords-display mat-icon {
+  color: #2e7d32;
+}
+
+.coords-values {
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.gmaps-link {
+  color: #1b5e20;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gmaps-link:hover {
+  text-decoration: underline;
+}
+
+.map-help-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #666);
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.map-help-text mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}

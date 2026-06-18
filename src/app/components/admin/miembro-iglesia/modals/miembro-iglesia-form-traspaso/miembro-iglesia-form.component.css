@@ -50,3 +50,20 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   padding: 6px 24px;
   font-weight: 500;
 }
+
+.file-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.file-upload-container button {
+  width: fit-content;
+  border-radius: 8px;
+}
+
+.file-name {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+}

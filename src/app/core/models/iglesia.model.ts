@@ -8,6 +8,8 @@ export interface Iglesia {
   createdAt?: Date;
   updatedAt?: Date;
   uriFoto?: string;
+  latitud?: number;
+  longitud?: number;
 }
 
 export interface IglesiasResponse {

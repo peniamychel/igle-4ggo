@@ -55,7 +55,8 @@ export class UserService {
     name: string;
     id: number | undefined;
     email: any;
-    username: any
+    username: any;
+    miembroId?: number;
   }): Observable<User> {
     return this.http.put<User>(`${this.API_URL}/update`, user);
   }
@@ -99,6 +100,15 @@ export class UserService {
     return this.http.delete(`${this.API_URL}/${id}/foto`);
   }
 
+  /**
+   * Elimina un usuario del sistema
+   * @param id id del usuario
+   * @returns respuesta de la API
+   */
+  deleteUser(id: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/delete/${id}`);
+  }
+
   // getUserByNameForToken(): Observable<CreateUserDto> {
   //   return this.http.get<CreateUserDto>(`${this.API_URL}/findbyusername`, {});
   // }
@@ -122,7 +132,7 @@ export class UserService {
           apellidos: datos.apellidos,
           uriFoto: datos.uriFoto,
           password: datos.password,
-          roles: datos.roles.map((role: { id: number; name: string }) => role.name)
+          roles: datos.roles ? datos.roles.map((role: any) => role.nombreRol || role.nombre || role.name || '') : []
         };
       })
     );

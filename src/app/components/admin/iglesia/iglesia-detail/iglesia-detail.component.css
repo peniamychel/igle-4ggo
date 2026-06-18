@@ -226,3 +226,65 @@ h2[mat-dialog-title] {
     padding: 0 16px 12px !important;
   }
 }
+
+/* MAPA DE UBICACION */
+.ubicacion-section {
+  margin-bottom: 24px;
+}
+
+.map-frame {
+  position: relative;
+  width: 100%;
+}
+
+.map-container {
+  height: 220px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.ubicacion-footer-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-top: 10px;
+}
+
+.dark-theme .ubicacion-footer-box {
+  background-color: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coords-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+}
+
+.coords-display mat-icon {
+  color: #2e7d32;
+}
+
+.coords-values {
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.gmaps-link {
+  color: #1b5e20;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gmaps-link:hover {
+  text-decoration: underline;
+}

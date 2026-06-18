@@ -53,7 +53,7 @@ export class PerfilComponent implements OnInit {
           name: datos.name || '',
           apellidos: datos.apellidos || '',
           uriFoto: datos.uriFoto || '',
-          roles: datos.roles?.map((r: any) => typeof r === 'string' ? r : r.name) || [],
+          roles: datos.roles?.map((r: any) => typeof r === 'string' ? r : (r?.nombreRol || r?.nombre || r?.name || '')) || [],
         };
         this.loading = false;
       },

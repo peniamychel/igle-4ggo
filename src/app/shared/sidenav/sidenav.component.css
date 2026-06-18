@@ -524,3 +524,46 @@ mat-toolbar {
     max-width: 80px;
   }
 }
+
+/* Badge de Notificación */
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #ff9800;
+  color: white;
+  border-radius: 50%;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.2;
+  min-width: 10px;
+  text-align: center;
+  border: 1.5px solid var(--toolbar-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Animación de la campana activa */
+@keyframes ring {
+  0% { transform: rotate(0); }
+  5% { transform: rotate(30deg); }
+  10% { transform: rotate(-28deg); }
+  15% { transform: rotate(34deg); }
+  20% { transform: rotate(-32deg); }
+  25% { transform: rotate(30deg); }
+  30% { transform: rotate(-28deg); }
+  35% { transform: rotate(26deg); }
+  40% { transform: rotate(-24deg); }
+  45% { transform: rotate(20deg); }
+  50% { transform: rotate(-16deg); }
+  55% { transform: rotate(10deg); }
+  60% { transform: rotate(-6deg); }
+  65% { transform: rotate(2deg); }
+  70% { transform: rotate(-1deg); }
+  75% { transform: rotate(1deg); }
+  100% { transform: rotate(0); }
+}
+
+.bell-active {
+  color: #ff9800 !important;
+}

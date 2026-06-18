@@ -19,6 +19,7 @@ import { ViewUserDialogComponent } from '../view-user-dialog/view-user-dialog.co
 import { RolesPipe } from '../../../../core/pipes/roles.pipe';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { UserService } from '../../../../core/services/user.service';
+import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-user-table',
@@ -86,7 +87,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
         data.email.toLowerCase().includes(searchStr) ||
         (data.name?.toLowerCase() || '').includes(searchStr) ||
         (data.apellidos?.toLowerCase() || '').includes(searchStr) ||
-        data.roles.map(role => role.name.toLowerCase()).join(' ').includes(searchStr);
+        data.roles.map(role => (role.nombre || role.name || role.nombreRol || '').toLowerCase()).join(' ').includes(searchStr);
     };
   }
 
@@ -101,7 +102,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
         data.email.toLowerCase().includes(searchStr) ||
         (data.name?.toLowerCase() || '').includes(searchStr) ||
         (data.apellidos?.toLowerCase() || '').includes(searchStr) ||
-        data.roles.map(role => role.name.toLowerCase()).join(' ').includes(searchStr);
+        data.roles.map(role => (role.nombre || role.name || role.nombreRol || '').toLowerCase()).join(' ').includes(searchStr);
     };
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -190,6 +191,40 @@ export class UserTableComponent implements OnInit, AfterViewInit {
       maxWidth: '95vw',
       data: user,
       panelClass: 'dialog-fullscreen-mobile'
+    });
+  }
+
+  deleteUser(user: User): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Eliminar Usuario',
+        message: `¿Estás seguro de que deseas eliminar al usuario <strong>${user.name || ''} ${user.apellidos || ''} (${user.username})</strong>?<br><br>Esta acción eliminará permanentemente la cuenta de usuario y su foto de perfil.`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirm => {
+      if (confirm && user.id) {
+        this.userService.deleteUser(user.id).subscribe({
+          next: () => {
+            this.snackBar.open('Usuario eliminado exitosamente', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.loadUsers();
+          },
+          error: (error) => {
+            console.error('Error al eliminar usuario:', error);
+            this.snackBar.open('Error al eliminar el usuario', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
     });
   }
 

@@ -21,6 +21,10 @@ export class MiembroService {
     return this.http.get<MiembroResponse>(`${this.apiUrl}/findall`, { headers: this.getHeaders() });
   }
 
+  getMiembrosSinIglesia(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(`${this.apiUrl}/sin-iglesia`, { headers: this.getHeaders() });
+  }
+
   getMiembroById(id: number): Observable<MiembroDetail> {
     return this.http.get<MiembroDetail>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
   }
