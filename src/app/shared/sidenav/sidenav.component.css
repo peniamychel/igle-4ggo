@@ -95,7 +95,7 @@ mat-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #7c4dff 0%, #b47cff 100%);
+  background: linear-gradient(135deg, #7F0B85 0%, #b031b5 100%);
 }
 
 .user-avatar-fallback mat-icon {
@@ -196,15 +196,15 @@ mat-toolbar {
   height: 52px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(124, 77, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.2);
+  border: 3px solid rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
 }
 
 .menu-avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #7c4dff 0%, #b47cff 100%);
+  background: linear-gradient(135deg, #7F0B85 0%, #b031b5 100%);
 }
 
 .menu-avatar-fallback mat-icon {
@@ -250,7 +250,7 @@ mat-toolbar {
 }
 
 .menu-actions .mat-mdc-menu-item:hover {
-  background-color: rgba(124, 77, 255, 0.06) !important;
+  background-color: rgba(var(--primary-rgb), 0.06) !important;
 }
 
 .menu-actions .mat-mdc-menu-item .mat-icon {
@@ -259,7 +259,7 @@ mat-toolbar {
 }
 
 .menu-actions .mat-mdc-menu-item:hover .mat-icon {
-  color: #7c4dff;
+  color: #7F0B85;
 }
 
 .menu-item-perfil .mat-icon,
@@ -295,15 +295,15 @@ mat-toolbar {
   font-size: 11px;
   font-weight: 600;
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(124, 77, 255, 0.05) 100%);
-  color: #7c4dff;
-  border: 1px solid rgba(124, 77, 255, 0.15);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+  color: #7F0B85;
+  border: 1px solid rgba(var(--primary-rgb), 0.15);
   white-space: nowrap;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .role-chip:hover {
-  background: linear-gradient(135deg, rgba(124, 77, 255, 0.18) 0%, rgba(124, 77, 255, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.18) 0%, rgba(var(--primary-rgb), 0.1) 100%);
   transform: translateY(-1px);
 }
 
@@ -382,15 +382,15 @@ mat-toolbar {
 
 /* Hover state for ALL nav items */
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item:hover {
-  background-color: rgba(124, 77, 255, 0.05) !important;
+  background-color: rgba(var(--primary-rgb), 0.05) !important;
 }
 
 /* ══════════════════════════════════════════
    ACTIVE MENU ITEM — Purple highlight
    ══════════════════════════════════════════ */
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active {
-  background-color: rgba(124, 77, 255, 0.12) !important;
-  color: #1f04e7 !important;
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+  color: #7F0B85 !important;
   font-weight: 500;
   border-radius: 8px;
   margin: 2px 8px;
@@ -398,27 +398,27 @@ mat-toolbar {
 }
 
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mdc-list-item__primary-text {
-  color: #1f04e7 !important;
+  color: #7F0B85 !important;
 }
 
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon,
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon.matListItemIcon {
-  color: #1f04e7 !important;
+  color: #7F0B85 !important;
 }
 
 /* Active menu item in dark mode */
 .dark-theme ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active {
-  background-color: rgba(124, 77, 255, 0.16) !important;
-  color: #ab92ff !important;
+  background-color: rgba(var(--primary-rgb), 0.16) !important;
+  color: #e56bf7 !important;
 }
 
 .dark-theme ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mdc-list-item__primary-text {
-  color: #ab92ff !important;
+  color: #e56bf7 !important;
 }
 
 .dark-theme ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon,
 .dark-theme ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.active .mat-icon.matListItemIcon {
-  color: #ab92ff !important;
+  color: #e56bf7 !important;
 }
 
 /* ══════════════════════════════════
@@ -432,11 +432,11 @@ mat-toolbar {
 }
 
 ::ng-deep .mat-mdc-nav-list .parent-menu-item:hover {
-  background-color: rgba(124, 77, 255, 0.05) !important;
+  background-color: rgba(var(--primary-rgb), 0.05) !important;
 }
 
 ::ng-deep .mat-mdc-nav-list .parent-menu-item.expanded {
-  background-color: rgba(124, 77, 255, 0.08) !important;
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
 }
 
 .expand-icon {
@@ -452,7 +452,7 @@ mat-toolbar {
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.3s ease-out;
-  background-color: rgba(124, 77, 255, 0.02);
+  background-color: rgba(var(--primary-rgb), 0.02);
 }
 
 .submenu-container.expanded {
@@ -470,7 +470,7 @@ mat-toolbar {
 }
 
 ::ng-deep .submenu-container .mat-mdc-list-item:hover {
-  background-color: rgba(124, 77, 255, 0.05) !important;
+  background-color: rgba(var(--primary-rgb), 0.05) !important;
 }
 
 .sub-icon {

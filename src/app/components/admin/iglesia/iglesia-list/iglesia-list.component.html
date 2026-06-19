@@ -1,63 +1,128 @@
 <div class="container">
-  <div class="nuevo-buscar">
-
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Crear Iglesia
-    </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Primera Iglesia" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+  <!-- Contenedor pegajoso para cabecera y filtros -->
+  <div class="sticky-header">
+    <!-- Cabecera de listado -->
+    <div class="header-section">
+      <div class="title-wrapper">
+        <div class="title-icon-circle">
+          <mat-icon class="header-icon">church</mat-icon>
+        </div>
+        <div>
+          <h2>Listado de Iglesias</h2>
+          <p class="subtitle">{{ dataSource.filteredData.length }} iglesias registradas</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-flat-button class="btn-new-church" matTooltip="Crear una nueva iglesia" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Nueva Iglesia
+        </button>
+      </div>
+    </div>
+  
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por nombre, dirección..." #input>
+      </div>
+    </div>
   </div>
 
   <div class="table-container">
   <mat-table [dataSource]="dataSource" matSort>
 
-    <ng-container matColumnDef="foto">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <ng-container matColumnDef="iglesia">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
       <mat-cell *matCellDef="let iglesia">
-        <div class="church-avatar">
-          <img *ngIf="iglesia.uriFoto" [src]="iglesia.uriFoto" [alt]="iglesia.nombre" class="church-thumb">
-          <div *ngIf="!iglesia.uriFoto" class="church-thumb-placeholder">
-            <mat-icon>church</mat-icon>
+        <div class="miembro-profile">
+          <div class="miembro-avatar-container">
+            <img *ngIf="iglesia.uriFoto"
+                 [src]="iglesia.uriFoto | imageUrl"
+                 [alt]="iglesia.nombre"
+                 class="miembro-avatar-img">
+            <div class="miembro-avatar-placeholder" *ngIf="!iglesia.uriFoto">
+              <mat-icon style="color: var(--primary-color);">church</mat-icon>
+            </div>
+          </div>
+          <div class="miembro-info-text">
+            <span class="miembro-name">{{ iglesia.nombre }}</span>
+            <span class="miembro-ci-age">{{ getChurchAge(iglesia.fechaFundacion) }}</span>
           </div>
         </div>
       </mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="nombre">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
+    <ng-container matColumnDef="contacto">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Contacto </mat-header-cell>
+      <mat-cell *matCellDef="let iglesia">
+        <div class="contacto-info">
+          <span class="contacto-item">
+            <mat-icon class="contacto-icon">phone</mat-icon>
+            {{ iglesia.telefono || 'Sin teléfono' }}
+          </span>
+          <span class="contacto-item">
+            <mat-icon class="contacto-icon">place</mat-icon>
+            {{ iglesia.direccion || 'Sin dirección' }}
+          </span>
+        </div>
+      </mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="direccion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.direccion}} </mat-cell>
+    <ng-container matColumnDef="fundacion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Fundación </mat-header-cell>
+      <mat-cell *matCellDef="let iglesia">
+        <div class="bautismo-info">
+          <mat-icon class="bautismo-icon">event</mat-icon>
+          <span>{{ formatDate(iglesia.fechaFundacion) }}</span>
+        </div>
+      </mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="telefono">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.telefono}} </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="fechaFundacion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Fundación</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{formatDate(iglesia.fechaFundacion)}} </mat-cell>
+    <ng-container matColumnDef="estado">
+      <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+      <mat-cell *matCellDef="let iglesia">
+        <span class="estado-pill" [ngClass]="iglesia.estado ? 'activo' : 'inactivo'">
+          {{ iglesia.estado ? 'Activa' : 'Inactiva' }}
+        </span>
+      </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia">
-        <button mat-icon-button color="primary" matTooltip="Editar: {{iglesia.nombre}}" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(iglesia)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="iglesia.estado ? 'accent' : 'warn'"
-                (click)="$event.stopPropagation(); toggleEstado(iglesia)">
-          <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
-        </button>
+      <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+      <mat-cell *matCellDef="let iglesia" class="acciones-cell">
+        <!-- Desktop View -->
+        <div class="desktop-actions">
+          <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(iglesia)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar iglesia" (click)="$event.stopPropagation(); openEditDialog(iglesia)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button class="action-btn delete-btn" [matTooltip]="iglesia.estado ? 'Desactivar iglesia' : 'Activar iglesia'" (click)="$event.stopPropagation(); toggleEstado(iglesia)">
+            <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+          </button>
+        </div>
+        <!-- Mobile View -->
+        <div class="mobile-actions">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(iglesia)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
+            </button>
+            <button mat-menu-item (click)="openEditDialog(iglesia)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <button mat-menu-item (click)="toggleEstado(iglesia)">
+              <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+              <span>{{iglesia.estado ? 'Desactivar' : 'Activar'}}</span>
+            </button>
+          </mat-menu>
+        </div>
       </mat-cell>
     </ng-container>
 

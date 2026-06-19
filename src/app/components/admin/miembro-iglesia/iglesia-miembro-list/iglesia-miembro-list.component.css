@@ -63,13 +63,29 @@ mat-table {
 }
 
 .mat-column-acciones {
-  width: 100px;
+  flex: 0 0 100px !important;
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  justify-content: center !important;
   text-align: center;
+}
+
+.acciones-cell {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 2px !important;
 }
 
 @media (max-width: 768px) {
   .grid-container {
     grid-template-columns: 1fr;
     height: auto;
+  }
+  .mat-column-acciones {
+    flex: 0 0 60px !important;
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
   }
 }

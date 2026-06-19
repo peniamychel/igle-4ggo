@@ -12,6 +12,8 @@ export interface Miembro {
   sexo: string;
   direccion: string;
   uriFoto: string;
+  iglesiaNombre?: string;
+  cargoNombre?: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

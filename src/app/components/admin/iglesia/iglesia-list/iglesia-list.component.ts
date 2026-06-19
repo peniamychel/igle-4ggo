@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { IglesiaCreateComponent } from '../iglesia-create/iglesia-create.component';
@@ -18,6 +19,7 @@ import { IglesiaDetailComponent } from '../iglesia-detail/iglesia-detail.compone
 import { IglesiaEditComponent } from '../iglesia-edit/iglesia-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ApiResponse } from '../../../../core/models/interfaces/api.response';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-iglesia-list',
@@ -32,16 +34,17 @@ import { ApiResponse } from '../../../../core/models/interfaces/api.response';
     MatInputModule,
     MatFormFieldModule,
     MatDialogModule,
-    MatDialogModule,
     MatSnackBarModule,
     MatCardModule,
     MatTooltipModule,
+    MatMenuModule,
+    ImageUrlPipe,
   ],
   templateUrl: './iglesia-list.component.html',
   styleUrls: ['./iglesia-list.component.css']
 })
 export class IglesiaListComponent implements OnInit {
-  displayedColumns: string[] = ['foto', 'nombre', 'direccion', 'telefono', 'fechaFundacion', 'acciones'];
+  displayedColumns: string[] = ['iglesia', 'contacto', 'fundacion', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Iglesia>;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -111,6 +114,18 @@ export class IglesiaListComponent implements OnInit {
       month: 'long',
       year: 'numeric'
     });
+  }
+
+  getChurchAge(fechaFundacion: Date | string | null | undefined): string {
+    if (!fechaFundacion) return 'Fecha de fundación no definida';
+    const birth = new Date(fechaFundacion);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return `${age} años de fundación`;
   }
 
   /**

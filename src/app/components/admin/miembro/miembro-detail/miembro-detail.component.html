@@ -1,6 +1,8 @@
 <div class="dialog-header">
   <div class="header-title">
-    <mat-icon class="header-icon">people</mat-icon>
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">person</mat-icon>
+    </div>
     <div>
       <h2 mat-dialog-title>Detalles del Miembro</h2>
       <p class="header-subtitle">{{ data.nombre }} {{ data.apellido }}</p>
@@ -12,15 +14,30 @@
 </div>
 
 <mat-dialog-content class="dialog-content">
-  <!-- Photo Section -->
-  <div class="photo-section" *ngIf="getProfilePhoto()">
-    <div class="photo-container" (click)="toggleImagePreview()" style="cursor: pointer;">
-      <img [src]="getProfilePhoto() | imageUrl" [alt]="data.nombre" class="profile-photo">
+  <!-- Profile Summary Banner -->
+  <div class="profile-banner-card">
+    <div class="photo-section" *ngIf="getProfilePhoto()">
+      <div class="photo-container" (click)="toggleImagePreview()" style="cursor: pointer;" matTooltip="Hacer clic para ampliar">
+        <img [src]="getProfilePhoto() | imageUrl" [alt]="data.nombre" class="profile-photo">
+      </div>
     </div>
-  </div>
-  <div class="photo-section" *ngIf="!getProfilePhoto()">
-    <div class="photo-placeholder">
-      {{data.nombre.charAt(0) || '?'}}
+    <div class="photo-section" *ngIf="!getProfilePhoto()">
+      <div class="photo-placeholder">
+        {{data.nombre.charAt(0) || '?'}}{{data.apellido.charAt(0) || ''}}
+      </div>
+    </div>
+
+    <div class="profile-summary-info">
+      <h3>{{ data.nombre }} {{ data.apellido }}</h3>
+      <div class="badges-row">
+        <span class="member-badge-ci">
+          <mat-icon class="badge-icon">badge</mat-icon>
+          CI: {{ data.ci || 'Sin CI' }}
+        </span>
+        <span class="estado-pill" [ngClass]="data.estado ? 'activo' : 'inactivo'">
+          {{ data.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
     </div>
   </div>
 
@@ -34,63 +51,72 @@
     </div>
   </div>
 
-  <h3 class="section-title">Datos Personales</h3>
-  <div class="summary-card">
-    <div class="summary-item">
-      <span class="label">Nombre</span>
-      <span class="val">{{ data.nombre }}</span>
+  <!-- Two Column Detailed Section -->
+  <div class="details-grid">
+    <!-- Columna 1: Información Personal -->
+    <div class="details-column">
+      <div class="column-title">
+        <mat-icon class="column-icon">contact_page</mat-icon>
+        <h3>Datos Personales</h3>
+      </div>
+      
+      <div class="info-list-card">
+        <div class="info-row">
+          <span class="lbl">Nombre Completo:</span>
+          <span class="val">{{ data.nombre }} {{ data.apellido }}</span>
+        </div>
+        <div class="info-row" *ngIf="data.ci">
+          <span class="lbl">Cédula de Identidad (CI):</span>
+          <span class="val">{{ data.ci }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Fecha de Nacimiento:</span>
+          <span class="val">{{ formatDate(data.fechaNac) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Sexo:</span>
+          <span class="val">{{ data.sexo || 'No especificado' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Celular:</span>
+          <span class="val">{{ data.celular || 'Sin teléfono' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Dirección:</span>
+          <span class="val">{{ data.direccion || 'Sin dirección registrada' }}</span>
+        </div>
+      </div>
     </div>
-    <div class="summary-item">
-      <span class="label">Apellido</span>
-      <span class="val">{{ data.apellido }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">CI</span>
-      <span class="val">{{ data.ci }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Fecha Nacimiento</span>
-      <span class="val">{{ formatDate(data.fechaNac) }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Celular</span>
-      <span class="val">{{ data.celular }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Sexo</span>
-      <span class="val">{{ data.sexo }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Direccion</span>
-      <span class="val">{{ data.direccion }}</span>
-    </div>
-  </div>
 
-  <h3 class="section-title">Datos de Membresia</h3>
-  <div class="summary-card">
-    <div class="summary-item">
-      <span class="label">Lugar de Conversion</span>
-      <span class="val">{{ data.lugarConvercion }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Fecha de Conversion</span>
-      <span class="val">{{ formatDate(data.fechaConvercion) }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Interventores</span>
-      <span class="val">{{ data.interventores }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Detalles</span>
-      <span class="val">{{ data.detalles }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Estado</span>
-      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
+    <!-- Columna 2: Información Eclesiástica / Membresía -->
+    <div class="details-column">
+      <div class="column-title">
+        <mat-icon class="column-icon">church</mat-icon>
+        <h3>Datos de Membresía</h3>
+      </div>
+      
+      <div class="info-list-card">
+        <div class="info-row">
+          <span class="lbl">Lugar de Conversión:</span>
+          <span class="val">{{ data.lugarConvercion || 'No especificado' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Fecha de Conversión:</span>
+          <span class="val">{{ formatDate(data.fechaConvercion) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Interventores:</span>
+          <span class="val">{{ data.interventores || 'Sin interventores registrados' }}</span>
+        </div>
+        <div class="info-row full-width">
+          <span class="lbl">Detalles/Observaciones:</span>
+          <span class="val note-text">{{ data.detalles || 'Ninguno' }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  <button mat-flat-button color="primary" class="btn-close" mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>

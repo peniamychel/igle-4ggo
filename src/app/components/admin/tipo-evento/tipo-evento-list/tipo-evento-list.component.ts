@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { TipoEventoService } from '../../../../core/services/tipo-evento.service';
 import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 import { TipoEventoCreateComponent } from '../tipo-evento-create/tipo-evento-create.component';
@@ -36,6 +37,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule
   ],
   templateUrl: './tipo-evento-list.component.html',
   styleUrls: ['./tipo-evento-list.component.css']
@@ -142,6 +144,35 @@ export class TipoEventoListComponent implements OnInit {
           this.tipoEventoService.toggleEstado(tipoEvento.id).subscribe(newEstado => {
             tipoEvento.estado = newEstado;
             this.messageSnackBar(`Tipo de Evento '${tipoEvento.nombre}' ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteTipoEvento(tipoEvento: TipoEvento) {
+    if (tipoEvento.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente el tipo de evento <strong>${tipoEvento.nombre}</strong>. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && tipoEvento.id) {
+          this.tipoEventoService.deleteTipoEvento(tipoEvento.id).subscribe({
+            next: () => {
+              this.loadTipoEventos();
+              this.messageSnackBar(`Tipo de Evento '${tipoEvento.nombre}' eliminado exitosamente.`);
+            },
+            error: (err) => {
+              const errMsg = err.error?.message || 'No se pudo eliminar el tipo de evento. Verifique si tiene eventos asociados.';
+              this.messageSnackBar(errMsg, 'error');
+            }
           });
         }
       });

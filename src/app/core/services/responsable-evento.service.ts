@@ -55,4 +55,8 @@ export class ResponsableEventoService {
       { headers: this.getHeaders() }
     );
   }
+
+  deleteResponsable(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+  }
 }

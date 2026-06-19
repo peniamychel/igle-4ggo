@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { CargoService } from '../../../../core/services/cargo.service';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
@@ -28,6 +29,7 @@ import { TipoCargoListComponent } from '../../tipo-cargo/tipo-cargo-list/tipo-ca
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-cargo-list',
@@ -46,13 +48,15 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatSelectModule
+    MatSelectModule,
+    MatMenuModule,
+    ImageUrlPipe
   ],
   templateUrl: './cargo-list.component.html',
   styleUrls: ['./cargo-list.component.css']
 })
 export class CargoListComponent implements OnInit {
-  displayedColumns: string[] = ['iglesia', 'tipoCargo', 'miembro', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
+  displayedColumns: string[] = ['miembro', 'tipoCargo', 'iglesia', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Cargo>;
 
   iglesias: Iglesia[] = [];
@@ -80,6 +84,27 @@ export class CargoListComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.dataSource = new MatTableDataSource<Cargo>([]);
+  }
+
+  getAge(fechaNac: Date | string | null | undefined): string {
+    if (!fechaNac) return 'Edad desconocida';
+    const birth = new Date(fechaNac);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return `${age} años`;
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling as HTMLElement;
+    if (placeholder) {
+      placeholder.style.display = 'flex';
+    }
   }
 
   ngOnInit() {

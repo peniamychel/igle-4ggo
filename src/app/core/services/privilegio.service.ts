@@ -37,15 +37,15 @@ export class PrivilegioService {
     return this.http.delete<void>(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
   }
 
-  getPrivilegiosByRol(rolName: string): Observable<PrivilegioResponse[]> {
-    return this.http.get<PrivilegioResponse[]>(`${this.apiUrl}/rol/${rolName}/privilegios`, { headers: this.getHeaders() });
+  getPrivilegiosByRolCargo(rolCargoId: number): Observable<PrivilegioResponse[]> {
+    return this.http.get<PrivilegioResponse[]>(`${this.apiUrl}/rol-cargo/${rolCargoId}/privilegios`, { headers: this.getHeaders() });
   }
 
-  addPrivilegioToRol(rolName: string, privilegioId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/rol/${rolName}/add/${privilegioId}`, {}, { headers: this.getHeaders() });
+  addPrivilegioToRolCargo(rolCargoId: number, privilegioId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/rol-cargo/${rolCargoId}/add/${privilegioId}`, {}, { headers: this.getHeaders() });
   }
 
-  removePrivilegioFromRol(rolName: string, privilegioId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/rol/${rolName}/remove/${privilegioId}`, { headers: this.getHeaders() });
+  removePrivilegioFromRolCargo(rolCargoId: number, privilegioId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/rol-cargo/${rolCargoId}/remove/${privilegioId}`, { headers: this.getHeaders() });
   }
 }

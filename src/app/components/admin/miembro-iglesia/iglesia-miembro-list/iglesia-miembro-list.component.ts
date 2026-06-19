@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { MiembroService } from '../../../../core/services/miembro.service';
 import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
@@ -38,7 +39,8 @@ import { MiembroIglesiaFormCrearComponent } from '../modals/miembro-iglesia-form
     MatInputModule,
     MatFormFieldModule,
     MatDialogModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatMenuModule
   ],
   templateUrl: './iglesia-miembro-list.component.html',
   styleUrls: ['./iglesia-miembro-list.component.css']

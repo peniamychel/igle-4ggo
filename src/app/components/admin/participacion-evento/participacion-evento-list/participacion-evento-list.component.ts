@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { ParticipacionEventoService } from '../../../../core/services/participacion-evento.service';
 import { EventoService } from '../../../../core/services/evento.service';
 import { MiembroService } from '../../../../core/services/miembro.service';
@@ -44,6 +45,7 @@ import { CertificadoRenderComponent } from '../../certificado/certificado-render
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule
   ],
   templateUrl: './participacion-evento-list.component.html',
   styleUrls: ['./participacion-evento-list.component.css']
@@ -212,6 +214,35 @@ export class ParticipacionEventoListComponent implements OnInit {
           this.participacionService.toggleEstado(participacion.id).subscribe(newEstado => {
             participacion.estado = newEstado;
             this.messageSnackBar(`Participación ${newEstado ? 'activada' : 'desactivada'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteParticipacion(participacion: ParticipacionEvento) {
+    if (participacion.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente esta participación de evento. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && participacion.id) {
+          this.participacionService.deleteParticipacion(participacion.id).subscribe({
+            next: () => {
+              this.loadParticipaciones(); // Let's check if loadParticipaciones exists in this class!
+              this.messageSnackBar('Participación de evento eliminada exitosamente.');
+            },
+            error: (err) => {
+              const errMsg = err.error?.message || 'No se pudo eliminar la participación de evento. Verifique si tiene dependencias asociadas.';
+              this.messageSnackBar(errMsg, 'error');
+            }
           });
         }
       });

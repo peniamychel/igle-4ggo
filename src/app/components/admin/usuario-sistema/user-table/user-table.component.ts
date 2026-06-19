@@ -20,6 +20,10 @@ import { RolesPipe } from '../../../../core/pipes/roles.pipe';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { UserService } from '../../../../core/services/user.service';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { PrivilegioService } from '../../../../core/services/privilegio.service';
+import { PrivilegioDto } from '../../../../core/models/interfaces/privilegio.interface';
+import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 
 @Component({
   selector: 'app-user-table',
@@ -45,19 +49,49 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
   styleUrls: ['./user-table.component.css']
 })
 export class UserTableComponent implements OnInit, AfterViewInit {
-  allColumns: string[] = ['name', 'roles', 'estado', 'actions'];
+  allColumns: string[] = ['name', 'email', 'roles', 'lastLogin', 'estado', 'actions'];
   displayedColumns: string[] = [...this.allColumns];
   dataSource: MatTableDataSource<User>;
   pagedData: User[] = [];
   pageSize = 15;
   pageSizeOptions = [5, 10, 15, 25, 100];
 
+  // Matrix and roles properties
+  rolesDisponibles: TipoCargo[] = [];
+  todosPrivilegios: PrivilegioDto[] = [];
+  privilegiosPorRolMap: Record<number, number[]> = {};
+  selectedMatrixRole = 'ADMIN';
+
+  rolesInfo: any[] = [];
+
+  matrixModules = [
+    { name: 'Dashboard', privilegeName: 'Ver Dashboard', icon: 'dashboard' },
+    { name: 'Miembros', privilegeName: 'Gestionar Miembros', icon: 'people' },
+    { name: 'Iglesias', privilegeName: 'Gestionar Iglesias', icon: 'church' },
+    { name: 'Cargos', privilegeName: 'Gestionar Cargos', icon: 'work' },
+    { name: 'Eventos', privilegeName: 'Gestionar Eventos', icon: 'event' },
+    { name: 'Certificados', privilegeName: 'Gestionar Certificados', icon: 'workspace_premium' },
+    { name: 'Ofrendas', privilegeName: 'Gestionar Ofrendas', icon: 'monetization_on' },
+    { name: 'Inventario', privilegeName: 'Gestionar Inventario', icon: 'inventory' },
+    { name: 'Usuarios', privilegeName: 'Gestionar usuario', icon: 'switch_account' },
+    { name: 'Reportes', privilegeName: 'Ver Reportes', icon: 'bar_chart' },
+    { name: 'Bitácora', privilegeName: 'Ver Bitácora', icon: 'history' },
+    { name: 'Configuración', privilegeName: 'Gestionar Privilegios', icon: 'settings' },
+    { name: 'Ayuda', privilegeName: 'Ver Ayuda', icon: 'help' }
+  ];
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatSort) sort!: MatSort; // Using MatSort as in original
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    this.sort = ms;
+    this.dataSource.sort = this.sort;
+  }
   @ViewChild(MatTable) table!: MatTable<User>;
 
   constructor(
     private userService: UserService,
+    private privilegioService: PrivilegioService,
+    private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
@@ -67,6 +101,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.loadUsers();
     this.loadPageSize();
+    this.loadPrivilegesData();
 
     // Configurar el ordenamiento personalizado
     this.dataSource.sortingDataAccessor = (item: User, property: string) => {
@@ -74,7 +109,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
         case 'name':
           return `${item.name || ''} ${item.apellidos || ''}`.toLowerCase();
         case 'roles':
-          return item.roles.map(role => role.name).join(', ').toLowerCase();
+          return item.roles.map(role => role.nombreRol || role.name || role.nombre).join(', ').toLowerCase();
         default:
           return (item as any)[property];
       }
@@ -87,23 +122,17 @@ export class UserTableComponent implements OnInit, AfterViewInit {
         data.email.toLowerCase().includes(searchStr) ||
         (data.name?.toLowerCase() || '').includes(searchStr) ||
         (data.apellidos?.toLowerCase() || '').includes(searchStr) ||
-        data.roles.map(role => (role.nombre || role.name || role.nombreRol || '').toLowerCase()).join(' ').includes(searchStr);
+        data.roles.map(role => (role.nombreRol || role.name || role.nombre || '').toLowerCase()).join(' ').includes(searchStr);
     };
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
     this.updatePagedData();
     this.paginator.page.subscribe(() => this.updatePagedData());
-    this.dataSource.filterPredicate = (data: User, filter: string) => {
-      const searchStr = filter.toLowerCase();
-      return data.username.toLowerCase().includes(searchStr) ||
-        data.email.toLowerCase().includes(searchStr) ||
-        (data.name?.toLowerCase() || '').includes(searchStr) ||
-        (data.apellidos?.toLowerCase() || '').includes(searchStr) ||
-        data.roles.map(role => (role.nombre || role.name || role.nombreRol || '').toLowerCase()).join(' ').includes(searchStr);
-    };
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 100);
@@ -124,6 +153,180 @@ export class UserTableComponent implements OnInit, AfterViewInit {
         });
       }
     });
+  }
+
+  getRoleDetails(roleKey: string, friendlyName: string) {
+    const defaultDetails: Record<string, any> = {
+      'ADMIN': {
+        nombre: 'Administrador',
+        desc: 'Administra usuarios y roles del sistema',
+        longDesc: 'Acceso total al sistema, gestión de usuarios y configuración',
+        colorClass: 'purple-theme',
+        iconName: 'security'
+      },
+      'ENCARGADO_IGLESIA': {
+        nombre: 'Encargado Iglesia',
+        desc: 'Gestiona miembros e inventario',
+        longDesc: 'Gestión de miembros, iglesias, cargos, eventos e inventario',
+        colorClass: 'green-theme',
+        iconName: 'church'
+      },
+      'ENCARGADO_EVENTO': {
+        nombre: 'Encargado Evento',
+        desc: 'Gestiona eventos y certificados',
+        longDesc: 'Gestión de eventos, certificados y participación',
+        colorClass: 'orange-theme',
+        iconName: 'event'
+      },
+      'TESORERO': {
+        nombre: 'Tesorero',
+        desc: 'Gestiona ofrendas y finanzas',
+        longDesc: 'Gestión financiera: ofrendas, ingresos y egresos',
+        colorClass: 'blue-theme',
+        iconName: 'monetization_on'
+      }
+    };
+
+    if (defaultDetails[roleKey]) {
+      return defaultDetails[roleKey];
+    }
+
+    const colors = ['cyan-theme', 'red-theme', 'yellow-theme', 'pink-theme'];
+    const icons = ['people', 'workspace_premium', 'work', 'settings'];
+    const hash = roleKey.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    return {
+      nombre: friendlyName,
+      desc: `Cargo de tipo ${roleKey.toLowerCase().replace('_', ' ')}`,
+      longDesc: `Permisos y privilegios asignados al cargo de ${friendlyName}`,
+      colorClass: colors[hash % colors.length],
+      iconName: icons[hash % icons.length]
+    };
+  }
+
+  loadPrivilegesData() {
+    this.privilegioService.getAll().subscribe({
+      next: (privs) => {
+        this.todosPrivilegios = privs;
+        this.tipoCargoService.getTipoCargos().subscribe({
+          next: (res) => {
+            const cargos = res.datos || [];
+            this.rolesDisponibles = cargos;
+            
+            this.rolesInfo = cargos.map(role => {
+              const details = this.getRoleDetails(role.nombreRol || '', role.nombre);
+              return {
+                key: role.nombreRol,
+                nombre: details.nombre,
+                desc: details.desc,
+                longDesc: details.longDesc,
+                colorClass: details.colorClass,
+                iconName: details.iconName
+              };
+            });
+
+            cargos.forEach(role => {
+              if (role.id) {
+                this.privilegioService.getPrivilegiosByRolCargo(role.id).subscribe({
+                  next: (rolPrivs) => {
+                    this.privilegiosPorRolMap[role.id!] = rolPrivs.map(p => p.id);
+                  }
+                });
+              }
+            });
+            
+            if (cargos.length > 0 && (!this.selectedMatrixRole || !cargos.some(r => r.nombreRol === this.selectedMatrixRole))) {
+              this.selectedMatrixRole = cargos[0].nombreRol || 'ADMIN';
+            }
+          }
+        });
+      }
+    });
+  }
+
+  getUsersCountByRole(roleName: string): number {
+    if (!this.dataSource.data) return 0;
+    return this.dataSource.data.filter(user => 
+      user.roles && user.roles.some(r => (r.nombreRol || r.name || r.nombre) === roleName)
+    ).length;
+  }
+
+  getActiveModulesCount(roleKey: string): number {
+    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
+    if (!role || !role.id) return 0;
+    const assignedIds = this.privilegiosPorRolMap[role.id] || [];
+    return this.matrixModules.filter(mod => {
+      const priv = this.todosPrivilegios.find(p => p.nombre === mod.privilegeName);
+      return priv && priv.id && assignedIds.includes(priv.id);
+    }).length;
+  }
+
+  hasPrivilege(roleKey: string, privilegeName: string): boolean {
+    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
+    if (!role || !role.id) return false;
+    const assignedIds = this.privilegiosPorRolMap[role.id] || [];
+    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
+    return !!(priv && priv.id && assignedIds.includes(priv.id));
+  }
+
+  togglePrivilege(roleKey: string, privilegeName: string, event: Event) {
+    event.stopPropagation();
+    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
+    if (!role || !role.id) return;
+    const rolCargoId = role.id;
+    
+    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
+    if (!priv || !priv.id) return;
+    
+    const assignedIds = this.privilegiosPorRolMap[rolCargoId] || [];
+    const hasIt = assignedIds.includes(priv.id);
+    
+    if (hasIt) {
+      this.privilegioService.removePrivilegioFromRolCargo(rolCargoId, priv.id).subscribe({
+        next: () => {
+          this.privilegiosPorRolMap[rolCargoId] = assignedIds.filter(id => id !== priv.id);
+          this.snackBar.open(`Privilegio '${privilegeName}' removido del rol ${role.nombre}`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        },
+        error: () => {
+          this.snackBar.open('Error al remover el privilegio', 'Cerrar', {
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
+    } else {
+      const privId = priv.id;
+      this.privilegioService.addPrivilegioToRolCargo(rolCargoId, privId).subscribe({
+        next: () => {
+          this.privilegiosPorRolMap[rolCargoId] = [...assignedIds, privId];
+          this.snackBar.open(`Privilegio '${privilegeName}' asignado al rol ${role.nombre}`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        },
+        error: () => {
+          this.snackBar.open('Error al asignar el privilegio', 'Cerrar', {
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
+    }
+  }
+
+  selectMatrixRole(roleKey: string) {
+    this.selectedMatrixRole = roleKey;
+  }
+
+  get totalUsers(): number {
+    return this.dataSource.data.length;
+  }
+  
+  get activeUsers(): number {
+    return this.dataSource.data.filter(u => u.estado).length;
   }
 
   applyFilter(event: Event): void {
@@ -158,10 +361,6 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadUsers();
-        this.snackBar.open('Usuario creado exitosamente', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
       }
     });
   }
@@ -177,10 +376,6 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadUsers();
-        this.snackBar.open('Usuario actualizado exitosamente', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
       }
     });
   }
@@ -230,7 +425,6 @@ export class UserTableComponent implements OnInit, AfterViewInit {
 
   toggleUserStatus(user: User): void {
     user.estado = !user.estado;
-    // Actualizar la vista de la tabla
     this.dataSource.data = [...this.dataSource.data];
   }
 
@@ -245,7 +439,6 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Devuelve las iniciales del nombre de usuario
   getInitials(name: string): string {
     if (!name) return '?';
     const parts = name.split(' ').filter(p => p.length > 0);
@@ -255,7 +448,6 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Genera un color armónico basado en el nombre
   getAvatarColor(name: string): string {
     const colors = [
       '#7c4dff', '#00bfa5', '#ff6d00', '#2979ff',
@@ -267,5 +459,15 @@ export class UserTableComponent implements OnInit, AfterViewInit {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  }
+
+  getRoleDisplayName(roleKey: string): string {
+    switch (roleKey) {
+      case 'ADMIN': return 'Administrador';
+      case 'ENCARGADO_IGLESIA': return 'Encargado Iglesia';
+      case 'ENCARGADO_EVENTO': return 'Encargado Evento';
+      case 'TESORERO': return 'Tesorero';
+      default: return roleKey;
+    }
   }
 }

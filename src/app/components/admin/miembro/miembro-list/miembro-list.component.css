@@ -1,97 +1,537 @@
 .container {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 16px 24px 24px 24px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.nuevo-buscar {
+/* Cabecera pegajosa (Sticky Header) */
+.sticky-header {
+  position: sticky;
+  top: -16px;
+  z-index: 100;
+  background-color: var(--bg-content);
+  padding-top: 16px;
+  margin-top: -16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Cabecera del Listado */
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
 }
 
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
+  border: 1px solid rgba(127, 11, 133, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+}
+
+.title-wrapper h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.title-wrapper .subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Acciones en la cabecera */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-actions button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.btn-pdf-director {
+  border: 1px solid #e65100 !important;
+  color: #e65100 !important;
+  background-color: transparent !important;
+}
+
+.btn-pdf-director:hover {
+  background-color: rgba(230, 81, 0, 0.05) !important;
+}
+
+.btn-pdf-cards {
+  border: 1px solid var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background-color: transparent !important;
+}
+
+.btn-pdf-cards:hover {
+  background-color: rgba(127, 11, 133, 0.05) !important;
+}
+
+.btn-new-member {
+  background-color: #0b857f !important;
+  color: #ffffff !important;
+}
+
+.btn-new-member:hover {
+  background-color: #096d68 !important;
+  box-shadow: 0 4px 12px rgba(11, 133, 127, 0.3) !important;
+}
+
+/* Barra de Filtros */
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  padding: 6px 18px;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+  max-width: 600px;
+  height: 48px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.08);
+}
+
+.search-icon {
+  color: var(--text-secondary);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.select-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  width: 200px;
+}
+
+::ng-deep .filter-select .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+::ng-deep .filter-select .mdc-notched-outline__leading,
+::ng-deep .filter-select .mdc-notched-outline__trailing,
+::ng-deep .filter-select .mdc-notched-outline__notch {
+  border: none !important;
+}
+
+::ng-deep .filter-select .mat-mdc-text-field-wrapper {
+  height: 48px !important;
+  border-radius: 30px !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+::ng-deep .filter-select.mat-focused .mat-mdc-text-field-wrapper {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.08) !important;
+}
+
+/* Contenedor de la Tabla */
 .table-container {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .mat-table {
   width: 100%;
+  background: transparent;
+}
+
+/* Estilos de las Celdas */
+.mat-header-cell {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
 }
 
 .clickable-row {
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(var(--primary-rgb), 0.03) !important;
+}
+
+/* Perfil de Miembro */
+.miembro-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .miembro-avatar-container {
-  display: flex;
-  align-items: center;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .miembro-avatar-img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
+  border: 2px solid var(--border-color);
 }
 
 .miembro-avatar-placeholder {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background-color: var(--border-color);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+  border: 2px solid rgba(var(--primary-rgb), 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 16px;
   text-transform: uppercase;
-  flex-shrink: 0;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* vista movil */
-@media (max-width: 768px) {
+.miembro-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  .mat-column-celular,
-  .mat-column-fechaConvercion,
-  .mat-column-sexo {
-    display: none;
+.miembro-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.miembro-ci-age {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.cargo-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background-color: #f5efe6;
+  color: #8f6239;
+  padding: 1px 8px;
+  border-radius: 4px;
+  margin-top: 3px;
+  border: 1px solid rgba(143, 98, 57, 0.15);
+}
+
+.dark-theme .cargo-badge {
+  background-color: #2c251e;
+  color: #dfb288;
+  border-color: rgba(223, 178, 136, 0.2);
+}
+
+/* Columna Contacto */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.contacto-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-secondary);
+}
+
+/* Columna Iglesia */
+.iglesia-name-label {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+/* Columna Bautismo */
+.bautismo-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.bautismo-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color);
+}
+
+/* Columna Estado Badge */
+.estado-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.estado-pill.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.15);
+}
+
+.estado-pill.inactivo {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.15);
+}
+
+.dark-theme .estado-pill.activo {
+  background-color: rgba(46, 125, 50, 0.15);
+  color: #81c784;
+}
+
+.dark-theme .estado-pill.inactivo {
+  background-color: rgba(198, 40, 40, 0.15);
+  color: #e57373;
+}
+
+/* Acciones */
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.action-btn {
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.view-btn:hover {
+  color: var(--accent-color) !important;
+  background-color: rgba(11, 133, 127, 0.08);
+}
+
+.transfer-btn:hover {
+  color: var(--primary-color) !important;
+  background-color: rgba(127, 11, 133, 0.08);
+}
+
+.edit-btn:hover {
+  color: #ff9800 !important;
+  background-color: rgba(255, 152, 0, 0.08);
+}
+
+.delete-btn:hover {
+  color: #f44336 !important;
+  background-color: rgba(244, 67, 54, 0.08);
+}
+
+@media (max-width: 1200px) {
+  .acciones-cell {
+    gap: 0 !important;
   }
+  .acciones-cell .action-btn {
+    transform: scale(0.85);
+    margin: 0 -4px !important;
+  }
+}
 
+/* Sin Resultados */
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  padding: 40px 16px;
+}
+
+.no-results mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  opacity: 0.6;
+}
+
+/* Column Widths & Flex Grow Proportions */
+.mat-column-miembro {
+  flex: 2.5 !important;
+  min-width: 260px !important;
+}
+
+.mat-column-contacto {
+  flex: 2.0 !important;
+  min-width: 180px !important;
+}
+
+.mat-column-iglesia {
+  flex: 1.5 !important;
+  min-width: 150px !important;
+}
+
+.mat-column-bautismo {
+  flex: 1.0 !important;
+  min-width: 110px !important;
+  max-width: 150px !important;
+}
+
+.mat-column-estado {
+  flex: 0.8 !important;
+  min-width: 90px !important;
+  max-width: 120px !important;
+}
+
+.mat-column-acciones {
+  flex: 1.2 !important;
+  min-width: 140px !important;
+  max-width: 180px !important;
+}
+
+/* Vista Movil / Adaptiva Step-by-Step */
+@media (max-width: 1200px) {
+  .mat-column-bautismo {
+    display: none !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .mat-column-contacto {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
   .container {
     padding: 12px;
   }
 
-  .nuevo-buscar {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
 
-  .nuevo-buscar button {
-    width: 100%;
-    margin-bottom: 12px;
-  }
-
-  .mat-form-field {
+  .header-actions button {
     width: 100%;
   }
 
-  .miembro-avatar-img {
-    width: 32px;
-    height: 32px;
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .miembro-avatar-placeholder {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+  .search-box {
+    width: 100%;
+  }
+
+  .select-filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .sticky-header {
+    position: static !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-bottom: none !important;
+  }
+
+  .mat-column-iglesia {
+    display: none !important;
   }
 }

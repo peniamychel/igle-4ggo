@@ -1,18 +1,46 @@
 <div class="container">
-  <div class="header-section">
-    <div class="title-area">
-      <h2>Obreros</h2>
-      <p class="subtitle">Gestiona el registro y cargos de los obreros de la iglesia</p>
+  <!-- Contenedor pegajoso para cabecera y filtros -->
+  <div class="sticky-header">
+    <!-- Cabecera de listado -->
+    <div class="header-section">
+      <div class="title-wrapper">
+        <div class="title-icon-circle">
+          <mat-icon class="header-icon">people</mat-icon>
+        </div>
+        <div>
+          <h2>Obreros</h2>
+          <p class="subtitle">{{ dataSource.filteredData.length }} obreros registrados</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button class="btn-pdf-director" (click)="openTiposMinisterioDialog()">
+          <mat-icon>church</mat-icon>
+          Tipos Ministerios
+        </button>
+        <button mat-flat-button class="btn-new-member" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Asignar Cargo
+        </button>
+      </div>
     </div>
-    <div class="header-actions">
-      <button mat-raised-button color="accent" (click)="openTiposMinisterioDialog()">
-        <mat-icon>church</mat-icon>
-        Tipos Ministerios
-      </button>
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Asignar Cargo
-      </button>
+  
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar obrero por nombre, cargo, iglesia..." #input>
+      </div>
+      
+      <div class="select-filters">
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-select [(value)]="selectedTipoCargoId" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">Todos los ministerios</mat-option>
+            <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
+              {{ tipo.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
   </div>
 
@@ -59,88 +87,125 @@
     </div>
   </div>
 
-  <!-- Barra de Filtros -->
-  <div class="filters-container">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Buscar obrero</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan, Pastor..." #input>
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="filter-select">
-      <mat-label>Ministerio</mat-label>
-      <mat-select [(value)]="selectedTipoCargoId" (selectionChange)="onFilterChange()">
-        <mat-option [value]="null">Todos</mat-option>
-        <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
-          {{ tipo.nombre }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-
+  <!-- Contenedor de la Tabla -->
   <div class="table-container">
-  <mat-table [dataSource]="dataSource" matSort>
+    <mat-table [dataSource]="dataSource" matSort>
 
-    <ng-container matColumnDef="iglesia">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Iglesia</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.iglesiaDto?.nombre || 'N/A' }}</mat-cell>
-    </ng-container>
+      <!-- Columna Miembro (Avatar + Nombre + Edad/CI) -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Obrero </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="miembro-profile">
+            <div class="miembro-avatar-container">
+              <img *ngIf="item.miembroDto?.uriFoto"
+                   [src]="item.miembroDto.uriFoto | imageUrl"
+                   [alt]="item.miembroDto?.nombre"
+                   class="miembro-avatar-img"
+                   (error)="onImageError($event)">
+              <div class="miembro-avatar-placeholder" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
+                {{item.miembroDto?.nombre?.charAt(0) || '?'}}
+              </div>
+            </div>
+            <div class="miembro-info-text">
+              <span class="miembro-name">{{ getMiembroNombreCompleto(item.miembroDto) }}</span>
+              <span class="miembro-ci-age">CI: {{ item.miembroDto?.ci || 'Sin CI' }} · {{ getAge(item.miembroDto?.fechaNac) }}</span>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="tipoCargo">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Cargo</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.tipoCargoDto?.nombre || 'N/A' }}</mat-cell>
-    </ng-container>
+      <!-- Columna Cargo/Ministerio -->
+      <ng-container matColumnDef="tipoCargo">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Cargo </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="cargo-badge">{{ item.tipoCargoDto?.nombre || 'N/A' }}</span>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="miembro">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Miembro</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ getMiembroNombreCompleto(item.miembroDto) }}</mat-cell>
-    </ng-container>
+      <!-- Columna Iglesia -->
+      <ng-container matColumnDef="iglesia">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="iglesia-name-label">{{ item.iglesiaDto?.nombre || 'Sin Iglesia asignada' }}</span>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="fechaInicio">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Inicio</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.fechaInicio | date:'dd/MM/yyyy' }}</mat-cell>
-    </ng-container>
+      <!-- Columna Fecha Inicio -->
+      <ng-container matColumnDef="fechaInicio">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Gestión/Inicio </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="bautismo-info">
+            <mat-icon class="bautismo-icon">event</mat-icon>
+            <span>{{ item.fechaInicio | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="fechaFin">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Fin</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.fechaFin ? (item.fechaFin | date:'dd/MM/yyyy') : 'Indefinido' }}</mat-cell>
-    </ng-container>
+      <!-- Columna Fecha Fin (para mat-table definitions) -->
+      <ng-container matColumnDef="fechaFin">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Fin </mat-header-cell>
+        <mat-cell *matCellDef="let item">{{ item.fechaFin ? (item.fechaFin | date:'dd/MM/yyyy') : 'Indefinido' }}</mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="estado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <span class="estado-badge clickable" [ngClass]="item.estado ? 'activo' : 'inactivo'"
-              (click)="$event.stopPropagation(); toggleEstado(item)">
-          {{ item.estado ? 'Activo' : 'Inactivo' }}
-        </span>
-      </mat-cell>
-    </ng-container>
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="estado-pill clickable" [ngClass]="item.estado ? 'activo' : 'inactivo'"
+                (click)="$event.stopPropagation(); toggleEstado(item)">
+            {{ item.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <button mat-icon-button color="primary"
-                matTooltip="Editar" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(item)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="warn"
-                matTooltip="Eliminar" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); deleteCargo(item)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let item" class="acciones-cell">
+          <!-- Desktop View -->
+          <div class="desktop-actions">
+            <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(item)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar obrero" (click)="$event.stopPropagation(); openEditDialog(item)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar obrero" (click)="$event.stopPropagation(); deleteCargo(item)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <!-- Mobile View -->
+          <div class="mobile-actions">
+            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="openDetailDialog(item)">
+                <mat-icon>visibility</mat-icon>
+                <span>Ver detalle</span>
+              </button>
+              <button mat-menu-item (click)="openEditDialog(item)">
+                <mat-icon>edit</mat-icon>
+                <span>Editar</span>
+              </button>
+              <button mat-menu-item (click)="deleteCargo(item)">
+                <mat-icon style="color: #dc3545;">delete</mat-icon>
+                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+              </button>
+            </mat-menu>
+          </div>
+        </mat-cell>
+      </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumnsForView"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumnsForView;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+      <mat-header-row *matHeaderRowDef="displayedColumnsForView"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumnsForView;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="7">No se encontraron datos que coincidan con "{{ input.value }}"</td>
-    </tr>
-  </mat-table>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="7">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+      </tr>
+    </mat-table>
 
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de cargos">
-  </mat-paginator>
+    <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de obreros">
+    </mat-paginator>
   </div>
 </div>

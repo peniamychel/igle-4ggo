@@ -12,6 +12,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { CertificadoService } from '../../../../core/services/certificado.service';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoCertificadoService } from '../../../../core/services/tipo-certificado.service';
@@ -24,6 +27,7 @@ import { CertificadoEditComponent } from '../certificado-edit/certificado-edit.c
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
+import { TipoCertificadoListComponent } from '../../tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
 
 @Component({
   selector: 'app-certificado-list',
@@ -42,6 +46,10 @@ import { CertificadoDesignerComponent } from '../certificado-designer/certificad
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatTabsModule,
+    MatSelectModule,
+    MatMenuModule,
+    TipoCertificadoListComponent
   ],
   templateUrl: './certificado-list.component.html',
   styleUrls: ['./certificado-list.component.css']
@@ -51,6 +59,10 @@ export class CertificadoListComponent implements OnInit {
   dataSource: MatTableDataSource<Certificado>;
   eventos: Evento[] = [];
   tiposCertificado: TipoCertificado[] = [];
+
+  selectedTipoId: string = 'all';
+  selectedEstado: string = 'all';
+  searchText: string = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -66,7 +78,30 @@ export class CertificadoListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.setupTableModifiers();
     this.loadInitialData();
+  }
+
+  private setupTableModifiers() {
+    this.dataSource.filterPredicate = (data: Certificado, filter: string) => {
+      const textQuery = this.searchText.trim().toLowerCase();
+      
+      const matchesText = !textQuery || (
+        (data.codigoCertificado || '') + ' ' +
+        (data.motivoCertificado || '') + ' ' +
+        (data.eventoDto?.nombre || '') + ' ' +
+        (data.tipoCertificadoDto?.nombre || '')
+      ).toLowerCase().includes(textQuery);
+      
+      const matchesTipo = this.selectedTipoId === 'all' || 
+        (data.tipoCertificadoId !== undefined && data.tipoCertificadoId.toString() === this.selectedTipoId);
+      
+      const matchesEstado = this.selectedEstado === 'all' || 
+        (this.selectedEstado === 'active' && data.estado) ||
+        (this.selectedEstado === 'inactive' && !data.estado);
+        
+      return matchesText && matchesTipo && matchesEstado;
+    };
   }
 
   ngAfterViewInit() {
@@ -80,7 +115,7 @@ export class CertificadoListComponent implements OnInit {
       tiposCertificado: this.tipoCertificadoService.getTipoCertificados()
     }).subscribe(results => {
       this.eventos = results.eventos.datos || [];
-      this.tiposCertificado = results.tiposCertificado.datos || [];
+      this.tiposCertificado = (results.tiposCertificado.datos || []).filter(tc => tc.estado);
       this.loadCertificados();
     });
   }
@@ -98,24 +133,20 @@ export class CertificadoListComponent implements OnInit {
         cert.tipoCertificadoDto = this.tiposCertificado.find(tc => tc.id === cert.tipoCertificadoId);
       });
       this.dataSource.data = certificados;
+      this.applyFilters();
     });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filterPredicate = (data: Certificado, filter: string) => {
-      const searchTerms = [
-        data.codigoCertificado,
-        data.motivoCertificado,
-        data.eventoDto?.nombre,
-        data.tipoCertificadoDto?.nombre
-      ].map(v => (v || '').toLowerCase()).join(' ');
-      return searchTerms.includes(filter);
-    };
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  applyFilters() {
+    this.dataSource.filter = '' + Math.random();
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  onSearchChange(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
   }
 
   openCreateDialog() {

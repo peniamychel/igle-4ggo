@@ -16,8 +16,15 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import { IglesiaService } from '../../../../core/services/iglesia.service';
+import { Iglesia } from '../../../../core/models/iglesia.model';
+import { MiembroIglesiaFormTraspasoComponent } from '../../miembro-iglesia/modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-miembro-list',
@@ -37,6 +44,8 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
     MatSort,
     MatSortHeader,
     MatTooltipModule,
+    MatSelectModule,
+    MatMenuModule,
     ImageUrlPipe
   ],
   templateUrl: './miembro-list.component.html',
@@ -44,13 +53,21 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 })
 export class MiembroListComponent implements OnInit {
   miembros = new MatTableDataSource<Miembro>([]);
-  displayedColumns: string[] = ['foto', 'nombreCompleto', 'celular', 'direccion', 'fechaConvercion', 'sexo', 'acciones'];
+  iglesias: Iglesia[] = [];
+  
+  // Columnas actualizadas segun el mockup
+  displayedColumns: string[] = ['miembro', 'contacto', 'iglesia', 'bautismo', 'estado', 'acciones'];
+
+  selectedIglesiaId: string = 'all';
+  selectedEstado: string = 'all';
+  searchText: string = '';
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private miembroService: MiembroService,
+    private iglesiaService: IglesiaService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
@@ -58,35 +75,48 @@ export class MiembroListComponent implements OnInit {
   ngOnInit() {
     this.setupTableModifiers();
     this.loadMiembros();
+    this.loadIglesias();
   }
 
   private setupTableModifiers() {
+    // Custom filter predicate supporting search query, church name, and status
+    this.miembros.filterPredicate = (data: Miembro, filter: string) => {
+      const textQuery = this.searchText.trim().toLowerCase();
+      
+      const matchesText = !textQuery || (
+        (data.nombre || '') + ' ' +
+        (data.apellido || '') + ' ' +
+        (data.ci || '') + ' ' +
+        (data.celular || '') + ' ' +
+        (data.direccion || '')
+      ).toLowerCase().includes(textQuery);
+      
+      const matchesIglesia = this.selectedIglesiaId === 'all' || 
+        data.iglesiaNombre === this.selectedIglesiaId;
+      
+      const matchesEstado = this.selectedEstado === 'all' || 
+        (this.selectedEstado === 'active' && data.estado) ||
+        (this.selectedEstado === 'inactive' && !data.estado);
+        
+      return matchesText && matchesIglesia && matchesEstado;
+    };
+
+    // Custom sorting accessor supporting nested attributes
     this.miembros.sortingDataAccessor = (item: Miembro, property: string) => {
       switch (property) {
-        case 'nombreCompleto':
+        case 'miembro':
           return (item.nombre || '').toLowerCase() + ' ' + (item.apellido || '').toLowerCase();
-        case 'celular':
+        case 'contacto':
           return item.celular || '';
-        case 'direccion':
-          return (item.direccion || '').toLowerCase();
-        case 'fechaConvercion':
+        case 'iglesia':
+          return (item.iglesiaNombre || '').toLowerCase();
+        case 'bautismo':
           return item.fechaConvercion ? new Date(item.fechaConvercion).getTime() : 0;
-        case 'sexo':
-          return (item.sexo || '').toLowerCase();
+        case 'estado':
+          return item.estado ? 'activo' : 'inactivo';
         default:
           return (item as any)[property];
       }
-    };
-
-    this.miembros.filterPredicate = (data: Miembro, filter: string) => {
-      const searchString = (
-        (data.nombre || '') + ' ' +
-        (data.apellido || '') + ' ' +
-        (data.celular || '') + ' ' +
-        (data.direccion || '') + ' ' +
-        (data.sexo || '')
-      ).toLowerCase();
-      return searchString.indexOf(filter) !== -1;
     };
   }
 
@@ -99,6 +129,13 @@ export class MiembroListComponent implements OnInit {
         return dateB - dateA;
       });
       this.miembros.data = data;
+      this.applyFilters();
+    });
+  }
+
+  loadIglesias() {
+    this.iglesiaService.getIglesias().subscribe(res => {
+      this.iglesias = res.datos.filter(i => i.estado);
     });
   }
 
@@ -107,13 +144,39 @@ export class MiembroListComponent implements OnInit {
     this.miembros.sort = this.sort;
   }
 
+  applyFilters() {
+    // Force MatTableDataSource filter trigger
+    this.miembros.filter = '' + Math.random();
+    if (this.miembros.paginator) {
+      this.miembros.paginator.firstPage();
+    }
+  }
+
+  onSearchChange(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.searchText = filterValue;
+    this.applyFilters();
+  }
+
   formatDate(date: Date | null | undefined): string {
     if (!date) return 'No definido';
     return new Date(date).toLocaleDateString('es-ES', {
       day: 'numeric',
-      month: 'long',
+      month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  getAge(fechaNac: Date | string | null | undefined): string {
+    if (!fechaNac) return 'Edad desconocida';
+    const birth = new Date(fechaNac);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return `${age} años`;
   }
 
   openCreateDialog() {
@@ -148,10 +211,31 @@ export class MiembroListComponent implements OnInit {
 
   openDetailDialog(miembro: Miembro) {
     this.dialog.open(MiembroDetailComponent, {
-      width: '600px',
+      width: '800px',
       maxWidth: '95vw',
       data: miembro,
       panelClass: 'dialog-fullscreen-mobile'
+    });
+  }
+
+  openTraspasoDialog(miembro: Miembro) {
+    const sourceIglesia = this.iglesias.find(i => i.nombre === miembro.iglesiaNombre);
+    if (!sourceIglesia) {
+      this.messageSnackBar('El miembro no pertenece a ninguna iglesia activa para realizar un traspaso.', 'warning');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(MiembroIglesiaFormTraspasoComponent, {
+      width: '600px',
+      data: { miembro, iglesia: sourceIglesia },
+      panelClass: 'dialog-fullscreen-mobile'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMiembros();
+        this.messageSnackBar('Traspaso de iglesia registrado exitosamente');
+      }
     });
   }
 
@@ -208,12 +292,79 @@ export class MiembroListComponent implements OnInit {
     }
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.miembros.filter = filterValue.trim().toLowerCase();
+  generateDirectorPdf() {
+    try {
+      const doc = new jsPDF();
+      const tableColumn = ['Nombre Completo', 'CI', 'Celular', 'Dirección', 'Iglesia', 'Cargo'];
+      const tableRows = this.miembros.filteredData.map(m => [
+        `${m.nombre} ${m.apellido}`,
+        m.ci || 'Sin CI',
+        m.celular || 'Sin celular',
+        m.direccion || 'Sin dirección',
+        m.iglesiaNombre || 'Sin Iglesia',
+        m.cargoNombre || 'Miembro'
+      ]);
 
-    if (this.miembros.paginator) {
-      this.miembros.paginator.firstPage();
+      doc.setFontSize(18);
+      doc.text('Movimiento Cristiano Misionero Maranatha', 14, 15);
+      doc.setFontSize(14);
+      doc.text('Directorio General de Miembros', 14, 23);
+      doc.setFontSize(10);
+      doc.text(`Total Registros: ${this.miembros.filteredData.length}`, 14, 30);
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 35,
+        theme: 'striped',
+        headStyles: { fillColor: [127, 11, 133] }, // primary purple
+        margin: { top: 35 }
+      });
+
+      doc.save('Directorio_Miembros.pdf');
+      this.messageSnackBar('Directorio PDF generado exitosamente');
+    } catch (e) {
+      console.error(e);
+      this.messageSnackBar('Error al generar PDF', 'error');
+    }
+  }
+
+  generateCardsPdf() {
+    try {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('Movimiento Cristiano Misionero Maranatha', 14, 15);
+      doc.setFontSize(14);
+      doc.text('Listado para Carnets de Miembros', 14, 23);
+      doc.setFontSize(10);
+      doc.text(`Total Carnets: ${this.miembros.filteredData.length}`, 14, 30);
+      doc.text(`Fecha de Impresión: ${new Date().toLocaleDateString()}`, 140, 30);
+
+      const tableColumn = ['CI', 'Miembro', 'Iglesia', 'Rol/Cargo', 'Estado'];
+      const tableRows = this.miembros.filteredData.map(m => [
+        m.ci || 'N/A',
+        `${m.nombre} ${m.apellido}`,
+        m.iglesiaNombre || 'Sin Iglesia',
+        m.cargoNombre || 'Miembro',
+        m.estado ? 'Activo' : 'Inactivo'
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 35,
+        theme: 'grid',
+        headStyles: { fillColor: [11, 133, 127] }, // accent teal
+        margin: { top: 35 }
+      });
+
+      doc.save('Carnets_Miembros.pdf');
+      this.messageSnackBar('Carnets PDF generados exitosamente');
+    } catch (e) {
+      console.error(e);
+      this.messageSnackBar('Error al generar Carnets PDF', 'error');
     }
   }
 

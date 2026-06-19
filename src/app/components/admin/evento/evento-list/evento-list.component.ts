@@ -12,6 +12,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEventoService } from '../../../../core/services/tipo-evento.service';
 import { Evento } from '../../../../core/models/evento.model';
@@ -21,6 +24,9 @@ import { EventoDetailComponent } from '../evento-detail/evento-detail.component'
 import { EventoEditComponent } from '../evento-edit/evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { TipoEventoListComponent } from '../../tipo-evento/tipo-evento-list/tipo-evento-list.component';
+import { ResponsableEventoListComponent } from '../../responsable-evento/responsable-evento-list/responsable-evento-list.component';
+import { ParticipacionEventoListComponent } from '../../participacion-evento/participacion-evento-list/participacion-evento-list.component';
 
 @Component({
   selector: 'app-evento-list',
@@ -39,6 +45,12 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatTabsModule,
+    MatSelectModule,
+    MatMenuModule,
+    TipoEventoListComponent,
+    ResponsableEventoListComponent,
+    ParticipacionEventoListComponent
   ],
   templateUrl: './evento-list.component.html',
   styleUrls: ['./evento-list.component.css']
@@ -47,6 +59,10 @@ export class EventoListComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'tipoEvento', 'ubicacion', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Evento>;
   tiposEvento: TipoEvento[] = [];
+
+  selectedTipoId: string = 'all';
+  selectedEstado: string = 'all';
+  searchText: string = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -61,7 +77,29 @@ export class EventoListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.setupTableModifiers();
     this.loadInitialData();
+  }
+
+  private setupTableModifiers() {
+    this.dataSource.filterPredicate = (data: Evento, filter: string) => {
+      const textQuery = this.searchText.trim().toLowerCase();
+      
+      const matchesText = !textQuery || (
+        (data.nombre || '') + ' ' +
+        (data.ubicacion || '') + ' ' +
+        (data.motivo || '')
+      ).toLowerCase().includes(textQuery);
+      
+      const matchesTipo = this.selectedTipoId === 'all' || 
+        (data.tipoEventoId !== undefined && data.tipoEventoId.toString() === this.selectedTipoId);
+      
+      const matchesEstado = this.selectedEstado === 'all' || 
+        (this.selectedEstado === 'active' && data.estado) ||
+        (this.selectedEstado === 'inactive' && !data.estado);
+        
+      return matchesText && matchesTipo && matchesEstado;
+    };
   }
 
   ngAfterViewInit() {
@@ -73,7 +111,7 @@ export class EventoListComponent implements OnInit {
     forkJoin({
       tiposEvento: this.tipoEventoService.getTipoEventos()
     }).subscribe(results => {
-      this.tiposEvento = results.tiposEvento.datos || [];
+      this.tiposEvento = (results.tiposEvento.datos || []).filter(t => t.estado);
       this.loadEventos();
     });
   }
@@ -90,24 +128,20 @@ export class EventoListComponent implements OnInit {
         evento.tipoEventoDto = this.tiposEvento.find(t => t.id === evento.tipoEventoId);
       });
       this.dataSource.data = eventos;
+      this.applyFilters();
     });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filterPredicate = (data: Evento, filter: string) => {
-      const searchTerms = [
-        data.nombre,
-        data.tipoEventoDto?.nombre,
-        data.ubicacion,
-        data.motivo
-      ].map(v => (v || '').toLowerCase()).join(' ');
-      return searchTerms.includes(filter);
-    };
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  applyFilters() {
+    this.dataSource.filter = '' + Math.random();
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  onSearchChange(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
   }
 
   openCreateDialog() {
@@ -169,6 +203,35 @@ export class EventoListComponent implements OnInit {
           this.eventoService.toggleEstado(evento.id).subscribe(newEstado => {
             evento.estado = newEstado;
             this.messageSnackBar(`Evento '${evento.nombre}' ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteEvento(evento: Evento) {
+    if (evento.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente el evento <strong>${evento.nombre}</strong>. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && evento.id) {
+          this.eventoService.deleteEvento(evento.id).subscribe({
+            next: () => {
+              this.loadEventos();
+              this.messageSnackBar(`Evento '${evento.nombre}' eliminado exitosamente.`);
+            },
+            error: (err) => {
+              const errMsg = err.error?.message || 'No se pudo eliminar el evento. Verifique si tiene dependencias asociadas.';
+              this.messageSnackBar(errMsg, 'error');
+            }
           });
         }
       });

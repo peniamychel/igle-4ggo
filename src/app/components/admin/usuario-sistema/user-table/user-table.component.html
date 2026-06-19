@@ -1,37 +1,45 @@
 <!-- ════════════════════════════════════════════════
-     USUARIOS SISTEMA — Premium Table & Filters
+     USUARIOS SISTEMA — Unificado con Roles & Permisos
      ════════════════════════════════════════════════ -->
 
-<div class="user-table-container">
-  <!-- ── Encabezado de la Página ── -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Usuarios del Sistema</h1>
-      <p class="page-subtitle">Gestiona las cuentas de usuario, asignación de roles y accesos al sistema de tu iglesia</p>
+<div class="container">
+
+  <!-- ── 1. Cabecera de listado (Título + Acciones) y Filtros ── -->
+  <div class="sticky-header">
+    <div class="header-section">
+      <div class="title-wrapper">
+        <div class="title-icon-circle">
+          <mat-icon class="header-icon">group</mat-icon>
+        </div>
+        <div>
+          <h2>Usuarios del Sistema</h2>
+          <p class="subtitle">{{ totalUsers }} usuarios registrados · {{ activeUsers }} activos</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-flat-button class="btn-new-item" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Nuevo Usuario
+        </button>
+      </div>
+    </div>
+  
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar usuario...">
+      </div>
     </div>
   </div>
 
-  <!-- ── Barra de Filtros y Acciones ── -->
-  <div class="filters-bar">
-    <mat-form-field appearance="outline" class="filter-search">
-      <mat-label>Buscar usuarios...</mat-label>
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, email, rol, usuario..." autocomplete="off">
-    </mat-form-field>
-
-    <button mat-raised-button color="primary" class="create-btn" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nuevo Usuario
-    </button>
-  </div>
-
-  <!-- ── Vista Desktop: Tabla ── -->
-  <div class="table-container mat-elevation-z1 desktop-view">
+  <!-- ── 2. Contenedor de la Tabla de Usuarios (Desktop) ── -->
+  <div class="table-container desktop-view">
     <table mat-table [dataSource]="dataSource" matSort class="user-table">
 
-      <!-- Columna: Nombre -->
+      <!-- Columna: Usuario -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
         <td mat-cell *matCellDef="let user">
           <div class="user-cell">
             <img *ngIf="user.uriFoto" [src]="user.uriFoto | imageUrl" [alt]="user.name || ''" class="user-avatar">
@@ -40,21 +48,39 @@
             </div>
             <div class="user-info">
               <span class="user-name">{{user.name}} {{user.apellidos}}</span>
-              <span class="user-email">{{user.email}}</span>
+              <span class="user-username">&#64;{{user.username}}</span>
             </div>
           </div>
         </td>
       </ng-container>
 
-      <!-- Columna: Roles -->
+      <!-- Columna: Contacto -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Contacto</th>
+        <td mat-cell *matCellDef="let user" class="email-cell">
+          {{user.email}}
+        </td>
+      </ng-container>
+
+      <!-- Columna: Rol -->
       <ng-container matColumnDef="roles">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Roles</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Rol</th>
         <td mat-cell *matCellDef="let user">
           <div class="roles-container">
             @for (role of user.roles; track role.id) {
-              <span class="roles-chip">{{role.nombre || role.name || role.nombreRol}}</span>
+              <span class="roles-chip" [ngClass]="(role.nombreRol || role.name || role.nombre || '').toUpperCase()">
+                {{ role.nombre || getRoleDisplayName(role.nombreRol || role.name || '') }}
+              </span>
             }
           </div>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Último Acceso -->
+      <ng-container matColumnDef="lastLogin">
+        <th mat-header-cell *matHeaderCellDef>Último acceso</th>
+        <td mat-cell *matCellDef="let user" class="last-login-cell">
+          {{ user.username === 'admin' ? '18 jun 2026' : 'Nunca' }}
         </td>
       </ng-container>
 
@@ -63,7 +89,6 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
         <td mat-cell *matCellDef="let user">
           <span class="status-chip" [ngClass]="user.estado ? 'success' : 'failed'" (click)="$event.stopPropagation(); toggleUserStatus(user)">
-            <mat-icon class="status-chip-icon">{{ user.estado ? 'check_circle' : 'cancel' }}</mat-icon>
             {{ user.estado ? 'Activo' : 'Inactivo' }}
           </span>
         </td>
@@ -74,12 +99,6 @@
         <th mat-header-cell *matHeaderCellDef>Acciones</th>
         <td mat-cell *matCellDef="let user">
           <div class="actions-cell">
-            <button mat-icon-button
-                    matTooltip="Ver detalles"
-                    class="action-btn view-btn"
-                    (click)="openViewDialog(user); $event.stopPropagation()">
-              <mat-icon>visibility</mat-icon>
-            </button>
             <button mat-icon-button
                     matTooltip="Editar"
                     class="action-btn edit-btn"
@@ -121,7 +140,7 @@
     </div>
   </div>
 
-  <!-- ── Vista Móvil: Tarjetas ── -->
+  <!-- ── Contenedor de la Tabla de Usuarios (Móvil) ── -->
   <div class="mobile-view">
     <div class="mobile-cards">
       @for (user of pagedData; track user.id) {
@@ -138,19 +157,17 @@
               <span class="mobile-card-email">{{ user.email }}</span>
             </div>
             <span class="status-chip" [ngClass]="user.estado ? 'success' : 'failed'" (click)="$event.stopPropagation(); toggleUserStatus(user)">
-              <mat-icon class="status-chip-icon">{{ user.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ user.estado ? 'Activo' : 'Inactivo' }}
             </span>
           </div>
           <div class="mobile-card-roles">
             @for (role of user.roles; track role.id) {
-              <span class="roles-chip">{{ role.nombre || role.name || role.nombreRol }}</span>
+              <span class="roles-chip" [ngClass]="(role.nombreRol || role.name || role.nombre || '').toUpperCase()">
+                {{ role.nombre || getRoleDisplayName(role.nombreRol || role.name || '') }}
+              </span>
             }
           </div>
           <div class="mobile-card-actions">
-            <button mat-icon-button class="action-btn view-btn" (click)="openViewDialog(user); $event.stopPropagation()">
-              <mat-icon>visibility</mat-icon>
-              <span>Ver</span>
-            </button>
             <button mat-icon-button class="action-btn edit-btn" (click)="openEditDialog(user); $event.stopPropagation()">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>
@@ -162,7 +179,6 @@
           </div>
         </div>
       }
-
       @if (pagedData.length === 0) {
         <div class="mobile-no-data">
           <mat-icon>search_off</mat-icon>
@@ -170,7 +186,6 @@
         </div>
       }
     </div>
-
     <div class="mobile-paginator">
       <mat-paginator [pageSize]="pageSize"
                      [pageSizeOptions]="pageSizeOptions"
@@ -181,4 +196,116 @@
       </mat-paginator>
     </div>
   </div>
+
+  <div class="spacing-divider"></div>
+
+  <!-- ── 3. Sección: Roles del Sistema ── -->
+  <div class="section-container">
+    <div class="section-header">
+      <mat-icon class="section-icon">shield</mat-icon>
+      <div>
+        <h3>Roles del Sistema</h3>
+        <p class="section-subtitle">Roles disponibles para asignar a usuarios</p>
+      </div>
+    </div>
+
+    <div class="roles-cards-grid">
+      @for (role of rolesInfo; track role.key) {
+        <div class="role-card" [ngClass]="role.colorClass" [class.selected]="selectedMatrixRole === role.key" (click)="selectMatrixRole(role.key)">
+          <div class="role-card-header">
+            <div class="role-icon-circle">
+              <mat-icon>{{ role.iconName }}</mat-icon>
+            </div>
+            <div>
+              <h4>{{ role.nombre }}</h4>
+              <p class="role-card-users-count">{{ getUsersCountByRole(role.key) }} usuario(s)</p>
+            </div>
+          </div>
+          <p class="role-card-desc">{{ role.desc }}</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="spacing-divider"></div>
+
+  <!-- ── 4. Sección: Roles y Permisos Matrix ── -->
+  <div class="section-container">
+    <div class="matrix-premium-header">
+      <div class="matrix-header-left">
+        <mat-icon class="matrix-icon">verified_user</mat-icon>
+        <div>
+          <h3>Roles y Permisos</h3>
+          <p class="matrix-subtitle">Matriz de permisos por rol - qué módulos puede acceder cada tipo de usuario</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards Selector tabs for the Matrix columns -->
+    <div class="matrix-tabs">
+      @for (role of rolesInfo; track role.key) {
+        <div class="matrix-tab-card" 
+             [ngClass]="role.colorClass" 
+             [class.active]="selectedMatrixRole === role.key"
+             (click)="selectMatrixRole(role.key)">
+          <div class="matrix-tab-icon">
+            <mat-icon>{{ role.iconName }}</mat-icon>
+          </div>
+          <div class="matrix-tab-info">
+            <span class="matrix-tab-title">{{ role.nombre }}</span>
+            <span class="matrix-tab-modules">{{ getActiveModulesCount(role.key) }} módulos</span>
+            <p class="matrix-tab-desc">{{ role.longDesc }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- The actual Matrix Table -->
+    <div class="matrix-table-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th class="col-modulo">Módulo</th>
+            @for (role of rolesInfo; track role.key) {
+              <th class="col-role-header" [class.highlighted]="selectedMatrixRole === role.key" (click)="selectMatrixRole(role.key)">
+                {{ role.nombre }}
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (mod of matrixModules; track mod.name) {
+            <tr class="matrix-row">
+              <td class="cell-modulo">
+                <div class="modulo-name-wrapper">
+                  <mat-icon class="modulo-icon">{{ mod.icon }}</mat-icon>
+                  <span>{{ mod.name }}</span>
+                </div>
+              </td>
+              @for (role of rolesInfo; track role.key) {
+                <td class="cell-role-status" 
+                    [class.highlighted]="selectedMatrixRole === role.key" 
+                    (click)="togglePrivilege(role.key, mod.privilegeName, $event)">
+                  @if (hasPrivilege(role.key, mod.privilegeName)) {
+                    <mat-icon class="status-icon active-icon">check_circle</mat-icon>
+                  } @else {
+                    <mat-icon class="status-icon inactive-icon">cancel</mat-icon>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Warning / info banner -->
+    <div class="security-info-banner">
+      <mat-icon>lock</mat-icon>
+      <p>
+        <strong>Seguridad:</strong> Los módulos no autorizados para un rol se ocultan automáticamente del menú lateral y la búsqueda global. El acceso directo vía URL también está restringido en el backend para operaciones críticas como backup/restauración de base de datos.
+      </p>
+    </div>
+  </div>
+
 </div>

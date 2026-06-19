@@ -55,11 +55,8 @@ export class MiembroIglesiaFormCrearComponent implements OnInit {
   }
 
   loadIglesias() {
-    // this.iglesiaService.getIglesias().subscribe(response => {
-    //   this.iglesias = response.datos.filter(i => i.estado && i.id !== this.data.iglesia.id);
-    // });
-    this.miembroService.getMiembrosSinIglesia().subscribe(response => {
-      // this.miembros = response.datos.filter(m => m.estado && m.id !== this.data.miembro.id);
+    // Usa el endpoint seguro que excluye pastores desde el backend
+    this.miembroService.getMiembrosSinIglesiaParaAsignacion().subscribe(response => {
       this.miembros = response.datos.filter(m => m.estado);
     });
   }

@@ -1,90 +1,205 @@
 <div class="container">
 
-  <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" matTooltip="Creacion de Nuevo Miembro" matTooltipPosition="above" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nuevo Miembro
-    </button>
-
-    <mat-form-field appearance="outline" matTooltip="Buscar por Nombre" matTooltipPosition="above">
-      <mat-label>Buscar miembro</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-  </div>
-
-  <div class="table-container">
-  <mat-table [dataSource]="miembros" matSort>
-    <ng-container matColumnDef="foto">
-      <mat-header-cell *matHeaderCellDef> Foto </mat-header-cell>
-      <mat-cell *matCellDef="let miembro">
-        <div class="miembro-avatar-container">
-          <img *ngIf="miembro.uriFoto"
-               [src]="miembro.uriFoto | imageUrl"
-               [alt]="miembro.nombre"
-               class="miembro-avatar-img"
-               (error)="onImageError($event)">
-          <div class="miembro-avatar-placeholder" *ngIf="!miembro.uriFoto">
-            {{miembro.nombre?.charAt(0) || '?'}}
-          </div>
+  <!-- Contenedor pegajoso para cabecera y filtros -->
+  <div class="sticky-header">
+    <!-- Cabecera de listado -->
+    <div class="header-section">
+      <div class="title-wrapper">
+        <div class="title-icon-circle">
+          <mat-icon class="header-icon">people</mat-icon>
         </div>
-      </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="nombreCompleto">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo</mat-header-cell>
-      <mat-cell *matCellDef="let miembro">
-        {{miembro.nombre}} {{miembro.apellido}}
-      </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="celular">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Celular</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.celular}} </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="direccion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.direccion}} </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="fechaConvercion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Conversión</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{formatDate(miembro.fechaConvercion)}} </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="sexo">
-      <mat-header-cell *matHeaderCellDef> Sexo</mat-header-cell>
-      <mat-cell *matCellDef="let miembro"> {{miembro.sexo}} </mat-cell>
-    </ng-container>
-
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let miembro">
-        <button mat-icon-button color="primary" matTooltip="Editar: {{miembro.nombre}}" matTooltipPosition="left"
-          (click)="$event.stopPropagation(); openEditDialog(miembro)">
-          <mat-icon>edit</mat-icon>
+        <div>
+          <h2>Listado de Miembros</h2>
+          <p class="subtitle">{{ miembros.filteredData.length }} miembros registrados</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button class="btn-pdf-director" matTooltip="Descargar Directorio Completo en PDF" (click)="generateDirectorPdf()">
+          <mat-icon>download</mat-icon>
+          Directorio PDF
         </button>
-        <button mat-icon-button [color]="miembro.estado ? 'accent' : 'warn'" matTooltip="{{miembro.estado ? 'Desactivar' : 'Activar'}}" (click)="$event.stopPropagation(); toggleEstado(miembro)">
-          <mat-icon>{{miembro.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+        <button mat-stroked-button class="btn-pdf-cards" matTooltip="Descargar Reporte para Credenciales" (click)="generateCardsPdf()">
+          <mat-icon>card_membership</mat-icon>
+          Carnets PDF
         </button>
-        <button mat-icon-button color="warn" matTooltip="Eliminar: {{miembro.nombre}}" matTooltipPosition="right"
-          (click)="$event.stopPropagation(); deleteMiembro(miembro)">
-          <mat-icon>delete</mat-icon>
+        <button mat-flat-button class="btn-new-member" matTooltip="Crear un nuevo miembro" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Nuevo Miembro
         </button>
-      </mat-cell>
-    </ng-container>
-
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
-
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="7">No se encontraron datos que coincidan con el filtro "{{input.value}}"
-      </td>
-    </tr>
-  </mat-table>
-
-  <mat-paginator [pageSizeOptions]="[10,25, 100]" aria-label="Seleccionar página de miembros">
-  </mat-paginator>
+      </div>
+    </div>
+  
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, apellido o CI..." #searchInput>
+      </div>
+      
+      <div class="select-filters">
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+            <mat-option value="all">Todas las iglesias</mat-option>
+            <mat-option *ngFor="let ig of iglesias" [value]="ig.nombre">{{ ig.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+            <mat-option value="all">Todos los estados</mat-option>
+            <mat-option value="active">Activo</mat-option>
+            <mat-option value="inactive">Inactivo</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
   </div>
+
+  <!-- Contenedor de la Tabla -->
+  <div class="table-container">
+    <mat-table [dataSource]="miembros" matSort>
+      
+      <!-- Columna Miembro (Avatar + Datos personales + Cargo) -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Miembro </mat-header-cell>
+        <mat-cell *matCellDef="let miembro">
+          <div class="miembro-profile">
+            <div class="miembro-avatar-container">
+              <img *ngIf="miembro.uriFoto"
+                   [src]="miembro.uriFoto | imageUrl"
+                   [alt]="miembro.nombre"
+                   class="miembro-avatar-img"
+                   (error)="onImageError($event)">
+              <div class="miembro-avatar-placeholder" [style.display]="miembro.uriFoto ? 'none' : 'flex'">
+                {{miembro.nombre?.charAt(0) || '?'}}
+              </div>
+            </div>
+            <div class="miembro-info-text">
+              <span class="miembro-name">{{ miembro.nombre }} {{ miembro.apellido }}</span>
+              <span class="miembro-ci-age">CI: {{ miembro.ci || 'Sin CI' }} · {{ getAge(miembro.fechaNac) }}</span>
+              <span class="cargo-badge" *ngIf="miembro.cargoNombre">{{ miembro.cargoNombre }}</span>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Contacto (Celular + Dirección) -->
+      <ng-container matColumnDef="contacto">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Contacto </mat-header-cell>
+        <mat-cell *matCellDef="let miembro">
+          <div class="contacto-info">
+            <span class="contacto-item">
+              <mat-icon class="contacto-icon">phone</mat-icon>
+              {{ miembro.celular || 'Sin teléfono' }}
+            </span>
+            <span class="contacto-item">
+              <mat-icon class="contacto-icon">place</mat-icon>
+              {{ miembro.direccion || 'Sin dirección' }}
+            </span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Iglesia -->
+      <ng-container matColumnDef="igresa">
+        <!-- legacy fallback case -->
+      </ng-container>
+      <ng-container matColumnDef="iglesia">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+        <mat-cell *matCellDef="let miembro">
+          <span class="iglesia-name-label">{{ miembro.iglesiaNombre || 'Sin Iglesia asignada' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Bautismo / Conversión -->
+      <ng-container matColumnDef="bautismo">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Bautismo </mat-header-cell>
+        <mat-cell *matCellDef="let miembro">
+          <div class="bautismo-info">
+            <mat-icon class="bautismo-icon">water_drop</mat-icon>
+            <span>{{ formatDate(miembro.fechaConvercion) }}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+        <mat-cell *matCellDef="let miembro">
+          <span class="estado-pill" [ngClass]="miembro.estado ? 'activo' : 'inactivo'">
+            {{ miembro.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let miembro" class="acciones-cell">
+          <!-- Desktop View -->
+          <div class="desktop-actions">
+            <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(miembro)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            
+            <button mat-icon-button class="action-btn transfer-btn" matTooltip="Traspasar de Iglesia" 
+                    [disabled]="!miembro.iglesiaNombre"
+                    (click)="$event.stopPropagation(); openTraspasoDialog(miembro)">
+              <mat-icon>swap_horiz</mat-icon>
+            </button>
+            
+            <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar miembro" (click)="$event.stopPropagation(); openEditDialog(miembro)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            
+            <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar miembro" (click)="$event.stopPropagation(); deleteMiembro(miembro)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <!-- Mobile View -->
+          <div class="mobile-actions">
+            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="openDetailDialog(miembro)">
+                <mat-icon>visibility</mat-icon>
+                <span>Ver detalle</span>
+              </button>
+              <button mat-menu-item [disabled]="!miembro.iglesiaNombre" (click)="openTraspasoDialog(miembro)">
+                <mat-icon>swap_horiz</mat-icon>
+                <span>Traspasar</span>
+              </button>
+              <button mat-menu-item (click)="openEditDialog(miembro)">
+                <mat-icon>edit</mat-icon>
+                <span>Editar</span>
+              </button>
+              <button mat-menu-item (click)="deleteMiembro(miembro)">
+                <mat-icon style="color: #dc3545;">delete</mat-icon>
+                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+              </button>
+            </mat-menu>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Encabezados e Hileras de la Tabla -->
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+      <!-- Hilera para cuando no hay resultados -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" colspan="6">
+          <div class="no-results">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron miembros que coincidan con la búsqueda.</span>
+          </div>
+        </td>
+      </tr>
+    </mat-table>
+
+    <!-- Paginador -->
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de miembros"></mat-paginator>
+  </div>
+
 </div>

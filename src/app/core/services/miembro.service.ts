@@ -25,6 +25,11 @@ export class MiembroService {
     return this.http.get<MiembroResponse>(`${this.apiUrl}/sin-iglesia`, { headers: this.getHeaders() });
   }
 
+  /** Obtiene miembros disponibles para asignar a una iglesia (excluye pastores, seguro en backend) */
+  getMiembrosSinIglesiaParaAsignacion(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(`${this.apiUrl}/sin-iglesia-asignacion`, { headers: this.getHeaders() });
+  }
+
   getMiembroById(id: number): Observable<MiembroDetail> {
     return this.http.get<MiembroDetail>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
   }

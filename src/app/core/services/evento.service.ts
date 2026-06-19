@@ -55,4 +55,8 @@ export class EventoService {
       { headers: this.getHeaders() }
     );
   }
+
+  deleteEvento(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+  }
 }

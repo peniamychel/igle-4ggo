@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { TipoCargoCreateComponent } from '../tipo-cargo-create/tipo-cargo-create.component';
@@ -36,6 +37,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule
   ],
   templateUrl: './tipo-cargo-list.component.html',
   styleUrls: ['./tipo-cargo-list.component.css']

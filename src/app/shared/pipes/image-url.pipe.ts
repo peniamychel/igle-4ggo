@@ -8,6 +8,9 @@ import { environment } from '../../../environments/environment';
 export class ImageUrlPipe implements PipeTransform {
   transform(value: string | null | undefined): string {
     if (!value) return '';
+    if (value.endsWith('/') || value === '/uploads/miembros' || value === '/uploads/personas') {
+      return '';
+    }
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) {
       return value;
     }

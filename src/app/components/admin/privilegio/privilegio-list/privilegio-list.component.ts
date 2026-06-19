@@ -14,14 +14,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatMenuModule } from '@angular/material/menu';
 import { PrivilegioService } from '../../../../core/services/privilegio.service';
 import { PrivilegioDto, PrivilegioResponse } from '../../../../core/models/interfaces/privilegio.interface';
 import { PrivilegioCreateComponent } from '../privilegio-create/privilegio-create.component';
 import { PrivilegioDetailComponent } from '../privilegio-detail/privilegio-detail.component';
 import { PrivilegioEditComponent } from '../privilegio-edit/privilegio-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
-
-const ROLES = ['ADMIN', 'ENCARGADO_IGLESIA', 'ENCARGADO_EVENTO', 'TESORERO'];
+import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 
 @Component({
   selector: 'app-privilegio-list',
@@ -42,6 +43,7 @@ const ROLES = ['ADMIN', 'ENCARGADO_IGLESIA', 'ENCARGADO_EVENTO', 'TESORERO'];
     MatChipsModule,
     MatButtonToggleModule,
     MatDividerModule,
+    MatMenuModule
   ],
   templateUrl: './privilegio-list.component.html',
   styleUrls: ['./privilegio-list.component.css']
@@ -50,8 +52,8 @@ export class PrivilegioListComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'acto', 'estado', 'acciones'];
   dataSource: MatTableDataSource<PrivilegioDto>;
 
-  rolesDisponibles = ROLES;
-  selectedRol = 'ADMIN';
+  rolesDisponibles: TipoCargo[] = [];
+  selectedRolCargoId: number | null = null;
   privilegiosPorRol: PrivilegioResponse[] = [];
   todosPrivilegios: PrivilegioDto[] = [];
 
@@ -60,6 +62,7 @@ export class PrivilegioListComponent implements OnInit {
 
   constructor(
     private privilegioService: PrivilegioService,
+    private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
@@ -68,7 +71,7 @@ export class PrivilegioListComponent implements OnInit {
 
   ngOnInit() {
     this.loadPrivilegios();
-    this.loadPrivilegiosPorRol();
+    this.loadRoles();
   }
 
   ngAfterViewInit() {
@@ -89,15 +92,33 @@ export class PrivilegioListComponent implements OnInit {
     });
   }
 
-  loadPrivilegiosPorRol() {
-    this.privilegioService.getPrivilegiosByRol(this.selectedRol).subscribe(data => {
-      this.privilegiosPorRol = data;
+  loadRoles() {
+    this.tipoCargoService.getTipoCargos().subscribe(res => {
+      this.rolesDisponibles = res.datos || [];
+      if (this.rolesDisponibles.length > 0) {
+        const adminRole = this.rolesDisponibles.find(r => r.nombreRol === 'ADMIN');
+        this.selectedRolCargoId = adminRole ? adminRole.id! : this.rolesDisponibles[0].id!;
+        this.loadPrivilegiosPorRol();
+      }
     });
   }
 
-  seleccionarRol(rol: string) {
-    this.selectedRol = rol;
+  loadPrivilegiosPorRol() {
+    if (this.selectedRolCargoId) {
+      this.privilegioService.getPrivilegiosByRolCargo(this.selectedRolCargoId).subscribe(data => {
+        this.privilegiosPorRol = data;
+      });
+    }
+  }
+
+  seleccionarRol(rolCargoId: number) {
+    this.selectedRolCargoId = rolCargoId;
     this.loadPrivilegiosPorRol();
+  }
+
+  getSelectedRolName(): string {
+    const role = this.rolesDisponibles.find(r => r.id === this.selectedRolCargoId);
+    return role ? role.nombre : '';
   }
 
   get privilegiosDisponibles(): PrivilegioDto[] {
@@ -106,17 +127,21 @@ export class PrivilegioListComponent implements OnInit {
   }
 
   agregarPrivilegio(privilegioId: number) {
-    this.privilegioService.addPrivilegioToRol(this.selectedRol, privilegioId).subscribe(() => {
-      this.loadPrivilegiosPorRol();
-      this.messageSnackBar('Privilegio asignado al rol');
-    });
+    if (this.selectedRolCargoId) {
+      this.privilegioService.addPrivilegioToRolCargo(this.selectedRolCargoId, privilegioId).subscribe(() => {
+        this.loadPrivilegiosPorRol();
+        this.messageSnackBar('Privilegio asignado al rol');
+      });
+    }
   }
 
   quitarPrivilegio(privilegioId: number) {
-    this.privilegioService.removePrivilegioFromRol(this.selectedRol, privilegioId).subscribe(() => {
-      this.loadPrivilegiosPorRol();
-      this.messageSnackBar('Privilegio removido del rol');
-    });
+    if (this.selectedRolCargoId) {
+      this.privilegioService.removePrivilegioFromRolCargo(this.selectedRolCargoId, privilegioId).subscribe(() => {
+        this.loadPrivilegiosPorRol();
+        this.messageSnackBar('Privilegio removido del rol');
+      });
+    }
   }
 
   applyFilter(event: Event) {

@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { ResponsableEventoService } from '../../../../core/services/responsable-evento.service';
 import { EventoService } from '../../../../core/services/evento.service';
 import { CargoService } from '../../../../core/services/cargo.service';
@@ -47,6 +48,7 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule
   ],
   templateUrl: './responsable-evento-list.component.html',
   styleUrls: ['./responsable-evento-list.component.css']
@@ -217,6 +219,35 @@ export class ResponsableEventoListComponent implements OnInit {
           this.responsableService.toggleEstado(responsable.id).subscribe(newEstado => {
             responsable.estado = newEstado;
             this.messageSnackBar(`Responsable ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteResponsable(responsable: ResponsableEvento) {
+    if (responsable.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente este responsable de evento. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && responsable.id) {
+          this.responsableService.deleteResponsable(responsable.id).subscribe({
+            next: () => {
+              this.loadResponsables(); // Let's check if loadResponsables exists in this class!
+              this.messageSnackBar('Responsable de evento eliminado exitosamente.');
+            },
+            error: (err) => {
+              const errMsg = err.error?.message || 'No se pudo eliminar el responsable de evento. Verifique si tiene dependencias asociadas.';
+              this.messageSnackBar(errMsg, 'error');
+            }
           });
         }
       });

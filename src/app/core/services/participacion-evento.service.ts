@@ -55,4 +55,8 @@ export class ParticipacionEventoService {
       { headers: this.getHeaders() }
     );
   }
+
+  deleteParticipacion(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+  }
 }

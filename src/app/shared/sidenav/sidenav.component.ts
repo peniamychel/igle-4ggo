@@ -32,6 +32,8 @@ export interface MenuItem {
   expanded?: boolean;
   /** Si true, el ítem solo se muestra a usuarios con rol ADMIN */
   adminOnly?: boolean;
+  /** Si true, el ítem se oculta para usuarios con rol ADMIN */
+  nonAdminOnly?: boolean;
 }
 
 @Component({
@@ -103,7 +105,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
 
   menuItems: MenuItem[] = [
-    { label: 'Inicio', route: '/', icon: 'home' },
+    { label: 'Inicio', route: '/inicio', icon: 'home' },
     {
       label: 'Obreros',
       route: '/obreros',
@@ -118,6 +120,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
         { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' }
       ]
     },
+    { label: 'Mi Iglesia', route: '/mi-iglesia', icon: 'church', nonAdminOnly: true },
     {
       label: 'Iglesias',
       icon: 'church',
@@ -127,28 +130,15 @@ export class SidenavComponent implements OnInit, OnDestroy {
         { label: 'Iglesia Grafico', route: '/graficoiglesias', icon: 'bar_chart' }
       ]
     },
-    {
-      label: 'Eventos',
-      icon: 'event',
-      children: [
-        { label: 'Tipos de Evento', route: '/tipoevento', icon: 'category' },
-        { label: 'Eventos', route: '/eventos', icon: 'local_activity' },
-        { label: 'Responsables', route: '/responsable-evento', icon: 'assignment_ind' },
-        { label: 'Participaciones', route: '/participacion-evento', icon: 'group' },
-        { label: 'Bautizos', route: '/bautizos', icon: 'water_drop' },
-        { label: 'Talleres', route: '/talleres', icon: 'school' },
-        { label: 'Tipos de Certificado', route: '/tipocertificado', icon: 'badge' },
-        { label: 'Certificados', route: '/certificados', icon: 'workspace_premium' }
-      ]
-    },
+    { label: 'Eventos', route: '/eventos', icon: 'event' },
+    { label: 'Certificados', route: '/certificados', icon: 'workspace_premium' },
     { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
     {
       label: 'Administración',
       icon: 'admin_panel_settings',
       adminOnly: true,
       children: [
-        { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' },
-        { label: 'Privilegios', route: '/privilegios', icon: 'security' }
+        { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' }
       ]
     },
     { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
@@ -198,7 +188,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     if (!route) return false;
 
     // Rutas siempre visibles para cualquier usuario autenticado
-    if (route === '/' || route === '/perfil' || route === '/configuracion') {
+    if (route === '/' || route === '/inicio' || route === '/mi-iglesia' || route === '/perfil' || route === '/configuracion') {
       return true;
     }
 
@@ -246,6 +236,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
       .filter(item => {
         // Ocultar grupos/ítems marcados como adminOnly para no-admins
         if (item.adminOnly && !isAdmin) return false;
+
+        // Ocultar ítems marcados como nonAdminOnly para admins
+        if (item.nonAdminOnly && isAdmin) return false;
 
         if (item.children) {
           return item.children.length > 0;

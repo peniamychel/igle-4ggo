@@ -1,5 +1,5 @@
 .container {
-  padding: 0;
+  padding: 16px 24px 24px 24px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -8,9 +8,10 @@
 .sticky-header {
   position: sticky;
   top: -16px;
-  z-index: 90;
+  z-index: 100;
   background-color: var(--bg-content);
-  padding-top: 8px;
+  padding-top: 16px;
+  margin-top: -16px;
   padding-bottom: 16px;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border-color);
@@ -52,7 +53,7 @@
 
 .title-wrapper h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -69,17 +70,41 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-actions button {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.btn-pdf {
+  border: 1px solid #e65100 !important;
+  color: #e65100 !important;
+  background-color: transparent !important;
+}
+
+.btn-pdf:hover {
+  background-color: rgba(230, 81, 0, 0.05) !important;
+}
+
+.btn-excel {
+  border: 1px solid #2e7d32 !important;
+  color: #2e7d32 !important;
+  background-color: transparent !important;
+}
+
+.btn-excel:hover {
+  background-color: rgba(46, 125, 50, 0.05) !important;
 }
 
 .btn-new-item {
   background-color: #0b857f !important;
   color: #ffffff !important;
-  border-radius: 8px;
-  font-weight: 600;
-  padding: 8px 16px;
-  height: 40px;
   box-shadow: 0 2px 6px rgba(11, 133, 127, 0.2);
-  transition: all 0.2s ease;
 }
 
 .btn-new-item:hover {
@@ -173,50 +198,153 @@
   background-color: rgba(127, 11, 133, 0.03) !important;
 }
 
-.miembro-cell {
+/* Perfil de Miembro */
+.miembro-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.miembro-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.miembro-avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.miembro-avatar-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
+  border: 2px solid rgba(127, 11, 133, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
   font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.miembro-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.miembro-name {
+  font-weight: 600;
+  font-size: 0.92rem;
   color: var(--text-primary);
 }
 
-.evento-cell {
-  color: var(--text-primary);
-}
-
-.fecha-cell {
+.miembro-ci-age {
+  font-size: 0.76rem;
   color: var(--text-secondary);
-  font-size: 0.85rem;
 }
 
-.certificado-cell {
+.cargo-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background-color: #f5efe6;
+  color: #8f6239;
+  padding: 1px 8px;
+  border-radius: 4px;
+  margin-top: 3px;
+  border: 1px solid rgba(143, 98, 57, 0.15);
+}
+
+.dark-theme .cargo-badge {
+  background-color: #2c251e;
+  color: #dfb288;
+  border-color: rgba(223, 178, 136, 0.2);
+}
+
+/* Columna Contacto */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
   color: var(--text-primary);
-  font-size: 0.85rem;
 }
 
-/* Estado Pill */
+.contacto-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-secondary);
+}
+
+/* Columna Bautismo */
+.bautismo-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.bautismo-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color);
+}
+
+/* Columna Estado Badge */
 .estado-pill {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  text-transform: uppercase;
+  text-align: center;
 }
 
 .estado-pill.activo {
-  background-color: rgba(11, 133, 127, 0.1);
-  color: #0b857f;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.15);
 }
 
 .estado-pill.inactivo {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.15);
+}
+
+.dark-theme .estado-pill.activo {
+  background-color: rgba(46, 125, 50, 0.15);
+  color: #81c784;
+}
+
+.dark-theme .estado-pill.inactivo {
+  background-color: rgba(198, 40, 40, 0.15);
+  color: #e57373;
 }
 
 /* Acciones */
 .acciones-cell {
   display: flex;
-  gap: 2px;
-  justify-content: center;
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .action-btn {
@@ -225,24 +353,14 @@
   flex-shrink: 0;
 }
 
-.edit-btn:hover {
+.view-btn:hover {
   background-color: rgba(11, 133, 127, 0.08) !important;
-  color: #0b857f !important;
+  color: var(--accent-color) !important;
 }
 
-.pdf-btn:hover {
-  background-color: rgba(220, 53, 69, 0.08) !important;
-  color: #dc3545 !important;
-}
-
-.toggle-btn.desactivar:hover {
-  background-color: rgba(220, 53, 69, 0.08) !important;
-  color: #dc3545 !important;
-}
-
-.toggle-btn.activar:hover {
-  background-color: rgba(40, 167, 69, 0.08) !important;
-  color: #28a745 !important;
+.transfer-btn:hover {
+  background-color: rgba(127, 11, 133, 0.08) !important;
+  color: var(--primary-color) !important;
 }
 
 .delete-btn:hover {
@@ -261,14 +379,15 @@
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  gap: 8px;
+  gap: 12px;
+  padding: 40px 16px;
 }
 
 .no-results mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .no-results span {
@@ -276,12 +395,81 @@
   font-weight: 500;
 }
 
+/* Column Widths & Flex Grow Proportions */
+.mat-column-miembro {
+  flex: 2.5 !important;
+  min-width: 260px !important;
+}
+
+.mat-column-contacto {
+  flex: 2.0 !important;
+  min-width: 180px !important;
+}
+
+.mat-column-bautismo {
+  flex: 1.0 !important;
+  min-width: 110px !important;
+  max-width: 150px !important;
+}
+
+.mat-column-estado {
+  flex: 0.8 !important;
+  min-width: 90px !important;
+  max-width: 120px !important;
+}
+
+.mat-column-acciones {
+  flex: 1.2 !important;
+  min-width: 140px !important;
+  max-width: 180px !important;
+}
+
+/* Responsive Table Columns */
+@media (max-width: 1200px) {
+  .acciones-cell {
+    gap: 0 !important;
+  }
+  .acciones-cell .action-btn {
+    transform: scale(0.85);
+    margin: 0 -4px !important;
+  }
+  .mat-column-bautismo {
+    display: none !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .mat-column-contacto {
+    display: none !important;
+  }
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+  
   .sticky-header {
     position: static !important;
     margin-top: 0 !important;
     padding-top: 0 !important;
     border-bottom: none !important;
+  }
+
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-actions button {
+    width: 100%;
   }
 
   .filters-bar {

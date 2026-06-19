@@ -1,19 +1,134 @@
 .container {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 16px 24px 24px 24px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.nuevo-buscar {
+/* Cabecera pegajosa (Sticky Header) */
+.sticky-header {
+  position: sticky;
+  top: -16px;
+  z-index: 100;
+  background-color: var(--bg-content);
+  padding-top: 16px;
+  margin-top: -16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.mat-form-field {
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
+  border: 1px solid rgba(127, 11, 133, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+}
+
+.title-wrapper h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.title-wrapper .subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-new-church {
+  background-color: #0b857f !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.btn-new-church:hover {
+  background-color: #096d68 !important;
+  box-shadow: 0 4px 12px rgba(11, 133, 127, 0.3) !important;
+}
+
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  padding: 6px 18px;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+  max-width: 600px;
+  height: 48px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.08);
+}
+
+.search-icon {
+  color: var(--text-secondary);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
   font-size: 14px;
-  width: 300px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 .table-container {
@@ -28,75 +143,226 @@
   width: 100%;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
+.clickable-row:hover {
+  background-color: rgba(var(--primary-rgb), 0.03) !important;
 }
 
-.clickable-row {
-  cursor: pointer;
-}
-
-.mat-column-foto {
-  max-width: 64px;
-  width: 64px;
-  padding: 6px 4px !important;
-}
-
-.church-avatar {
+/* Perfil de Iglesia */
+.miembro-profile {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 14px;
 }
 
-.church-thumb {
+.miembro-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.miembro-avatar-img {
   width: 44px;
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--border-color, #e0e0e0);
-  transition: transform 0.2s ease;
+  border: 2px solid var(--border-color);
 }
 
-.church-thumb:hover {
-  transform: scale(1.1);
-}
-
-.church-thumb-placeholder {
+.miembro-avatar-placeholder {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.1);
-  border: 2px dashed rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+  border: 2px solid rgba(var(--primary-rgb), 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6366f1;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.miembro-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.miembro-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.miembro-ci-age {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+/* Columna Contacto */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.contacto-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-secondary);
+}
+
+/* Columna Fundación */
+.bautismo-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.bautismo-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color);
+}
+
+/* Columna Estado Badge */
+.estado-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.estado-pill.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.15);
+}
+
+.estado-pill.inactivo {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.15);
+}
+
+.dark-theme .estado-pill.activo {
+  background-color: rgba(46, 125, 50, 0.15);
+  color: #81c784;
+}
+
+.dark-theme .estado-pill.inactivo {
+  background-color: rgba(198, 40, 40, 0.15);
+  color: #e57373;
+}
+
+/* Acciones */
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.action-btn {
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.view-btn:hover {
+  color: var(--accent-color) !important;
+  background-color: rgba(11, 133, 127, 0.08);
+}
+
+.edit-btn:hover {
+  color: #ff9800 !important;
+  background-color: rgba(255, 152, 0, 0.08);
+}
+
+.delete-btn:hover {
+  color: #f44336 !important;
+  background-color: rgba(244, 67, 54, 0.08);
+}
+
+/* Column Widths */
+.mat-column-iglesia {
+  flex: 2.0 !important;
+  min-width: 200px !important;
+}
+
+.mat-column-contacto {
+  flex: 2.0 !important;
+  min-width: 180px !important;
+}
+
+.mat-column-fundacion {
+  flex: 1.2 !important;
+  min-width: 130px !important;
+}
+
+.mat-column-estado {
+  flex: 0.8 !important;
+  min-width: 90px !important;
+}
+
+.mat-column-acciones {
+  flex: 1.2 !important;
+  min-width: 130px !important;
 }
 
 /* vista movil */
 @media (max-width: 768px) {
 
-  .mat-column-telefono,
-  .mat-column-fechaFundacion {
-    display: none;
+  .mat-column-fundacion {
+    display: none !important;
   }
 
   .container {
     padding: 12px;
   }
 
-  .nuevo-buscar {
+  .sticky-header {
+    position: static !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-bottom: none !important;
+  }
+
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
 
-  .nuevo-buscar button {
+  .header-actions button {
     width: 100%;
-    margin-bottom: 12px;
   }
 
-  .mat-form-field {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
     width: 100%;
   }
 }

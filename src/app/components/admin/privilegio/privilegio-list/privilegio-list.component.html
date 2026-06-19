@@ -35,17 +35,36 @@
 
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <button mat-icon-button color="primary"
-                matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(item)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
-                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); toggleEstado(item)">
-          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-        </button>
+      <mat-cell *matCellDef="let item" class="acciones-cell">
+        <!-- Desktop View -->
+        <div class="desktop-actions">
+          <button mat-icon-button color="primary"
+                  matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
+                  (click)="$event.stopPropagation(); openEditDialog(item)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
+                  [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
+                  (click)="$event.stopPropagation(); toggleEstado(item)">
+            <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+          </button>
+        </div>
+        <!-- Mobile View -->
+        <div class="mobile-actions">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openEditDialog(item)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <button mat-menu-item (click)="toggleEstado(item)">
+              <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+              <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+            </button>
+          </mat-menu>
+        </div>
       </mat-cell>
     </ng-container>
 
@@ -72,15 +91,15 @@
 
     <mat-card-content>
       <div class="rol-selector">
-        <mat-button-toggle-group [value]="selectedRol" (change)="seleccionarRol($event.value)">
-          <mat-button-toggle *ngFor="let rol of rolesDisponibles" [value]="rol">
-            {{ rol }}
+        <mat-button-toggle-group [value]="selectedRolCargoId" (change)="seleccionarRol($event.value)">
+          <mat-button-toggle *ngFor="let rol of rolesDisponibles" [value]="rol.id">
+            {{ rol.nombre }}
           </mat-button-toggle>
         </mat-button-toggle-group>
       </div>
 
       <div class="privilegios-asignados">
-        <h4>Privilegios de <strong>{{ selectedRol }}</strong></h4>
+        <h4>Privilegios de <strong>{{ getSelectedRolName() }}</strong></h4>
         <mat-chip-set *ngIf="privilegiosPorRol.length > 0">
           <mat-chip *ngFor="let p of privilegiosPorRol" (removed)="quitarPrivilegio(p.id)">
             {{ p.nombre }}

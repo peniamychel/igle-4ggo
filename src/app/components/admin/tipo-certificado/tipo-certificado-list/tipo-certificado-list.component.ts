@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { TipoCertificadoService } from '../../../../core/services/tipo-certificado.service';
 import { TipoCertificado } from '../../../../core/models/tipo-certificado.model';
 import { TipoCertificadoCreateComponent } from '../tipo-certificado-create/tipo-certificado-create.component';
@@ -36,6 +37,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule
   ],
   templateUrl: './tipo-certificado-list.component.html',
   styleUrls: ['./tipo-certificado-list.component.css']

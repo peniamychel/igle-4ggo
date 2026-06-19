@@ -1,80 +1,121 @@
-<h2 mat-dialog-title>Historial de Membresía</h2>
+<h2 mat-dialog-title class="dialog-header">
+  <div class="header-icon-circle">
+    <mat-icon class="header-icon">card_membership</mat-icon>
+  </div>
+  <div class="header-text">
+    <h2>Historial de Membresía</h2>
+    <p class="subtitle">Detalles de asignaciones e iglesia actual</p>
+  </div>
+</h2>
 
 <mat-dialog-content class="detail-content">
-  <div class="member-info">
-    <h3>Datos del Miembro</h3>
+  <!-- Datos del Miembro en diseño de Tarjeta Premium -->
+  <div class="member-profile-card">
+    <div class="profile-main">
+      <div class="profile-avatar">
+        {{data.miembro.nombre.charAt(0) || '?'}}{{data.miembro.apellido.charAt(0) || ''}}
+      </div>
+      <div class="profile-details">
+        <h3>{{data.miembro.nombre}} {{data.miembro.apellido}}</h3>
+        <span class="member-ci">CI: {{data.miembro.ci || 'Sin documento'}}</span>
+      </div>
+    </div>
+
     <div class="info-grid">
-      <div class="info-item">
-        <strong>Nombre:</strong> {{data.miembro.nombre}}
+      <div class="info-card">
+        <mat-icon class="card-icon">water_drop</mat-icon>
+        <div class="card-text">
+          <span class="label">Fecha de Conversión</span>
+          <span class="value">{{formatDate(data.miembro.fechaConvercion)}}</span>
+        </div>
       </div>
-      <div class="info-item">
-        <strong>Apellido:</strong> {{data.miembro.apellido}}
-      </div>
-      <div class="info-item">
-        <strong>CI:</strong> {{data.miembro.ci}}
-      </div>
-      <div class="info-item">
-        <strong>Fecha de Conversión:</strong> {{formatDate(data.miembro.fechaConvercion)}}
+      
+      <div class="info-card" *ngIf="data.miembro.celular">
+        <mat-icon class="card-icon">phone</mat-icon>
+        <div class="card-text">
+          <span class="label">Celular de Contacto</span>
+          <span class="value">{{data.miembro.celular}}</span>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Sección de Historial de Iglesias -->
   <div class="history-section">
-    <h3>Historial de Iglesias</h3>
+    <div class="section-title">
+      <mat-icon class="section-icon">church</mat-icon>
+      <h3>Historial de Congregaciones</h3>
+    </div>
     
-    <mat-accordion>
-      <mat-expansion-panel *ngFor="let item of historialIglesias">
+    <mat-accordion class="modern-accordion">
+      <mat-expansion-panel *ngFor="let item of historialIglesias" 
+                           [expanded]="item.miembroIglesia.estado"
+                           [ngClass]="{
+                             'panel-actual': item.miembroIglesia.estado && !item.miembroIglesia.estadoTraspaso, 
+                             'panel-pendiente': item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'PENDIENTE',
+                             'panel-anterior': !item.miembroIglesia.estado
+                           }">
         <mat-expansion-panel-header>
           <mat-panel-title>
+            <mat-icon class="panel-icon">place</mat-icon>
             {{item.iglesia.nombre}}
           </mat-panel-title>
           <mat-panel-description>
-            <span *ngIf="item.miembroIglesia.estado && !item.miembroIglesia.estadoTraspaso">Actual</span>
-            <span *ngIf="item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'PENDIENTE'" style="color: #e65100; font-weight: bold;">
+            <!-- Badges estilizados -->
+            <span class="status-badge actual" *ngIf="item.miembroIglesia.estado && !item.miembroIglesia.estadoTraspaso">Actual</span>
+            <span class="status-badge pendiente" *ngIf="item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'PENDIENTE'">
               Traspaso Pendiente (a {{item.iglesiaDestino?.nombre}})
             </span>
-            <span *ngIf="!item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'ACEPTADO'">
+            <span class="status-badge traspasado" *ngIf="!item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'ACEPTADO'">
               Traspasado (a {{item.iglesiaDestino?.nombre}})
             </span>
-            <span *ngIf="item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'RECHAZADO'" style="color: #c62828;">
+            <span class="status-badge rechazado" *ngIf="item.miembroIglesia.estado && item.miembroIglesia.estadoTraspaso === 'RECHAZADO'">
               Traspaso Rechazado
             </span>
-            <span *ngIf="!item.miembroIglesia.estado && !item.miembroIglesia.estadoTraspaso">Anterior</span>
+            <span class="status-badge anterior" *ngIf="!item.miembroIglesia.estado && !item.miembroIglesia.estadoTraspaso">Anterior</span>
           </mat-panel-description>
         </mat-expansion-panel-header>
 
         <div class="panel-content">
-          <div class="info-grid">
-            <div class="info-item">
-              <strong>Iglesia:</strong> {{item.iglesia.nombre}}
+          <div class="panel-info-grid">
+            <div class="panel-info-item">
+              <span class="lbl">Dirección de la Iglesia:</span>
+              <span class="val">{{item.iglesia.direccion || 'Sin dirección registrada'}}</span>
             </div>
-            <div class="info-item">
-              <strong>Dirección:</strong> {{item.iglesia.direccion}}
+            <div class="panel-info-item">
+              <span class="lbl">Fecha de Ingreso:</span>
+              <span class="val">{{formatDate(item.miembroIglesia.fecha)}}</span>
             </div>
-            <div class="info-item">
-              <strong>Fecha de Ingreso:</strong> {{formatDate(item.miembroIglesia.fecha)}}
-            </div>
-            <div class="info-item" *ngIf="item.miembroIglesia.fechaTraspaso">
-              <strong>Fecha de Solicitud/Traspaso:</strong> {{formatDate(item.miembroIglesia.fechaTraspaso)}}
+            <div class="panel-info-item" *ngIf="item.miembroIglesia.fechaTraspaso">
+              <span class="lbl">Fecha Traspaso:</span>
+              <span class="val">{{formatDate(item.miembroIglesia.fechaTraspaso)}}</span>
             </div>
           </div>
 
-          <div class="transfer-info" *ngIf="item.miembroIglesia.estadoTraspaso">
-            <div class="info-item" *ngIf="item.iglesiaDestino">
-              <strong>Iglesia Destino:</strong> {{item.iglesiaDestino.nombre}} ({{item.iglesiaDestino.direccion}})
-            </div>
-            <div class="info-item">
-              <strong>Estado del Traspaso:</strong> {{item.miembroIglesia.estadoTraspaso}}
-            </div>
-            <div class="info-item" *ngIf="item.miembroIglesia.motivoTraspaso">
-              <strong>Motivo del Traspaso:</strong>
-              <p>{{item.miembroIglesia.motivoTraspaso}}</p>
-            </div>
-            <div class="info-item" *ngIf="item.miembroIglesia.uriCartaTraspaso">
-              <strong>Carta de Traspaso:</strong>
-              <a [href]="item.miembroIglesia.uriCartaTraspaso" target="_blank">
-                Ver documento
-              </a>
+          <!-- Caja de Traspasos Estilizada -->
+          <div class="transfer-box" *ngIf="item.miembroIglesia.estadoTraspaso">
+            <h4>Información de Traspaso</h4>
+            <div class="transfer-grid">
+              <div class="transfer-item" *ngIf="item.iglesiaDestino">
+                <strong>Congregación Destino:</strong> 
+                <span>{{item.iglesiaDestino.nombre}} ({{item.iglesiaDestino.direccion}})</span>
+              </div>
+              <div class="transfer-item">
+                <strong>Estado:</strong> 
+                <span class="state-badge" [ngClass]="item.miembroIglesia.estadoTraspaso.toLowerCase()">
+                  {{item.miembroIglesia.estadoTraspaso}}
+                </span>
+              </div>
+              <div class="transfer-item full-width" *ngIf="item.miembroIglesia.motivoTraspaso">
+                <strong>Motivo:</strong>
+                <p class="motivo-desc">{{item.miembroIglesia.motivoTraspaso}}</p>
+              </div>
+              <div class="transfer-item full-width" *ngIf="item.miembroIglesia.uriCartaTraspaso">
+                <strong>Documento Adjunto:</strong>
+                <a class="document-link" [href]="item.miembroIglesia.uriCartaTraspaso" target="_blank">
+                  <mat-icon>open_in_new</mat-icon> Ver Carta de Traspaso
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -83,6 +124,9 @@
   </div>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cerrar</button>
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-flat-button color="accent" class="btn-print" (click)="generatePDF()" style="margin-right: 8px;">
+    <mat-icon>picture_as_pdf</mat-icon> Imprimir PDF
+  </button>
+  <button mat-flat-button color="primary" class="btn-close" mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>

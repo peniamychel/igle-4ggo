@@ -24,13 +24,32 @@
 
         <ng-container matColumnDef="acciones">
           <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-          <mat-cell *matCellDef="let iglesia">
-            <button mat-icon-button color="primary" (click)="loadMiembros(iglesia)">
-              <mat-icon>group</mat-icon>
-            </button>
-            <button mat-icon-button color="primary" (click)="addNewMiembro(iglesia)">
-              <mat-icon>add</mat-icon>
-            </button>
+          <mat-cell *matCellDef="let iglesia" class="acciones-cell">
+            <!-- Desktop View -->
+            <div class="desktop-actions">
+              <button mat-icon-button color="primary" matTooltip="Ver Miembros" (click)="$event.stopPropagation(); loadMiembros(iglesia)">
+                <mat-icon>group</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" matTooltip="Agregar Miembro" (click)="$event.stopPropagation(); addNewMiembro(iglesia)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+            <!-- Mobile View -->
+            <div class="mobile-actions">
+              <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="loadMiembros(iglesia)">
+                  <mat-icon>group</mat-icon>
+                  <span>Ver Miembros</span>
+                </button>
+                <button mat-menu-item (click)="addNewMiembro(iglesia)">
+                  <mat-icon>add</mat-icon>
+                  <span>Agregar Miembro</span>
+                </button>
+              </mat-menu>
+            </div>
           </mat-cell>
         </ng-container>
 
@@ -79,16 +98,39 @@
 
         <ng-container matColumnDef="acciones">
           <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-          <mat-cell *matCellDef="let miembro">
-            <button mat-icon-button color="primary" (click)="openMiembroIglesiaDetail(miembro)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            <button mat-icon-button color="accent" (click)="openTraspasoDialog(miembro)">
-              <mat-icon>transfer_within_a_station</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="deleteMiembroAsignacion(miembro)">
-              <mat-icon>delete</mat-icon>
-            </button>
+          <mat-cell *matCellDef="let miembro" class="acciones-cell">
+            <!-- Desktop View -->
+            <div class="desktop-actions">
+              <button mat-icon-button color="primary" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openMiembroIglesiaDetail(miembro)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" matTooltip="Traspasar de Iglesia" (click)="$event.stopPropagation(); openTraspasoDialog(miembro)">
+                <mat-icon>transfer_within_a_station</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Quitar asignación" (click)="$event.stopPropagation(); deleteMiembroAsignacion(miembro)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <!-- Mobile View -->
+            <div class="mobile-actions">
+              <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="openMiembroIglesiaDetail(miembro)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>Ver detalle</span>
+                </button>
+                <button mat-menu-item (click)="openTraspasoDialog(miembro)">
+                  <mat-icon>transfer_within_a_station</mat-icon>
+                  <span>Traspasar</span>
+                </button>
+                <button mat-menu-item (click)="deleteMiembroAsignacion(miembro)">
+                  <mat-icon style="color: #dc3545;">delete</mat-icon>
+                  <span style="color: #dc3545; font-weight: 500;">Quitar asignación</span>
+                </button>
+              </mat-menu>
+            </div>
           </mat-cell>
         </ng-container>
 

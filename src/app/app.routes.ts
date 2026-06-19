@@ -25,6 +25,7 @@ import { ConfiguracionComponent } from './components/configuracion/configuracion
 import { LoginPageComponent } from './components/auth/login-page/login-page.component';
 
 import { SolicitudListComponent } from './components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
+import { MiIglesiaComponent } from './components/admin/mi-iglesia/mi-iglesia.component';
 
 export const routes: Routes = [
   {
@@ -97,10 +98,10 @@ export const routes: Routes = [
         canActivate: [privilegioGuard]
       },
       {
-        path: 'tipoevento',
-        component: TipoEventoListComponent,
-        title: 'Tipos de Evento',
-        canActivate: [privilegioGuard]
+        path: 'mi-iglesia',
+        component: MiIglesiaComponent,
+        title: 'Mi Iglesia',
+        canActivate: [authGuard]
       },
       {
         path: 'eventos',
@@ -109,22 +110,29 @@ export const routes: Routes = [
         canActivate: [privilegioGuard]
       },
       {
+        path: 'tipoevento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
+      },
+      {
         path: 'bautizos',
-        component: DashboardComponent,
-        title: 'Bautizos',
-        canActivate: [privilegioGuard]
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
         path: 'talleres',
-        component: DashboardComponent,
-        title: 'Talleres',
-        canActivate: [privilegioGuard]
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
-        path: 'tipocertificado',
-        component: TipoCertificadoListComponent,
-        title: 'Tipos de Certificado',
-        canActivate: [privilegioGuard]
+        path: 'responsable-evento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'participacion-evento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
         path: 'certificados',
@@ -133,16 +141,9 @@ export const routes: Routes = [
         canActivate: [privilegioGuard]
       },
       {
-        path: 'responsable-evento',
-        component: ResponsableEventoListComponent,
-        title: 'Responsables de Evento',
-        canActivate: [privilegioGuard]
-      },
-      {
-        path: 'participacion-evento',
-        component: ParticipacionEventoListComponent,
-        title: 'Participaciones de Evento',
-        canActivate: [privilegioGuard]
+        path: 'tipocertificado',
+        redirectTo: 'certificados',
+        pathMatch: 'full'
       },
       {
         path: 'ofrendas',
@@ -162,9 +163,8 @@ export const routes: Routes = [
       },
       {
         path: 'privilegios',
-        component: PrivilegioListComponent,
-        title: 'Privilegios',
-        canActivate: [adminGuard]
+        redirectTo: 'usuariosistema',
+        pathMatch: 'full'
       },
       {
         path: 'usuariosistema',

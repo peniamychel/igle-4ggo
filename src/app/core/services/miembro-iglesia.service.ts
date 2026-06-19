@@ -122,4 +122,11 @@ export class MiembroIglesiaService {
     );
   }
 
+  getMisMiembros(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(
+      `${this.apiUrl}/mis-miembros`,
+      { headers: this.getHeaders() }
+    );
+  }
+
 }
