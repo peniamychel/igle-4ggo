@@ -19,7 +19,7 @@
         </button>
         <button mat-flat-button class="btn-new-member" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>
-          Asignar Cargo
+          Designar Obrero
         </button>
       </div>
     </div>
@@ -72,7 +72,7 @@
       </div>
       <div class="metric-info">
         <span class="value">{{ obrerosInactivosCount }}</span>
-        <span class="label">Inactivos</span>
+        <span class="label">Desvinculados</span>
       </div>
     </div>
 
@@ -153,7 +153,7 @@
         <mat-cell *matCellDef="let item">
           <span class="estado-pill clickable" [ngClass]="item.estado ? 'activo' : 'inactivo'"
                 (click)="$event.stopPropagation(); toggleEstado(item)">
-            {{ item.estado ? 'Activo' : 'Inactivo' }}
+            {{ item.estado ? 'Activo' : 'Desvinculado' }}
           </span>
         </mat-cell>
       </ng-container>
@@ -167,11 +167,17 @@
             <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(item)">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar obrero" (click)="$event.stopPropagation(); openEditDialog(item)">
+            <button mat-icon-button class="action-btn edit-btn" 
+                    [disabled]="!item.estado"
+                    matTooltip="Editar obrero" 
+                    (click)="$event.stopPropagation(); openEditDialog(item)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar obrero" (click)="$event.stopPropagation(); deleteCargo(item)">
-              <mat-icon>delete</mat-icon>
+            <button mat-icon-button class="action-btn desvinculacion-btn" 
+                    [disabled]="!item.estado"
+                    matTooltip="Desvincular obrero (Dar de baja)" 
+                    (click)="$event.stopPropagation(); toggleEstado(item)">
+              <mat-icon [style.color]="item.estado ? '#ff9800' : '#b0bec5'">person_remove</mat-icon>
             </button>
           </div>
           <!-- Mobile View -->
@@ -184,13 +190,13 @@
                 <mat-icon>visibility</mat-icon>
                 <span>Ver detalle</span>
               </button>
-              <button mat-menu-item (click)="openEditDialog(item)">
+              <button mat-menu-item [disabled]="!item.estado" (click)="openEditDialog(item)">
                 <mat-icon>edit</mat-icon>
                 <span>Editar</span>
               </button>
-              <button mat-menu-item (click)="deleteCargo(item)">
-                <mat-icon style="color: #dc3545;">delete</mat-icon>
-                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+              <button mat-menu-item [disabled]="!item.estado" (click)="toggleEstado(item)">
+                <mat-icon [style.color]="item.estado ? '#ff9800' : '#b0bec5'">person_remove</mat-icon>
+                <span [style.color]="item.estado ? '#ff9800' : '#b0bec5'" style="font-weight: 500;">Desvincular</span>
               </button>
             </mat-menu>
           </div>

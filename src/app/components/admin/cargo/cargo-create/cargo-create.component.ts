@@ -45,6 +45,7 @@ export class CargoCreateComponent implements OnInit {
   filteredMiembros: Miembro[] = [];
   filterRole: string = '';
   hideCargoSelect: boolean = false;
+  selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -148,10 +149,32 @@ export class CargoCreateComponent implements OnInit {
   onSubmit() {
     if (this.cargoForm.valid) {
       const cargoData: Partial<Cargo> = this.cargoForm.value;
-      this.cargoService.createCargo(cargoData).subscribe(() => {
-        this.dialogRef.close(true);
+      this.cargoService.createCargo(cargoData).subscribe({
+        next: (response: any) => {
+          const cargoId = response.datos?.id;
+          if (this.selectedFile && cargoId) {
+            this.cargoService.uploadActaAsignacion(cargoId, this.selectedFile).subscribe({
+              next: () => this.dialogRef.close(true),
+              error: () => this.dialogRef.close(true)
+            });
+          } else {
+            this.dialogRef.close(true);
+          }
+        },
+        error: () => this.dialogRef.close(false)
       });
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+    }
+  }
+
+  removeFile() {
+    this.selectedFile = null;
   }
 
   getError(controlName: string): string {

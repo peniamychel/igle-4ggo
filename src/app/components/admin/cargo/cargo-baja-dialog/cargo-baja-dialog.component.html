@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">cancel</mat-icon>
+  Dar de Baja Obrero
+</h2>
+
+<form [formGroup]="bajaForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <p class="dialog-description">Está a punto de dar de baja al obrero en su cargo. Indique la fecha de finalización y adjunte el acta correspondiente.</p>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha de Finalización</mat-label>
+        <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
+        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFin></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <div class="file-upload-wrapper">
+        <label class="file-label">Acta de Deslindación / Renuncia (Opcional)</label>
+        <div class="file-input-container">
+          <input type="file" id="actaDeslindacionInput" (change)="onFileSelected($event)" accept="image/*,application/pdf" style="display: none;" />
+          <button mat-stroked-button type="button" class="file-select-btn" onclick="document.getElementById('actaDeslindacionInput').click()">
+            <mat-icon>upload_file</mat-icon>
+            Seleccionar Acta
+          </button>
+          <span class="file-name" *ngIf="selectedFile">
+            {{ selectedFile.name }}
+            <button mat-icon-button type="button" class="file-remove-btn" (click)="removeFile()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="warn" type="submit" [disabled]="!bajaForm.valid">
+      <mat-icon>check</mat-icon>
+      Confirmar Baja
+    </button>
+  </mat-dialog-actions>
+</form>

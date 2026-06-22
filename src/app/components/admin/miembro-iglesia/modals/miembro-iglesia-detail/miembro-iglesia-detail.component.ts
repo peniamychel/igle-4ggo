@@ -12,6 +12,7 @@ import { Iglesia } from '../../../../../core/models/iglesia.model';
 import { MiembroIglesia } from '../../../../../core/models/miembro-iglesia.model';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ImageUrlPipe } from '../../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-miembro-iglesia-detail',
@@ -22,7 +23,8 @@ import autoTable from 'jspdf-autotable';
     MatButtonModule,
     MatExpansionModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    ImageUrlPipe
   ],
   templateUrl: './miembro-iglesia-detail.component.html',
   styleUrls: ['./miembro-iglesia-detail.component.css']

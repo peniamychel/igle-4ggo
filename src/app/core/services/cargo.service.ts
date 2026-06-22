@@ -26,6 +26,15 @@ export class CargoService {
   }
 
   /**
+   * Obtiene headers para peticiones multipart/form-data
+   * @returns headers con el token sin Content-Type
+   */
+  private getHeadersMultipart(): HttpHeaders {
+    const token = localStorage.getItem('auth_token');
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  /**
    * Obtiene todos los cargos
    * @returns lista de cargos
    */
@@ -63,10 +72,39 @@ export class CargoService {
   /**
    * Cambia el estado de un cargo
    * @param id id del cargo
-   * @returns true si se cambio el estado
+   * @param fechaFin fecha de fin opcional (formato yyyy-MM-dd)
+   * @returns true si el nuevo estado es activo, false si es inactivo
    */
-  toggleEstado(id: number): Observable<boolean> {
-    return this.http.put<boolean>(`${this.apiUrl}/estado/${id}`, {}, { headers: this.getHeaders() });
+  toggleEstado(id: number, fechaFin?: string): Observable<boolean> {
+    let url = `${this.apiUrl}/estado/${id}`;
+    if (fechaFin) {
+      url += `?fechaFin=${fechaFin}`;
+    }
+    return this.http.put<boolean>(url, {}, { headers: this.getHeaders() });
+  }
+
+  /**
+   * Sube el acta de asignación para un cargo
+   * @param id id del cargo
+   * @param file archivo a subir
+   * @returns URL del archivo subido
+   */
+  uploadActaAsignacion(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/acta-asignacion`, formData, { headers: this.getHeadersMultipart() });
+  }
+
+  /**
+   * Sube el acta de deslindación para un cargo
+   * @param id id del cargo
+   * @param file archivo a subir
+   * @returns URL del archivo subido
+   */
+  uploadActaDeslindacion(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/acta-deslindacion`, formData, { headers: this.getHeadersMultipart() });
   }
 
   /**

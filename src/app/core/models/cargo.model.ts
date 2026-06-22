@@ -11,6 +11,8 @@ export interface Cargo {
   fechaInicio: Date;
   fechaFin: Date;
   estado?: boolean;
+  uriActaAsignacion?: string;
+  uriActaDeslindacion?: string;
   createdAt?: Date;
   updatedAt?: Date;
   

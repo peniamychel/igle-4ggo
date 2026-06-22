@@ -1,6 +1,6 @@
 <h2 mat-dialog-title>
   <mat-icon class="title-icon">add_circle</mat-icon>
-  {{ hideCargoSelect ? (filterRole === 'pastor' ? 'Asignar Nuevo Pastor' : 'Asignar Nuevo Encargado') : 'Asignar Cargo' }}
+  {{ hideCargoSelect ? (filterRole === 'pastor' ? 'Designar Nuevo Pastor' : 'Designar Nuevo Encargado') : 'Designar Obrero' }}
 </h2>
 
 <form [formGroup]="cargoForm" (ngSubmit)="onSubmit()">
@@ -71,6 +71,25 @@
         <textarea matInput formControlName="detalle" rows="3" placeholder="Información adicional..."></textarea>
         <mat-error>{{ getError('detalle') }}</mat-error>
       </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <div class="file-upload-wrapper">
+        <label class="file-label">Acta de Asignación (Opcional)</label>
+        <div class="file-input-container">
+          <input type="file" id="actaAsignacionInput" (change)="onFileSelected($event)" accept="image/*,application/pdf" style="display: none;" />
+          <button mat-stroked-button type="button" class="file-select-btn" onclick="document.getElementById('actaAsignacionInput').click()">
+            <mat-icon>upload_file</mat-icon>
+            Seleccionar Acta
+          </button>
+          <span class="file-name" *ngIf="selectedFile">
+            {{ selectedFile.name }}
+            <button mat-icon-button type="button" class="file-remove-btn" (click)="removeFile()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </span>
+        </div>
+      </div>
     </div>
 
   </mat-dialog-content>

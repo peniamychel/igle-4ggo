@@ -16,7 +16,7 @@ import {MiembroService} from '../../../../core/services/miembro.service';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
-  selector: 'app-miembro-form',
+  selector: 'app-miembro-edit',
   templateUrl: './miembro-edit.component.html',
   styleUrls: ['./miembro-edit.component.css'],
   standalone: true,

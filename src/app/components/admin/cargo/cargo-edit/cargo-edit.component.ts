@@ -15,6 +15,7 @@ import { Iglesia } from '../../../../core/models/iglesia.model';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { Miembro } from '../../../../core/models/miembro.model';
 import { Cargo } from '../../../../core/models/cargo.model';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-cargo-edit',
@@ -29,7 +30,8 @@ import { Cargo } from '../../../../core/models/cargo.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    ImageUrlPipe
   ],
   templateUrl: './cargo-edit.component.html',
   styleUrls: ['./cargo-edit.component.css']
@@ -44,6 +46,7 @@ export class CargoEditComponent implements OnInit {
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
+  selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -160,10 +163,32 @@ export class CargoEditComponent implements OnInit {
   onSubmit() {
     if (this.cargoForm.valid) {
       const cargoData: Partial<Cargo> = { ...this.cargo, ...this.cargoForm.value };
-      this.cargoService.updateCargo(cargoData).subscribe(() => {
-        this.dialogRef.close(true);
+      this.cargoService.updateCargo(cargoData).subscribe({
+        next: (response: any) => {
+          const cargoId = this.cargo.id;
+          if (this.selectedFile && cargoId) {
+            this.cargoService.uploadActaAsignacion(cargoId, this.selectedFile).subscribe({
+              next: () => this.dialogRef.close(true),
+              error: () => this.dialogRef.close(true)
+            });
+          } else {
+            this.dialogRef.close(true);
+          }
+        },
+        error: () => this.dialogRef.close(false)
       });
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+    }
+  }
+
+  removeFile() {
+    this.selectedFile = null;
   }
 
   getError(controlName: string): string {

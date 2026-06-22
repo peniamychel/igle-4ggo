@@ -25,6 +25,7 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { CargoCreateComponent } from '../cargo-create/cargo-create.component';
 import { CargoDetailComponent } from '../cargo-detail/cargo-detail.component';
 import { CargoEditComponent } from '../cargo-edit/cargo-edit.component';
+import { CargoBajaDialogComponent } from '../cargo-baja-dialog/cargo-baja-dialog.component';
 import { TipoCargoListComponent } from '../../tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ActivatedRoute } from '@angular/router';
@@ -262,7 +263,7 @@ export class CargoListComponent implements OnInit {
 
   openDetailDialog(cargo: Cargo) {
     this.dialog.open(CargoDetailComponent, {
-      width: '600px',
+      width: '800px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: cargo
@@ -283,26 +284,72 @@ export class CargoListComponent implements OnInit {
 
   toggleEstado(cargo: Cargo) {
     if (cargo.id) {
-      const action = cargo.estado ? 'desactivar' : 'activar';
-      const cargoName = cargo.tipoCargoDto?.nombre || 'este cargo';
-      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        width: '400px',
-        data: {
-          title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} el cargo <strong>${cargoName}</strong>.`,
-          confirmText: cargo.estado ? 'Desactivar' : 'Activar',
-          type: 'warning'
-        }
-      });
+      if (cargo.estado) {
+        // Dar de baja - Abrir diálogo personalizado
+        const dialogRef = this.dialog.open(CargoBajaDialogComponent, {
+          width: '450px',
+          maxWidth: '95vw',
+          panelClass: 'dialog-fullscreen-mobile',
+          data: { cargo }
+        });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result && cargo.id) {
-          this.cargoService.toggleEstado(cargo.id).subscribe(newEstado => {
-            cargo.estado = newEstado;
-            this.messageSnackBar(`Cargo ${newEstado ? 'activado' : 'desactivado'}`);
-          });
-        }
-      });
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            const fechaString = result.fechaFin instanceof Date
+              ? result.fechaFin.toISOString().split('T')[0]
+              : '';
+
+            this.cargoService.toggleEstado(cargo.id!, fechaString).subscribe({
+              next: () => {
+                if (result.file) {
+                  this.cargoService.uploadActaDeslindacion(cargo.id!, result.file).subscribe({
+                    next: () => {
+                      this.messageSnackBar('Obrero dado de baja exitosamente');
+                      this.loadCargos();
+                    },
+                    error: () => {
+                      this.messageSnackBar('Baja registrada, pero hubo un error al subir el acta');
+                      this.loadCargos();
+                    }
+                  });
+                } else {
+                  this.messageSnackBar('Obrero dado de baja exitosamente');
+                  this.loadCargos();
+                }
+              },
+              error: () => {
+                this.messageSnackBar('Error al dar de baja al obrero', 'error');
+              }
+            });
+          }
+        });
+      } else {
+        // Reactivar - Confirmación simple
+        const cargoName = cargo.tipoCargoDto?.nombre || 'este cargo';
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '400px',
+          data: {
+            title: '¿Reactivar cargo del obrero?',
+            message: `Está a punto de reactivar el cargo de <strong>${cargoName}</strong>. La fecha de finalización se eliminará del historial.`,
+            confirmText: 'Reactivar',
+            type: 'warning'
+          }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result && cargo.id) {
+            this.cargoService.toggleEstado(cargo.id).subscribe({
+              next: () => {
+                this.messageSnackBar('Cargo reactivado exitosamente');
+                this.loadCargos();
+              },
+              error: () => {
+                this.messageSnackBar('Error al reactivar el cargo', 'error');
+              }
+            });
+          }
+        });
+      }
     }
   }
 

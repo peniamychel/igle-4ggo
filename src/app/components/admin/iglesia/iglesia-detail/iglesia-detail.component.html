@@ -1,11 +1,10 @@
 <div class="dialog-header">
   <div class="header-title">
-    <div class="header-foto">
-      <img *ngIf="data.uriFoto" [src]="data.uriFoto" [alt]="data.nombre" class="header-foto-img">
-      <mat-icon *ngIf="!data.uriFoto" class="header-icon">church</mat-icon>
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">church</mat-icon>
     </div>
     <div>
-      <h2 mat-dialog-title>Detalles de la Iglesia</h2>
+      <h2 mat-dialog-title>Ficha de la Iglesia</h2>
       <p class="header-subtitle">{{ data.nombre }}</p>
     </div>
   </div>
@@ -15,68 +14,233 @@
 </div>
 
 <mat-dialog-content class="dialog-content">
-  <div class="summary-card">
-    <div class="summary-item">
-      <span class="label">Nombre</span>
-      <span class="val">{{ data.nombre }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Direccion</span>
-      <span class="val">{{ data.direccion }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Telefono</span>
-      <span class="val">{{ data.telefono }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Fecha Fundacion</span>
-      <span class="val">{{ formatDate(data.fechaFundacion) }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Estado</span>
-      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
-    </div>
+  <div class="loading-spinner-wrapper" *ngIf="loadingHistory">
+    <p>Cargando información de la iglesia...</p>
   </div>
 
-  <div *ngIf="data.latitud && data.longitud" class="ubicacion-section">
-    <h3 class="section-title">Ubicación Geográfica</h3>
-    <div class="map-frame">
-      <div id="map-container-detail" class="map-container"></div>
-    </div>
-    <div class="ubicacion-footer-box">
-      <div class="coords-display">
-        <mat-icon>gps_fixed</mat-icon>
-        <div class="coords-values">
-          <div>{{ data.latitud }}</div>
-          <div>{{ data.longitud }}</div>
+  <div *ngIf="!loadingHistory">
+    <!-- Profile Summary Banner -->
+    <div class="profile-banner-card">
+      <div class="photo-section" *ngIf="data.uriFoto">
+        <div class="photo-container">
+          <img [src]="data.uriFoto | imageUrl" [alt]="data.nombre" class="profile-photo">
         </div>
       </div>
-      <a [href]="'https://www.google.com/maps/search/?api=1&query=' + data.latitud + ',' + data.longitud"
-         target="_blank" class="gmaps-link">
-        Ver en Google Maps &rarr;
-      </a>
-    </div>
-  </div>
+      <div class="photo-section" *ngIf="!data.uriFoto">
+        <div class="photo-placeholder">
+          <mat-icon style="font-size: 2.5rem; width: 40px; height: 40px;">church</mat-icon>
+        </div>
+      </div>
 
-  <h3 class="section-title">Información del Sistema</h3>
-  <div class="info-grid">
-    <div class="info-cell">
-      <mat-icon class="cell-icon">schedule</mat-icon>
-      <div class="cell-content">
-        <span class="cell-label">Creado</span>
-        <span class="cell-value">{{ data.createdAt ? formatDate(data.createdAt) : 'N/A' }}</span>
+      <div class="profile-summary-info">
+        <h3>{{ data.nombre }}</h3>
+        <div class="badges-row">
+          <span class="member-badge-ci" *ngIf="data.telefono">
+            <mat-icon class="badge-icon">phone</mat-icon>
+            {{ data.telefono }}
+          </span>
+          <span class="estado-pill" [ngClass]="data.estado ? 'activo' : 'inactivo'">
+            {{ data.estado ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
       </div>
     </div>
-    <div class="info-cell">
-      <mat-icon class="cell-icon">update</mat-icon>
-      <div class="cell-content">
-        <span class="cell-label">Última Actualizacion</span>
-        <span class="cell-value">{{ data.updatedAt ? formatDate(data.updatedAt) : 'N/A' }}</span>
-      </div>
-    </div>
+
+    <mat-tab-group class="modern-tabs" (selectedTabChange)="onTabChange($event)">
+      <!-- PESTAÑA 1: DATOS GENERALES -->
+      <mat-tab>
+        <ng-template matTabLabel>
+          <mat-icon class="tab-icon">info</mat-icon>
+          <span>Datos Generales</span>
+        </ng-template>
+        
+        <div class="tab-pane-content">
+          <div class="details-grid">
+            <!-- Columna 1: Información de la Iglesia -->
+            <div class="details-column">
+              <div class="column-title">
+                <mat-icon class="column-icon">church</mat-icon>
+                <h3>Información Principal</h3>
+              </div>
+              
+              <div class="info-list-card">
+                <div class="info-row">
+                  <span class="lbl">Nombre de la Iglesia:</span>
+                  <span class="val">{{ data.nombre }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="lbl">Dirección:</span>
+                  <span class="val">{{ data.direccion || 'Sin dirección registrada' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="lbl">Teléfono/Celular:</span>
+                  <span class="val">{{ data.telefono || 'Sin teléfono' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="lbl">Fecha de Fundación:</span>
+                  <span class="val">{{ formatDate(data.fechaFundacion) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna 2: Información del Sistema -->
+            <div class="details-column">
+              <div class="column-title">
+                <mat-icon class="column-icon">settings_system_daydream</mat-icon>
+                <h3>Auditoría de Registro</h3>
+              </div>
+              
+              <div class="info-list-card">
+                <div class="info-row">
+                  <span class="lbl">Fecha de Registro:</span>
+                  <span class="val">{{ data.createdAt ? formatDate(data.createdAt) : 'N/A' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="lbl">Última Modificación:</span>
+                  <span class="val">{{ data.updatedAt ? formatDate(data.updatedAt) : 'N/A' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="lbl">Estado Administrativo:</span>
+                  <span class="val">{{ data.estado ? 'Activo / Operando' : 'Inactivo / Cerrado' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- PESTAÑA 2: UBICACIÓN -->
+      <mat-tab *ngIf="data.latitud && data.longitud">
+        <ng-template matTabLabel>
+          <mat-icon class="tab-icon">map</mat-icon>
+          <span>Ubicación</span>
+        </ng-template>
+        
+        <div class="tab-pane-content">
+          <div class="ubicacion-section">
+            <div class="map-frame">
+              <div id="map-container-detail" class="map-container"></div>
+            </div>
+            <div class="ubicacion-footer-box">
+              <div class="coords-display">
+                <mat-icon>gps_fixed</mat-icon>
+                <div class="coords-values">
+                  <div>Latitud: {{ data.latitud }}</div>
+                  <div>Longitud: {{ data.longitud }}</div>
+                </div>
+              </div>
+              <a [href]="'https://www.google.com/maps/search/?api=1&query=' + data.latitud + ',' + data.longitud"
+                 target="_blank" class="gmaps-link">
+                Ver en Google Maps &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- PESTAÑA 3: MIEMBROS -->
+      <mat-tab>
+        <ng-template matTabLabel>
+          <mat-icon class="tab-icon">people</mat-icon>
+          <span>Membresía ({{ miembros.length }})</span>
+        </ng-template>
+        
+        <div class="tab-pane-content">
+          <div class="empty-history" *ngIf="miembros.length === 0">
+            <mat-icon class="empty-icon">people_outline</mat-icon>
+            <p>No se registran miembros activos asignados a esta iglesia.</p>
+          </div>
+
+          <div class="history-list" *ngIf="miembros.length > 0">
+            <div class="history-item-card" *ngFor="let miembro of miembros">
+              <div class="history-item-header">
+                <div class="history-item-title-row">
+                  <div class="photo-container" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-right: 10px; flex-shrink: 0;" *ngIf="miembro.uriFoto">
+                    <img [src]="miembro.uriFoto | imageUrl" style="width: 100%; height: 100%; object-fit: cover;" [alt]="miembro.nombre">
+                  </div>
+                  <div class="photo-placeholder" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color) 0%, #b031b5 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; flex-shrink: 0;" *ngIf="!miembro.uriFoto">
+                    {{ miembro.nombre.charAt(0) }}{{ miembro.apellido.charAt(0) }}
+                  </div>
+                  <div>
+                    <h4>{{ miembro.nombre }} {{ miembro.apellido }}</h4>
+                    <p class="history-item-subtitle">CI: {{ miembro.ci || 'Sin CI' }} — Celular: {{ miembro.celular || 'Sin celular' }}</p>
+                  </div>
+                </div>
+                <span class="estado-badge" [ngClass]="miembro.estado ? 'activo' : 'inactivo'">
+                  {{ miembro.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- PESTAÑA 4: OBREROS / DESIGNACIONES -->
+      <mat-tab>
+        <ng-template matTabLabel>
+          <mat-icon class="tab-icon">assignment_ind</mat-icon>
+          <span>Obreros / Cargos ({{ cargosHistory.length }})</span>
+        </ng-template>
+        
+        <div class="tab-pane-content">
+          <div class="empty-history" *ngIf="cargosHistory.length === 0">
+            <mat-icon class="empty-icon">assignment_late</mat-icon>
+            <p>No se registran asignaciones de obreros o cargos en esta iglesia.</p>
+          </div>
+
+          <div class="history-list" *ngIf="cargosHistory.length > 0">
+            <div class="history-item-card" *ngFor="let cargo of cargosHistory">
+              <div class="history-item-header">
+                <div class="history-item-title-row">
+                  <mat-icon class="item-icon">military_tech</mat-icon>
+                  <div>
+                    <h4>{{ cargo.tipoCargoDto?.nombre || 'Cargo Desconocido' }}</h4>
+                    <p class="history-item-subtitle">Obrero: <strong>{{ getMiembroNombreCompleto(cargo.miembroDto) }}</strong></p>
+                  </div>
+                </div>
+                <span class="estado-badge" [ngClass]="cargo.estado ? 'activo' : 'inactivo'">
+                  {{ cargo.estado ? 'Vigente' : 'Desvinculado' }}
+                </span>
+              </div>
+
+              <div class="history-item-body">
+                <div class="history-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Desde:</span>
+                    <span class="meta-val">{{ formatDate(cargo.fechaInicio) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Hasta:</span>
+                    <span class="meta-val">{{ cargo.fechaFin ? formatDate(cargo.fechaFin) : 'Presente (Vigente)' }}</span>
+                  </div>
+                </div>
+                <p class="history-item-detail" *ngIf="cargo.detalle">
+                  <strong>Detalles:</strong> {{ cargo.detalle }}
+                </p>
+
+                <!-- Documentos adjuntos -->
+                <div class="history-documents" *ngIf="cargo.uriActaAsignacion || cargo.uriActaDeslindacion">
+                  <span class="doc-section-title">Documentos Adjuntos:</span>
+                  <div class="doc-buttons-row">
+                    <a [href]="cargo.uriActaAsignacion | imageUrl" target="_blank" mat-stroked-button class="doc-btn" *ngIf="cargo.uriActaAsignacion">
+                      <mat-icon>assignment_turned_in</mat-icon>
+                      Acta Asignación
+                    </a>
+                    <a [href]="cargo.uriActaDeslindacion | imageUrl" target="_blank" mat-stroked-button class="doc-btn" *ngIf="cargo.uriActaDeslindacion">
+                      <mat-icon>assignment_late</mat-icon>
+                      Acta Deslindación
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  <button mat-flat-button color="primary" class="btn-close" mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>

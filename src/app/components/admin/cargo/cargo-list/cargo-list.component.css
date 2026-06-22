@@ -397,19 +397,25 @@
   flex-shrink: 0;
 }
 
+.action-btn:disabled {
+  color: #b0bec5 !important;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .view-btn:hover {
   color: var(--accent-color) !important;
   background-color: rgba(11, 133, 127, 0.08);
 }
 
-.edit-btn:hover {
+.edit-btn:hover:not([disabled]) {
   color: #ff9800 !important;
   background-color: rgba(255, 152, 0, 0.08);
 }
 
-.delete-btn:hover {
-  color: #f44336 !important;
-  background-color: rgba(244, 67, 54, 0.08);
+.desvinculacion-btn:hover:not([disabled]) {
+  color: #ff9800 !important;
+  background-color: rgba(255, 152, 0, 0.08);
 }
 
 /* Select Form Field tweaks for layout harmony */

@@ -595,3 +595,19 @@ body {
 .dark-theme .cdk-overlay-dark-backdrop {
   background: rgba(0, 0, 0, 0.5) !important;
 }
+
+/* ══════════════════════════════════════════════════
+   EXPANSION PANEL — Dark Mode & Theme Compatibility
+   ══════════════════════════════════════════════════ */
+mat-expansion-panel {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+mat-expansion-panel-header {
+  color: var(--text-primary) !important;
+}
+
+.dark-theme mat-expansion-panel-header:not([aria-disabled=true]):hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}

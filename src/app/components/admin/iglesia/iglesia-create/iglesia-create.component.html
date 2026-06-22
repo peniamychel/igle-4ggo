@@ -1,7 +1,16 @@
-<h2 mat-dialog-title>
-  <mat-icon class="title-icon">add_circle</mat-icon>
-  Crear Iglesia
-</h2>
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">add_circle</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Crear Iglesia</h2>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 <form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 

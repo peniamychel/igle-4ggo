@@ -191,6 +191,8 @@ export class IglesiaMiembroListComponent implements OnInit {
     if (iglesia) {
       const dialogRef = this.dialog.open(MiembroIglesiaFormCrearComponent, {
         width: '600px',
+        maxWidth: '95vw',
+        panelClass: 'dialog-fullscreen-mobile',
         data: { iglesia }
       });
 
@@ -222,6 +224,8 @@ export class IglesiaMiembroListComponent implements OnInit {
     if (this.selectedIglesia) {
       this.dialog.open(MiembroIglesiaDetailComponent, {
         width: '800px',
+        maxWidth: '95vw',
+        panelClass: 'dialog-fullscreen-mobile',
         data: { miembro, iglesia: this.selectedIglesia }
       });
     }
@@ -231,6 +235,8 @@ export class IglesiaMiembroListComponent implements OnInit {
     if (this.selectedIglesia) {
       const dialogRef = this.dialog.open(MiembroIglesiaFormTraspasoComponent, {
         width: '600px',
+        maxWidth: '95vw',
+        panelClass: 'dialog-fullscreen-mobile',
         data: { miembro, iglesia: this.selectedIglesia }
       });
 

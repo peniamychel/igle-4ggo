@@ -174,7 +174,7 @@ export class IglesiaListComponent implements OnInit {
    */
   openDetailDialog(iglesia: Iglesia) {
     this.dialog.open(IglesiaDetailComponent, {
-      width: '600px',
+      width: '800px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: iglesia

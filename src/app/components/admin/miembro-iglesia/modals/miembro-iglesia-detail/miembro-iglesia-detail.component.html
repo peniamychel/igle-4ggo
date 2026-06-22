@@ -12,8 +12,15 @@
   <!-- Datos del Miembro en diseño de Tarjeta Premium -->
   <div class="member-profile-card">
     <div class="profile-main">
-      <div class="profile-avatar">
-        {{data.miembro.nombre.charAt(0) || '?'}}{{data.miembro.apellido.charAt(0) || ''}}
+      <div class="photo-section" *ngIf="data.miembro.uriFoto">
+        <div class="photo-container">
+          <img [src]="data.miembro.uriFoto | imageUrl" [alt]="data.miembro.nombre" class="profile-photo">
+        </div>
+      </div>
+      <div class="photo-section" *ngIf="!data.miembro.uriFoto">
+        <div class="profile-avatar">
+          {{data.miembro.nombre.charAt(0) || '?'}}{{data.miembro.apellido.charAt(0) || ''}}
+        </div>
       </div>
       <div class="profile-details">
         <h3>{{data.miembro.nombre}} {{data.miembro.apellido}}</h3>
@@ -128,5 +135,5 @@
   <button mat-flat-button color="accent" class="btn-print" (click)="generatePDF()" style="margin-right: 8px;">
     <mat-icon>picture_as_pdf</mat-icon> Imprimir PDF
   </button>
-  <button mat-flat-button color="primary" class="btn-close" mat-dialog-close>Cerrar</button>
+  <button mat-stroked-button class="btn-close" mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>

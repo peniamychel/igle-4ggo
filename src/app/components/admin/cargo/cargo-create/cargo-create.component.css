@@ -80,3 +80,68 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
 .search-input::placeholder {
   color: var(--text-secondary);
 }
+
+/* File Upload */
+.file-upload-wrapper {
+  width: 100%;
+}
+
+.file-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.file-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.file-select-btn {
+  border: 1px dashed var(--border-color) !important;
+  border-radius: 8px !important;
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+  height: 44px !important;
+  transition: all 0.2s ease !important;
+}
+
+.file-select-btn:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background-color: rgba(127, 11, 133, 0.04) !important;
+}
+
+.file-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background-color: rgba(var(--accent-rgb), 0.08);
+  padding: 4px 8px;
+  border-radius: 6px;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-remove-btn {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+}
+
+.file-remove-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #f44336;
+}
