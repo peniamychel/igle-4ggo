@@ -4,7 +4,6 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { LoginResponse, LoginRequest } from '../../models/interfaces/auth.interface';
-import { LIVE_ANNOUNCER_DEFAULT_OPTIONS } from '@angular/cdk/a11y';
 
 @Injectable({
   providedIn: 'root'
@@ -197,8 +196,8 @@ export class AuthService {
    * @returns true si el usuario está autenticado, false en caso contrario
    */
   isAuth() {
-    const authToken = localStorage.getItem('auth_token');
-    return authToken !== null && authToken.length > 0 && !this.isTokenExpired();
+    // Delegado en isAuthenticated() para mantener una sola implementación
+    return this.isAuthenticated();
   }
 
   /**
@@ -206,9 +205,7 @@ export class AuthService {
    * @returns true si el rol del usuario es administrador, false en caso contrario
    */
   isLoggedRolAdmin() {
-    // localStorage.get('role');
     return localStorage.getItem('role') === 'ROLE_ADMIN';
-    // return localStorage.getItem(user_data[1]) === 'ROLE_ADMIN';
   }
 
   /**

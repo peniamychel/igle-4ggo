@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Iglesia, IglesiaResponse, IglesiaDetail, IglesiasResponse } from '../models/iglesia.model';
@@ -17,21 +17,12 @@ export class IglesiaService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Obtiene los headers con el token
-   * @returns headers con el token
-   */
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
-  /**
    * Obtiene todas las iglesias
    * @returns lista de iglesias
    */
   getIglesias(): Observable<ApiResponse<[Iglesia]>> {
     const url = `${this.apiUrl}/findall`;
-    return this.http.get<ApiResponse<[Iglesia]>>(url, { headers: this.getHeaders() });
+    return this.http.get<ApiResponse<[Iglesia]>>(url);
   }
 
   /**
@@ -40,7 +31,7 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   getIglesiaById(id: number): Observable<IglesiaDetail> {
-    return this.http.get<IglesiaDetail>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<IglesiaDetail>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   /**
@@ -49,7 +40,7 @@ export class IglesiaService {
    * @returns iglesia creada
    */
   createIglesia(iglesia: Iglesia): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, iglesia, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/create`, iglesia);
   }
 
   /**
@@ -58,7 +49,7 @@ export class IglesiaService {
    * @returns iglesia actualizada
    */
   updateIglesia(iglesia: Iglesia): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, iglesia, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/update`, iglesia);
   }
 
   /**
@@ -68,7 +59,7 @@ export class IglesiaService {
    */
   updateIglesia2(iglesia: Iglesia): Observable<ApiResponse<Iglesia>> {
     const url = `${this.apiUrl}/update2/${iglesia.id}`;
-    return this.http.put<ApiResponse<Iglesia>>(url, iglesia, { headers: this.getHeaders() });
+    return this.http.put<ApiResponse<Iglesia>>(url, iglesia);
   }
 
   /**
@@ -78,7 +69,7 @@ export class IglesiaService {
    */
   toggleEstado(id: number): Observable<boolean> {
     const url = `${this.apiUrl}/estado/${id}`;
-    return this.http.put<boolean>(url, {}, { headers: this.getHeaders() });
+    return this.http.put<boolean>(url, {});
   }
 
   /**
@@ -87,7 +78,7 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   buscarNombreIglesia(nameIglesia: string): Observable<Iglesia> {
-    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesia/${nameIglesia}`, { headers: this.getHeaders() });
+    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesia/${nameIglesia}`);
   }
 
   /**
@@ -97,17 +88,17 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   buscarNombreIglesiaExeptoId(nameIglesia: string, id: number): Observable<Iglesia> {
-    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesiaexceptoid/${nameIglesia}/${id}`, { headers: this.getHeaders() });
+    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesiaexceptoid/${nameIglesia}/${id}`);
   }
 
   uploadFoto(id: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${id}/foto`, formData, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/${id}/foto`, formData);
   }
 
   deleteFoto(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}/foto`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${id}/foto`);
   }
 
 }

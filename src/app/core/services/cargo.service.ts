@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Cargo, CargoResponse, CargosResponse } from '../models/cargo.model';
@@ -17,29 +17,11 @@ export class CargoService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Obtiene los headers con el token
-   * @returns headers con el token
-   */
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
-  /**
-   * Obtiene headers para peticiones multipart/form-data
-   * @returns headers con el token sin Content-Type
-   */
-  private getHeadersMultipart(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
-  /**
    * Obtiene todos los cargos
    * @returns lista de cargos
    */
   getCargos(): Observable<CargosResponse> {
-    return this.http.get<CargosResponse>(`${this.apiUrl}/findall`, { headers: this.getHeaders() });
+    return this.http.get<CargosResponse>(`${this.apiUrl}/findall`);
   }
 
   /**
@@ -48,7 +30,7 @@ export class CargoService {
    * @returns cargo encontrado
    */
   getCargoById(id: number): Observable<CargoResponse> {
-    return this.http.get<CargoResponse>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<CargoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   /**
@@ -57,7 +39,7 @@ export class CargoService {
    * @returns cargo creado
    */
   createCargo(cargo: Partial<Cargo>): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, cargo, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/create`, cargo);
   }
 
   /**
@@ -66,7 +48,7 @@ export class CargoService {
    * @returns cargo actualizado
    */
   updateCargo(cargo: Partial<Cargo>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, cargo, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/update`, cargo);
   }
 
   /**
@@ -80,7 +62,7 @@ export class CargoService {
     if (fechaFin) {
       url += `?fechaFin=${fechaFin}`;
     }
-    return this.http.put<boolean>(url, {}, { headers: this.getHeaders() });
+    return this.http.put<boolean>(url, {});
   }
 
   /**
@@ -92,7 +74,7 @@ export class CargoService {
   uploadActaAsignacion(id: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${id}/acta-asignacion`, formData, { headers: this.getHeadersMultipart() });
+    return this.http.post(`${this.apiUrl}/${id}/acta-asignacion`, formData);
   }
 
   /**
@@ -104,7 +86,7 @@ export class CargoService {
   uploadActaDeslindacion(id: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${id}/acta-deslindacion`, formData, { headers: this.getHeadersMultipart() });
+    return this.http.post(`${this.apiUrl}/${id}/acta-deslindacion`, formData);
   }
 
   /**
@@ -112,6 +94,6 @@ export class CargoService {
    * @param id id del cargo
    */
   deleteCargo(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
 }

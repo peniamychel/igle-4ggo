@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TipoEvento, TipoEventoResponse, TipoEventosResponse } from '../models/tipo-evento.model';
@@ -13,50 +13,27 @@ export class TipoEventoService {
 
   constructor(private http: HttpClient) { }
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
   getTipoEventos(): Observable<ApiResponse<TipoEvento[]>> {
-    return this.http.get<ApiResponse<TipoEvento[]>>(
-      `${this.apiUrl}/findall`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.get<ApiResponse<TipoEvento[]>>(`${this.apiUrl}/findall`);
   }
 
   getTipoEventoById(id: number): Observable<TipoEventoResponse> {
-    return this.http.get<TipoEventoResponse>(
-      `${this.apiUrl}/showbyid/${id}`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.get<TipoEventoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   createTipoEvento(tipoEvento: TipoEvento): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/create`,
-      tipoEvento,
-      { headers: this.getHeaders() }
-    );
+    return this.http.post(`${this.apiUrl}/create`, tipoEvento);
   }
 
   updateTipoEvento(tipoEvento: TipoEvento): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/update`,
-      tipoEvento,
-      { headers: this.getHeaders() }
-    );
+    return this.http.put(`${this.apiUrl}/update`, tipoEvento);
   }
 
   toggleEstado(id: number): Observable<boolean> {
-    return this.http.put<boolean>(
-      `${this.apiUrl}/estado/${id}`,
-      {},
-      { headers: this.getHeaders() }
-    );
+    return this.http.put<boolean>(`${this.apiUrl}/estado/${id}`, {});
   }
 
   deleteTipoEvento(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
 }

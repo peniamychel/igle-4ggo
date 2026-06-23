@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TipoCargo, TipoCargoResponse, TipoCargosResponse } from '../models/tipo-cargo.model';
@@ -13,20 +13,12 @@ export class TipoCargoService {
 
   constructor(private http: HttpClient) { }
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
   /**
    * Obtiene todos los tipos de cargo
    * @returns lista de tipos de cargo
    */
   getTipoCargos(): Observable<ApiResponse<TipoCargo[]>> {
-    return this.http.get<ApiResponse<TipoCargo[]>>(
-      `${this.apiUrl}/findall`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall`);
   }
 
   /**
@@ -35,10 +27,7 @@ export class TipoCargoService {
    * @returns tipo de cargo encontrado
    */
   getTipoCargoById(id: number): Observable<TipoCargoResponse> {
-    return this.http.get<TipoCargoResponse>(
-      `${this.apiUrl}/showbyid/${id}`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.get<TipoCargoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   /**
@@ -47,11 +36,7 @@ export class TipoCargoService {
    * @returns tipo de cargo creado
    */
   createTipoCargo(tipoCargo: TipoCargo): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/create`,
-      tipoCargo,
-      { headers: this.getHeaders() }
-    );
+    return this.http.post(`${this.apiUrl}/create`, tipoCargo);
   }
 
   /**
@@ -60,11 +45,7 @@ export class TipoCargoService {
    * @returns tipo de cargo actualizado
    */
   updateTipoCargo(tipoCargo: TipoCargo): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/update`,
-      tipoCargo,
-      { headers: this.getHeaders() }
-    );
+    return this.http.put(`${this.apiUrl}/update`, tipoCargo);
   }
 
   /**
@@ -73,17 +54,10 @@ export class TipoCargoService {
    * @returns true si se cambio el estado
    */
   toggleEstado(id: number): Observable<ApiResponse<TipoCargo>> {
-    return this.http.put<ApiResponse<TipoCargo>>(
-      `${this.apiUrl}/estado/${id}`,
-      {},
-      { headers: this.getHeaders() }
-    );
+    return this.http.put<ApiResponse<TipoCargo>>(`${this.apiUrl}/estado/${id}`, {});
   }
 
   deleteTipoCargo(id: number): Observable<any> {
-    return this.http.delete(
-      `${this.apiUrl}/delete/${id}`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
 }
