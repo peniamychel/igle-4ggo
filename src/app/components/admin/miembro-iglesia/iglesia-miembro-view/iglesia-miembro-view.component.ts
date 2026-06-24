@@ -187,7 +187,7 @@ export class IglesiaMiembroViewComponent implements OnInit {
 
     autoTable(doc, {
       head: [tableColumn],
-      body: tableRows,
+      body: tableRows as any,
       startY: 35
     });
 

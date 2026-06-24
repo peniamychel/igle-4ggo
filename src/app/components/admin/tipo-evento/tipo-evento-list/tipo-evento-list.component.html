@@ -11,7 +11,7 @@
           <p class="subtitle">{{ dataSource.filteredData.length }} registros</p>
         </div>
       </div>
-      <div class="header-actions">
+      <div class="header-actions" *ngIf="authService.isLoggedRolAdmin()">
         <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo tipo de evento" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>
           Nuevo Tipo
@@ -47,48 +47,27 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
         <mat-cell *matCellDef="let item" class="acciones-cell">
-          <!-- Desktop View -->
-          <div class="desktop-actions">
-            <button mat-icon-button class="action-btn edit-btn"
-                    matTooltip="Editar" matTooltipPosition="left"
-                    (click)="$event.stopPropagation(); openEditDialog(item)">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(item)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
+            </button>
+            <button mat-menu-item (click)="openEditDialog(item)">
               <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
-            <button mat-icon-button class="action-btn toggle-btn" [ngClass]="item.estado ? 'desactivar' : 'activar'"
-                    [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                    (click)="$event.stopPropagation(); toggleEstado(item)">
+            <button mat-menu-item (click)="toggleEstado(item)">
               <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+              <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
             </button>
-            <button mat-icon-button class="action-btn delete-btn"
-                    matTooltip="Eliminar" matTooltipPosition="right"
-                    (click)="$event.stopPropagation(); deleteTipoEvento(item)">
-              <mat-icon>delete</mat-icon>
+            <button mat-menu-item (click)="deleteTipoEvento(item)">
+              <mat-icon style="color: #dc3545;">delete</mat-icon>
+              <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
             </button>
-          </div>
-          <!-- Mobile View -->
-          <div class="mobile-actions">
-            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="openDetailDialog(item)">
-                <mat-icon>visibility</mat-icon>
-                <span>Ver detalle</span>
-              </button>
-              <button mat-menu-item (click)="openEditDialog(item)">
-                <mat-icon>edit</mat-icon>
-                <span>Editar</span>
-              </button>
-              <button mat-menu-item (click)="toggleEstado(item)">
-                <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
-                <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
-              </button>
-              <button mat-menu-item (click)="deleteTipoEvento(item)">
-                <mat-icon style="color: #dc3545;">delete</mat-icon>
-                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
-              </button>
-            </mat-menu>
-          </div>
+          </mat-menu>
         </mat-cell>
       </ng-container>
 

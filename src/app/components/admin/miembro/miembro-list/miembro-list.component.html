@@ -136,50 +136,27 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
         <mat-cell *matCellDef="let miembro" class="acciones-cell">
-          <!-- Desktop View -->
-          <div class="desktop-actions">
-            <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(miembro)">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(miembro)">
               <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
             </button>
-            
-            <button mat-icon-button class="action-btn transfer-btn" matTooltip="Traspasar de Iglesia" 
-                    [disabled]="!miembro.iglesiaNombre"
-                    (click)="$event.stopPropagation(); openTraspasoDialog(miembro)">
+            <button mat-menu-item [disabled]="!miembro.iglesiaNombre" (click)="openTraspasoDialog(miembro)">
               <mat-icon>swap_horiz</mat-icon>
+              <span>Traspasar</span>
             </button>
-            
-            <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar miembro" (click)="$event.stopPropagation(); openEditDialog(miembro)">
+            <button mat-menu-item (click)="openEditDialog(miembro)">
               <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
-            
-            <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar miembro" (click)="$event.stopPropagation(); deleteMiembro(miembro)">
-              <mat-icon>delete</mat-icon>
+            <button mat-menu-item (click)="deleteMiembro(miembro)">
+              <mat-icon style="color: #dc3545;">delete</mat-icon>
+              <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
             </button>
-          </div>
-          <!-- Mobile View -->
-          <div class="mobile-actions">
-            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="openDetailDialog(miembro)">
-                <mat-icon>visibility</mat-icon>
-                <span>Ver detalle</span>
-              </button>
-              <button mat-menu-item [disabled]="!miembro.iglesiaNombre" (click)="openTraspasoDialog(miembro)">
-                <mat-icon>swap_horiz</mat-icon>
-                <span>Traspasar</span>
-              </button>
-              <button mat-menu-item (click)="openEditDialog(miembro)">
-                <mat-icon>edit</mat-icon>
-                <span>Editar</span>
-              </button>
-              <button mat-menu-item (click)="deleteMiembro(miembro)">
-                <mat-icon style="color: #dc3545;">delete</mat-icon>
-                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
-              </button>
-            </mat-menu>
-          </div>
+          </mat-menu>
         </mat-cell>
       </ng-container>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -19,6 +19,7 @@ import { TipoEventoCreateComponent } from '../tipo-evento-create/tipo-evento-cre
 import { TipoEventoDetailComponent } from '../tipo-evento-detail/tipo-evento-detail.component';
 import { TipoEventoEditComponent } from '../tipo-evento-edit/tipo-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { AuthService } from '../../../../core/services/security/auth.service';
 
 @Component({
   selector: 'app-tipo-evento-list',
@@ -43,8 +44,9 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
   styleUrls: ['./tipo-evento-list.component.css']
 })
 export class TipoEventoListComponent implements OnInit {
-  displayedColumns: string[] = ['nombre', 'estado', 'acciones'];
+  displayedColumns: string[] = [];
   dataSource: MatTableDataSource<TipoEvento>;
+  public authService = inject(AuthService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -59,6 +61,8 @@ export class TipoEventoListComponent implements OnInit {
 
   ngOnInit() {
     this.loadTipoEventos();
+    const isAdmin = this.authService.isLoggedRolAdmin();
+    this.displayedColumns = isAdmin ? ['nombre', 'estado', 'acciones'] : ['nombre', 'estado'];
   }
 
   ngAfterViewInit() {

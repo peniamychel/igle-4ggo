@@ -34,8 +34,8 @@
       <div class="select-filters">
         <mat-form-field appearance="outline" class="filter-select">
           <mat-select [(value)]="selectedTipoCargoId" (selectionChange)="onFilterChange()">
-            <mat-option [value]="null">Todos los ministerios</mat-option>
-            <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
+            <mat-option value="all">Todos los ministerios</mat-option>
+            <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id?.toString()">
               {{ tipo.nombre }}
             </mat-option>
           </mat-select>
@@ -162,44 +162,23 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
         <mat-cell *matCellDef="let item" class="acciones-cell">
-          <!-- Desktop View -->
-          <div class="desktop-actions">
-            <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(item)">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(item)">
               <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
             </button>
-            <button mat-icon-button class="action-btn edit-btn" 
-                    [disabled]="!item.estado"
-                    matTooltip="Editar obrero" 
-                    (click)="$event.stopPropagation(); openEditDialog(item)">
+            <button mat-menu-item [disabled]="!item.estado" (click)="openEditDialog(item)">
               <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
-            <button mat-icon-button class="action-btn desvinculacion-btn" 
-                    [disabled]="!item.estado"
-                    matTooltip="Desvincular obrero (Dar de baja)" 
-                    (click)="$event.stopPropagation(); toggleEstado(item)">
+            <button mat-menu-item [disabled]="!item.estado" (click)="toggleEstado(item)">
               <mat-icon [style.color]="item.estado ? '#ff9800' : '#b0bec5'">person_remove</mat-icon>
+              <span [style.color]="item.estado ? '#ff9800' : '#b0bec5'" style="font-weight: 500;">Desvincular</span>
             </button>
-          </div>
-          <!-- Mobile View -->
-          <div class="mobile-actions">
-            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="openDetailDialog(item)">
-                <mat-icon>visibility</mat-icon>
-                <span>Ver detalle</span>
-              </button>
-              <button mat-menu-item [disabled]="!item.estado" (click)="openEditDialog(item)">
-                <mat-icon>edit</mat-icon>
-                <span>Editar</span>
-              </button>
-              <button mat-menu-item [disabled]="!item.estado" (click)="toggleEstado(item)">
-                <mat-icon [style.color]="item.estado ? '#ff9800' : '#b0bec5'">person_remove</mat-icon>
-                <span [style.color]="item.estado ? '#ff9800' : '#b0bec5'" style="font-weight: 500;">Desvincular</span>
-              </button>
-            </mat-menu>
-          </div>
+          </mat-menu>
         </mat-cell>
       </ng-container>
 

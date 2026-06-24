@@ -37,10 +37,18 @@ export class AuthService {
       localStorage.setItem('user_iglesias', JSON.stringify(response.iglesias));
     }
     if (response.roles) {
-      const roleAuthority = response.roles.find(r => r.authority.startsWith('ROLE_'));
-      localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : (response.roles[0]?.authority || ''));
-      const privilegios = response.roles
-        .filter(r => !r.authority.startsWith('ROLE_'))
+      // Normalizar roles para soportar tanto objetos de tipo Role como strings planos
+      const normalizedRoles = response.roles.map((r: any) => {
+        if (typeof r === 'string') {
+          return { authority: r };
+        }
+        return r;
+      });
+
+      const roleAuthority = normalizedRoles.find(r => r.authority && r.authority.startsWith('ROLE_'));
+      localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : (normalizedRoles[0]?.authority || ''));
+      const privilegios = normalizedRoles
+        .filter(r => r.authority && !r.authority.startsWith('ROLE_'))
         .map(r => r.authority);
       localStorage.setItem('privilegios', JSON.stringify(privilegios));
     }

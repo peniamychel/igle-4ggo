@@ -91,38 +91,23 @@
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
       <mat-cell *matCellDef="let iglesia" class="acciones-cell">
-        <!-- Desktop View -->
-        <div class="desktop-actions">
-          <button mat-icon-button class="action-btn view-btn" matTooltip="Ver detalle completo" (click)="$event.stopPropagation(); openDetailDialog(iglesia)">
+        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="openDetailDialog(iglesia)">
             <mat-icon>visibility</mat-icon>
+            <span>Ver detalle</span>
           </button>
-          <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar iglesia" (click)="$event.stopPropagation(); openEditDialog(iglesia)">
+          <button mat-menu-item (click)="openEditDialog(iglesia)">
             <mat-icon>edit</mat-icon>
+            <span>Editar</span>
           </button>
-          <button mat-icon-button class="action-btn delete-btn" [matTooltip]="iglesia.estado ? 'Desactivar iglesia' : 'Activar iglesia'" (click)="$event.stopPropagation(); toggleEstado(iglesia)">
+          <button mat-menu-item (click)="toggleEstado(iglesia)">
             <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
+            <span>{{iglesia.estado ? 'Desactivar' : 'Activar'}}</span>
           </button>
-        </div>
-        <!-- Mobile View -->
-        <div class="mobile-actions">
-          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="openDetailDialog(iglesia)">
-              <mat-icon>visibility</mat-icon>
-              <span>Ver detalle</span>
-            </button>
-            <button mat-menu-item (click)="openEditDialog(iglesia)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar</span>
-            </button>
-            <button mat-menu-item (click)="toggleEstado(iglesia)">
-              <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
-              <span>{{iglesia.estado ? 'Desactivar' : 'Activar'}}</span>
-            </button>
-          </mat-menu>
-        </div>
+        </mat-menu>
       </mat-cell>
     </ng-container>
 

@@ -14,6 +14,7 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { MiembroIglesiaFormTraspasoComponent } from '../modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
+import { MatMenuModule } from '@angular/material/menu';
 
 interface SolicitudExtendida {
   id: number;
@@ -41,7 +42,8 @@ interface SolicitudExtendida {
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatMenuModule
   ],
   templateUrl: './solicitud-list.component.html',
   styleUrls: ['./solicitud-list.component.css']

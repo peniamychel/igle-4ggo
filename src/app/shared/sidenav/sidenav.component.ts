@@ -153,30 +153,30 @@ export class SidenavComponent implements OnInit, OnDestroy {
    * La palabra clave se busca (contains) en cada authority del usuario.
    */
   private readonly ROUTE_PRIVILEGE_MAP: Record<string, string> = {
-    '/miembro':          'Miembros',
-    '/persona':          'Personas',
-    '/iglesia':          'Iglesias',
-    '/miembroiglesia':   'MiembroIglesia',
-    '/graficoiglesias':  'Iglesias',
-    '/tipocargo':        'Tipos de Cargo',
-    '/cargo':            'Cargos',
-    '/obreros':          'Cargos',
-    '/pastores':         'Cargos',
-    '/encargados':       'Cargos',
-    '/lideres':          'Cargos',
-    '/cambios-iglesia':  'Iglesias',
-    '/solicitudes':      'Miembros',
-    '/tipoevento':           'Eventos',
-    '/eventos':              'Eventos',
-    '/responsable-evento':   'Eventos',
-    '/participacion-evento': 'Eventos',
-    '/bautizos':             'Eventos',
-    '/talleres':             'Eventos',
-    '/tipocertificado':      'Eventos',
-    '/certificados':         'Eventos',
-    '/ofrendas':         'Ofrendas',
-    '/usuariosistema':   'usuario',
-    '/privilegios':      'Privilegios',
+    '/miembro':               'Gestionar Miembros',
+    '/persona':               'Gestionar Miembros',
+    '/iglesia':               'Gestionar Iglesias',
+    '/miembroiglesia':        'Gestionar MiembroIglesia',
+    '/graficoiglesias':       'Gestionar Iglesias',
+    '/tipocargo':             'Gestionar Obreros',
+    '/cargo':                 'Gestionar Obreros',
+    '/obreros':               'Gestionar Obreros',
+    '/pastores':              'Gestionar Obreros',
+    '/encargados':            'Gestionar Obreros',
+    '/lideres':               'Gestionar Obreros',
+    '/cambios-iglesia':       'Gestionar Iglesias',
+    '/solicitudes':           'Gestionar Miembros',
+    '/tipoevento':            'Gestionar Eventos',
+    '/eventos':               'Gestionar Eventos',
+    '/responsable-evento':    'Gestionar Eventos',
+    '/participacion-evento':  'Gestionar Eventos',
+    '/bautizos':              'Gestionar Eventos',
+    '/talleres':              'Gestionar Eventos',
+    '/tipocertificado':       'Gestionar Eventos',
+    '/certificados':          'Gestionar Eventos',
+    '/ofrendas':              'Gestionar Ofrendas',
+    '/usuariosistema':        'Gestionar Usuarios',
+    '/privilegios':           'Gestionar Privilegios',
   };
 
   /**
@@ -184,7 +184,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
    * Usa el mapa explícito ROUTE_PRIVILEGE_MAP y compara contra las
    * authorities guardadas en localStorage tras el login (provenientes del JWT).
    */
-  private hasPrivilegeForRoute(route: string | undefined, _label: string, _parentLabel: string = ''): boolean {
+  private hasPrivilegeForRoute(route: string | undefined, label: string, _parentLabel: string = ''): boolean {
     if (!route) return false;
 
     // Rutas siempre visibles para cualquier usuario autenticado
@@ -193,7 +193,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
 
     const storedPrivilegios = localStorage.getItem('privilegios');
-    if (!storedPrivilegios) return false;
+    if (!storedPrivilegios) {
+      console.log(`[Sidenav Check] No hay privilegios en localStorage para ruta: ${route} (${label})`);
+      return false;
+    }
 
     let userPrivileges: string[] = [];
     try {
@@ -203,14 +206,15 @@ export class SidenavComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const keyword = this.ROUTE_PRIVILEGE_MAP[route];
-    if (!keyword) return false;
+    const requiredPrivilege = this.ROUTE_PRIVILEGE_MAP[route];
+    if (!requiredPrivilege) {
+      console.log(`[Sidenav Check] No se requiere privilegio específico para ruta: ${route} (${label})`);
+      return false;
+    }
 
-    const normalize = (str: string) =>
-      str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-
-    const normalizedKeyword = normalize(keyword);
-    return userPrivileges.some(p => normalize(p).includes(normalizedKeyword));
+    const hasPriv = userPrivileges.includes(requiredPrivilege);
+    console.log(`[Sidenav Check] Ruta: ${route} (${label}) -> Requiere: "${requiredPrivilege}". Usuario tiene? ${hasPriv}`);
+    return hasPriv;
   }
 
   /**
@@ -261,6 +265,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
       return;
     }
     const isAdmin = this.authService.isLoggedRolAdmin();
+    console.log(`[Sidenav Update] actualizando menu. Es Admin? ${isAdmin}. Rol en localStorage: ${localStorage.getItem('role')}`);
+    console.log(`[Sidenav Update] Privilegios del usuario:`, localStorage.getItem('privilegios'));
 
     this.filteredMenuItems = this.filterMenu(this.menuItems, isAdmin);
 

@@ -197,6 +197,7 @@ h2 {
   border-radius: 50%;
   object-fit: cover;
   border: 1.5px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .placeholder-avatar {

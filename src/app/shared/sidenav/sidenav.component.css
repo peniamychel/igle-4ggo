@@ -567,3 +567,17 @@ mat-toolbar {
 .bell-active {
   color: #ff9800 !important;
 }
+
+/* Estilos para ítems de menú deshabilitados en el Sidenav */
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item[disabled="true"],
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item.mat-mdc-list-item-disabled {
+  opacity: 0.38 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  background-color: transparent !important;
+}
+
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item[disabled="true"] .mat-icon,
+::ng-deep .mat-mdc-nav-list .mat-mdc-list-item[disabled="true"] .mdc-list-item__primary-text {
+  color: var(--text-secondary) !important;
+}

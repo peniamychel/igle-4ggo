@@ -68,7 +68,7 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     { name: 'Dashboard', privilegeName: 'Ver Dashboard', icon: 'dashboard' },
     { name: 'Miembros', privilegeName: 'Gestionar Miembros', icon: 'people' },
     { name: 'Iglesias', privilegeName: 'Gestionar Iglesias', icon: 'church' },
-    { name: 'Cargos', privilegeName: 'Gestionar Cargos', icon: 'work' },
+    { name: 'Obreros', privilegeName: 'Gestionar Obreros', icon: 'work' },
     { name: 'Eventos', privilegeName: 'Gestionar Eventos', icon: 'event' },
     { name: 'Certificados', privilegeName: 'Gestionar Certificados', icon: 'workspace_premium' },
     { name: 'Ofrendas', privilegeName: 'Gestionar Ofrendas', icon: 'monetization_on' },

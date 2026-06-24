@@ -57,44 +57,23 @@
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
       <mat-cell *matCellDef="let item" class="acciones-cell">
-        <!-- Desktop View -->
-        <div class="desktop-actions">
-          <button mat-icon-button color="primary"
-                  matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
-                  (click)="$event.stopPropagation(); openEditDialog(item)">
+        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()" *ngIf="item.nombreRol !== 'ADMIN'">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="openEditDialog(item)">
             <mat-icon>edit</mat-icon>
+            <span>Editar</span>
           </button>
-          <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
-                  [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                  (click)="$event.stopPropagation(); toggleEstado(item)">
+          <button mat-menu-item (click)="toggleEstado(item)">
             <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+            <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
           </button>
-          <button mat-icon-button color="warn"
-                  matTooltip="Eliminar" matTooltipPosition="right"
-                  (click)="$event.stopPropagation(); deleteTipoCargo(item)">
-            <mat-icon>delete</mat-icon>
+          <button mat-menu-item (click)="deleteTipoCargo(item)">
+            <mat-icon style="color: #dc3545;">delete</mat-icon>
+            <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
           </button>
-        </div>
-        <!-- Mobile View -->
-        <div class="mobile-actions">
-          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="openEditDialog(item)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar</span>
-            </button>
-            <button mat-menu-item (click)="toggleEstado(item)">
-              <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-              <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
-            </button>
-            <button mat-menu-item (click)="deleteTipoCargo(item)">
-              <mat-icon style="color: #dc3545;">delete</mat-icon>
-              <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
-            </button>
-          </mat-menu>
-        </div>
+        </mat-menu>
       </mat-cell>
     </ng-container>
 

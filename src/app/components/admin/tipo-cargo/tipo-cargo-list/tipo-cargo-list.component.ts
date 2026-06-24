@@ -103,6 +103,10 @@ export class TipoCargoListComponent implements OnInit {
   }
 
   openEditDialog(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede editar el rol Administrador', 'warning');
+      return;
+    }
     const dialogRef = this.dialog.open(TipoCargoEditComponent, {
       width: '500px',
       maxWidth: '95vw',
@@ -127,7 +131,15 @@ export class TipoCargoListComponent implements OnInit {
     });
   }
 
+  isAdminRole(tipoCargo: TipoCargo): boolean {
+    return tipoCargo.nombreRol === 'ADMIN';
+  }
+
   toggleEstado(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede desactivar el rol Administrador', 'warning');
+      return;
+    }
     if (tipoCargo.id) {
       const action = tipoCargo.estado ? 'desactivar' : 'activar';
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -152,6 +164,10 @@ export class TipoCargoListComponent implements OnInit {
   }
 
   deleteTipoCargo(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede eliminar el rol Administrador', 'warning');
+      return;
+    }
     if (!tipoCargo.id) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {

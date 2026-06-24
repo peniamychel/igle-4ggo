@@ -62,57 +62,31 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
         <mat-cell *matCellDef="let item" class="acciones-cell">
-          <!-- Desktop View -->
-          <div class="desktop-actions">
-            <button mat-icon-button class="action-btn edit-btn"
-                    matTooltip="Editar" matTooltipPosition="left"
-                    (click)="$event.stopPropagation(); openEditDialog(item)">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(item)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
+            </button>
+            <button mat-menu-item (click)="openEditDialog(item)">
               <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
-            <button mat-icon-button class="action-btn pdf-btn" *ngIf="item.certificadoDto"
-                    matTooltip="Descargar Certificado PDF" matTooltipPosition="above"
-                    (click)="$event.stopPropagation(); downloadPdf(item)">
+            <button mat-menu-item *ngIf="item.certificadoDto" (click)="downloadPdf(item)">
               <mat-icon>picture_as_pdf</mat-icon>
+              <span>Certificado PDF</span>
             </button>
-            <button mat-icon-button class="action-btn toggle-btn" [ngClass]="item.estado ? 'desactivar' : 'activar'"
-                    [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                    (click)="$event.stopPropagation(); toggleEstado(item)">
-              <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+            <button mat-menu-item (click)="toggleEstado(item)">
+              <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+              <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
             </button>
-            <button mat-icon-button class="action-btn delete-btn"
-                    matTooltip="Eliminar" matTooltipPosition="right"
-                    (click)="$event.stopPropagation(); deleteParticipacion(item)">
-              <mat-icon>delete</mat-icon>
+            <button mat-menu-item (click)="deleteParticipacion(item)">
+              <mat-icon style="color: #dc3545;">delete</mat-icon>
+              <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
             </button>
-          </div>
-          <!-- Mobile View -->
-          <div class="mobile-actions">
-            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="openDetailDialog(item)">
-                <mat-icon>visibility</mat-icon>
-                <span>Ver detalle</span>
-              </button>
-              <button mat-menu-item (click)="openEditDialog(item)">
-                <mat-icon>edit</mat-icon>
-                <span>Editar</span>
-              </button>
-              <button mat-menu-item *ngIf="item.certificadoDto" (click)="downloadPdf(item)">
-                <mat-icon>picture_as_pdf</mat-icon>
-                <span>Certificado PDF</span>
-              </button>
-              <button mat-menu-item (click)="toggleEstado(item)">
-                <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
-                <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
-              </button>
-              <button mat-menu-item (click)="deleteParticipacion(item)">
-                <mat-icon style="color: #dc3545;">delete</mat-icon>
-                <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
-              </button>
-            </mat-menu>
-          </div>
+          </mat-menu>
         </mat-cell>
       </ng-container>
 

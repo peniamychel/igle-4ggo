@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -19,6 +19,7 @@ import { TipoCertificadoCreateComponent } from '../tipo-certificado-create/tipo-
 import { TipoCertificadoDetailComponent } from '../tipo-certificado-detail/tipo-certificado-detail.component';
 import { TipoCertificadoEditComponent } from '../tipo-certificado-edit/tipo-certificado-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { AuthService } from '../../../../core/services/security/auth.service';
 
 @Component({
   selector: 'app-tipo-certificado-list',
@@ -43,8 +44,9 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
   styleUrls: ['./tipo-certificado-list.component.css']
 })
 export class TipoCertificadoListComponent implements OnInit {
-  displayedColumns: string[] = ['nombre', 'fecha', 'estado', 'acciones'];
+  displayedColumns: string[] = [];
   dataSource: MatTableDataSource<TipoCertificado>;
+  public authService = inject(AuthService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -59,6 +61,8 @@ export class TipoCertificadoListComponent implements OnInit {
 
   ngOnInit() {
     this.loadTipoCertificados();
+    const isAdmin = this.authService.isLoggedRolAdmin();
+    this.displayedColumns = isAdmin ? ['nombre', 'fecha', 'estado', 'acciones'] : ['nombre', 'fecha', 'estado'];
   }
 
   ngAfterViewInit() {

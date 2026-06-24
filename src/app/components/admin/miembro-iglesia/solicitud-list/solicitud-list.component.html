@@ -74,25 +74,34 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef class="actions-header">Acciones</mat-header-cell>
         <mat-cell *matCellDef="let row" class="actions-cell">
-          <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
-          <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
-            <button mat-raised-button color="primary" class="btn-action btn-accept" (click)="aceptar(row)" matTooltip="Aceptar Traspaso">
-              <mat-icon>check</mat-icon> Aceptar
-            </button>
-            <button mat-raised-button color="warn" class="btn-action btn-reject" (click)="rechazar(row)" matTooltip="Rechazar Traspaso">
-              <mat-icon>close</mat-icon> Rechazar
-            </button>
-          </ng-container>
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
+            <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+              <button mat-menu-item (click)="aceptar(row)">
+                <mat-icon style="color: #4caf50;">check</mat-icon>
+                <span>Aceptar Traspaso</span>
+              </button>
+              <button mat-menu-item (click)="rechazar(row)">
+                <mat-icon style="color: #f44336;">close</mat-icon>
+                <span>Rechazar Traspaso</span>
+              </button>
+            </ng-container>
 
-          <!-- Solicitó el traspaso: Modificar / Cancelar -->
-          <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
-            <button mat-stroked-button color="accent" class="btn-action btn-modify" (click)="modificar(row)" matTooltip="Modificar Solicitud" style="margin-right: 8px;">
-              <mat-icon>edit</mat-icon> Modificar
-            </button>
-            <button mat-stroked-button color="warn" class="btn-action btn-cancel" (click)="cancelar(row)" matTooltip="Cancelar Solicitud">
-              <mat-icon>delete_forever</mat-icon> Cancelar
-            </button>
-          </ng-container>
+            <!-- Solicitó el traspaso: Modificar / Cancelar -->
+            <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+              <button mat-menu-item (click)="modificar(row)">
+                <mat-icon>edit</mat-icon>
+                <span>Modificar Solicitud</span>
+              </button>
+              <button mat-menu-item (click)="cancelar(row)">
+                <mat-icon style="color: #dc3545;">delete_forever</mat-icon>
+                <span style="color: #dc3545; font-weight: 500;">Cancelar Solicitud</span>
+              </button>
+            </ng-container>
+          </mat-menu>
         </mat-cell>
       </ng-container>
 

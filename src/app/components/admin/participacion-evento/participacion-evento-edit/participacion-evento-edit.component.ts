@@ -41,6 +41,7 @@ export class ParticipacionEventoEditComponent implements OnInit {
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
   certificados: Certificado[] = [];
+  filteredCertificados: Certificado[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -68,12 +69,34 @@ export class ParticipacionEventoEditComponent implements OnInit {
       this.miembros = this.data.miembros;
       this.filteredMiembros = [...this.miembros];
       this.certificados = this.data.certificados;
+
+      if (this.participacion.eventoId) {
+        this.filteredCertificados = this.certificados.filter(c => c.eventoId === this.participacion.eventoId);
+      }
+
+      this.participacionForm.get('eventoId')?.valueChanges.subscribe(eventoId => {
+        this.updateFilteredCertificados(eventoId);
+      });
+
       this.participacionForm.patchValue({
         miembroId: this.participacion.miembroId,
         eventoId: this.participacion.eventoId,
         certificadoId: this.participacion.certificadoId,
         fecha: this.participacion.fecha,
       });
+    }
+  }
+
+  updateFilteredCertificados(eventoId: number) {
+    if (eventoId) {
+      this.filteredCertificados = this.certificados.filter(c => c.eventoId === eventoId);
+    } else {
+      this.filteredCertificados = [];
+    }
+
+    const currentCertId = this.participacionForm.get('certificadoId')?.value;
+    if (currentCertId && !this.filteredCertificados.some(c => c.id === currentCertId)) {
+      this.participacionForm.get('certificadoId')?.setValue(null);
     }
   }
 

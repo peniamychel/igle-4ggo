@@ -47,10 +47,10 @@
 
 /* ── Actions Column ── */
 .table-container .mat-column-acciones {
-  flex: 0 0 180px !important;
-  width: 180px !important;
-  min-width: 180px !important;
-  max-width: 180px !important;
+  flex: 0 0 80px !important;
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
   justify-content: center !important;
   text-align: center;
 }
@@ -137,17 +137,5 @@
 @media (max-width: 768px) {
   .table-container {
     border-radius: 12px;
-  }
-  .desktop-actions {
-    display: none !important;
-  }
-  .mobile-actions {
-    display: block !important;
-  }
-  .table-container .mat-column-acciones {
-    flex: 0 0 60px !important;
-    width: 60px !important;
-    min-width: 60px !important;
-    max-width: 60px !important;
   }
 }

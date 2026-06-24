@@ -63,7 +63,7 @@ export class CargoListComponent implements OnInit {
   iglesias: Iglesia[] = [];
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
-  selectedTipoCargoId: number | null = null;
+  selectedTipoCargoId: string = 'all';
   allCargos: Cargo[] = [];
 
   // Métricas para el Dashboard
@@ -185,8 +185,9 @@ export class CargoListComponent implements OnInit {
   }
 
   applyLocalFilters() {
-    if (this.selectedTipoCargoId !== null && this.selectedTipoCargoId !== undefined) {
-      this.dataSource.data = this.allCargos.filter(cargo => cargo.rolCargoId === this.selectedTipoCargoId);
+    if (this.selectedTipoCargoId !== 'all') {
+      const targetId = Number(this.selectedTipoCargoId);
+      this.dataSource.data = this.allCargos.filter(cargo => cargo.rolCargoId === targetId);
     } else {
       this.dataSource.data = this.allCargos;
     }

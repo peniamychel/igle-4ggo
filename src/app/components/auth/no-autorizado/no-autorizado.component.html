@@ -1,0 +1,23 @@
+<div class="unauthorized-container">
+  <mat-card class="unauthorized-card">
+    <mat-card-content class="unauthorized-content">
+      <div class="icon-wrapper">
+        <mat-icon class="unauthorized-icon">gavel</mat-icon>
+      </div>
+      
+      <h1 id="unauthorized-title" class="unauthorized-title">Acceso Restringido</h1>
+      
+      <p class="unauthorized-description">
+        No tienes los privilegios o permisos necesarios para acceder a esta sección del sistema. 
+        Si crees que esto es un error, por favor contacta al administrador de la iglesia.
+      </p>
+
+      <div class="actions-wrapper">
+        <button mat-fab extended color="primary" id="btn-back-home" (click)="irAlInicio()" class="btn-home">
+          <mat-icon>home</mat-icon>
+          Ir al Inicio
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

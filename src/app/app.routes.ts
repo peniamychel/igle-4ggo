@@ -26,6 +26,7 @@ import { LoginPageComponent } from './components/auth/login-page/login-page.comp
 
 import { SolicitudListComponent } from './components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
 import { MiIglesiaComponent } from './components/admin/mi-iglesia/mi-iglesia.component';
+import { NoAutorizadoComponent } from './components/auth/no-autorizado/no-autorizado.component';
 
 export const routes: Routes = [
   {
@@ -42,6 +43,11 @@ export const routes: Routes = [
         path: 'inicio',
         component: DashboardComponent,
         title: 'Inicio',
+      },
+      {
+        path: 'no-autorizado',
+        component: NoAutorizadoComponent,
+        title: 'Acceso Restringido',
       },
       {
         path: 'miembro',
