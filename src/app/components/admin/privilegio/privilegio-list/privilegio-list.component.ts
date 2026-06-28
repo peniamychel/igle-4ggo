@@ -15,6 +15,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
+import { forkJoin } from 'rxjs';
 import { PrivilegioService } from '../../../../core/services/privilegio.service';
 import { PrivilegioDto, PrivilegioResponse } from '../../../../core/models/interfaces/privilegio.interface';
 import { PrivilegioCreateComponent } from '../privilegio-create/privilegio-create.component';
@@ -23,6 +24,7 @@ import { PrivilegioEditComponent } from '../privilegio-edit/privilegio-edit.comp
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-privilegio-list',
@@ -43,7 +45,8 @@ import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
     MatChipsModule,
     MatButtonToggleModule,
     MatDividerModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './privilegio-list.component.html',
   styleUrls: ['./privilegio-list.component.css']
@@ -56,6 +59,46 @@ export class PrivilegioListComponent implements OnInit {
   selectedRolCargoId: number | null = null;
   privilegiosPorRol: PrivilegioResponse[] = [];
   todosPrivilegios: PrivilegioDto[] = [];
+  privilegiosPorRolMap: Record<number, number[]> = {};
+
+  privilegeGroups = [
+    {
+      categoryName: 'Operación de Membresía',
+      icon: 'people',
+      description: 'Gestión de personas, fichas de miembros y traslados de filiales.',
+      privilegeNames: ['Ver Miembros', 'Escribir Miembros', 'Ver MiembroIglesia', 'Escribir MiembroIglesia', 'Ver Iglesias', 'Escribir Iglesias']
+    },
+    {
+      categoryName: 'Obreros y Ministerios',
+      icon: 'work',
+      description: 'Asignación de cargos históricos y responsabilidades de liderazgo.',
+      privilegeNames: ['Ver Cargos', 'Escribir Cargos']
+    },
+    {
+      categoryName: 'Eventos y Bautizos',
+      icon: 'event',
+      description: 'Calendario de eventos anuales, bautizos, talleres y participación.',
+      privilegeNames: ['Ver Eventos', 'Escribir Eventos']
+    },
+    {
+      categoryName: 'Certificaciones con QR',
+      icon: 'workspace_premium',
+      description: 'Emisión de certificados de bautismo y dedicaciones con validación QR.',
+      privilegeNames: ['Ver Certificados', 'Escribir Certificados']
+    },
+    {
+      categoryName: 'Configuración y Usuarios',
+      icon: 'security',
+      description: 'Cuentas de usuario del sistema y configuración de privilegios.',
+      privilegeNames: ['Ver Usuarios', 'Escribir Usuarios', 'Ver Privilegios', 'Escribir Privilegios']
+    },
+    {
+      categoryName: 'Auditoría y Consulta',
+      icon: 'history',
+      description: 'Visualización de reportes, bitácora de auditoría y finanzas.',
+      privilegeNames: ['Ver Dashboard', 'Ver Reportes', 'Ver Bitácora', 'Ver Ofrendas', 'Ver Ayuda']
+    }
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -95,6 +138,15 @@ export class PrivilegioListComponent implements OnInit {
   loadRoles() {
     this.tipoCargoService.getTipoCargos().subscribe(res => {
       this.rolesDisponibles = res.datos || [];
+      
+      this.rolesDisponibles.forEach(role => {
+        if (role.id) {
+          this.privilegioService.getPrivilegiosByRolCargo(role.id).subscribe(data => {
+            this.privilegiosPorRolMap[role.id!] = data.map(p => p.id).filter((id): id is number => id !== undefined);
+          });
+        }
+      });
+
       if (this.rolesDisponibles.length > 0) {
         const adminRole = this.rolesDisponibles.find(r => r.nombreRol === 'ADMIN');
         this.selectedRolCargoId = adminRole ? adminRole.id! : this.rolesDisponibles[0].id!;
@@ -227,6 +279,73 @@ export class PrivilegioListComponent implements OnInit {
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
       panelClass: [panelClass]
+    });
+  }
+
+  getRolePrivilegesPercentage(roleId: number): number {
+    if (this.todosPrivilegios.length === 0) return 0;
+    const assigned = this.privilegiosPorRolMap[roleId] || [];
+    return Math.round((assigned.length / this.todosPrivilegios.length) * 100);
+  }
+
+  hasPrivilege(roleId: number, privilegeName: string): boolean {
+    const assignedIds = this.privilegiosPorRolMap[roleId] || [];
+    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
+    return !!(priv && priv.id && assignedIds.includes(priv.id));
+  }
+
+  togglePrivilege(roleId: number, privilegeName: string) {
+    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
+    if (!priv || !priv.id) return;
+    const privId = priv.id;
+    
+    const assignedIds = this.privilegiosPorRolMap[roleId] || [];
+    const hasIt = assignedIds.includes(privId);
+    
+    if (hasIt) {
+      this.privilegioService.removePrivilegioFromRolCargo(roleId, privId).subscribe(() => {
+        this.privilegiosPorRolMap[roleId] = assignedIds.filter(id => id !== privId);
+        this.loadPrivilegiosPorRol();
+        this.messageSnackBar('Privilegio removido con éxito');
+      });
+    } else {
+      this.privilegioService.addPrivilegioToRolCargo(roleId, privId).subscribe(() => {
+        this.privilegiosPorRolMap[roleId] = [...assignedIds, privId];
+        this.loadPrivilegiosPorRol();
+        this.messageSnackBar('Privilegio asignado con éxito');
+      });
+    }
+  }
+
+  hasAllCategoryPrivileges(roleId: number, category: any): boolean {
+    return category.privilegeNames.every((pName: string) => this.hasPrivilege(roleId, pName));
+  }
+
+  toggleCategoryPrivileges(roleId: number, category: any) {
+    const allActive = this.hasAllCategoryPrivileges(roleId, category);
+    const requests = category.privilegeNames.map((pName: string) => {
+      const priv = this.todosPrivilegios.find(p => p.nombre === pName);
+      if (!priv || !priv.id) return null;
+      
+      const assignedIds = this.privilegiosPorRolMap[roleId] || [];
+      const hasIt = assignedIds.includes(priv.id);
+      
+      if (allActive && hasIt) {
+        return this.privilegioService.removePrivilegioFromRolCargo(roleId, priv.id);
+      } else if (!allActive && !hasIt) {
+        return this.privilegioService.addPrivilegioToRolCargo(roleId, priv.id);
+      }
+      return null;
+    }).filter((r: any) => r !== null);
+
+    if (requests.length === 0) return;
+
+    forkJoin(requests).subscribe(() => {
+      this.privilegioService.getPrivilegiosByRolCargo(roleId).subscribe(data => {
+        this.privilegiosPorRolMap[roleId] = data.map(p => p.id).filter((id): id is number => id !== undefined);
+        this.loadPrivilegiosPorRol();
+        this.messageSnackBar('Categoría de privilegios actualizada');
+      });
     });
   }
 }

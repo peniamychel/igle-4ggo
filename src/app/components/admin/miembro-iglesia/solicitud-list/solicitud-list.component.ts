@@ -15,6 +15,7 @@ import { Iglesia } from '../../../../core/models/iglesia.model';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { MiembroIglesiaFormTraspasoComponent } from '../modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
 import { MatMenuModule } from '@angular/material/menu';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 interface SolicitudExtendida {
   id: number;
@@ -43,7 +44,8 @@ interface SolicitudExtendida {
     MatIconModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './solicitud-list.component.html',
   styleUrls: ['./solicitud-list.component.css']

@@ -14,6 +14,17 @@
         </div>
       </div>
       <div class="header-actions">
+        <button mat-stroked-button class="btn-download-template" matTooltip="Descargar plantilla de importación Excel" (click)="descargarPlantilla()" *appHasPrivilegio="'Escribir Miembros'">
+          <mat-icon>table_view</mat-icon>
+          Plantilla Excel
+        </button>
+        
+        <input type="file" #excelInput style="display: none;" accept=".xlsx, .xls" (change)="importarExcel($event)">
+        <button mat-stroked-button class="btn-import-excel" matTooltip="Importar miembros desde Excel" (click)="excelInput.click()" *appHasPrivilegio="'Escribir Miembros'">
+          <mat-icon>upload_file</mat-icon>
+          Importar Excel
+        </button>
+
         <button mat-stroked-button class="btn-pdf-director" matTooltip="Descargar Directorio Completo en PDF" (click)="generateDirectorPdf()">
           <mat-icon>download</mat-icon>
           Directorio PDF
@@ -22,11 +33,12 @@
           <mat-icon>card_membership</mat-icon>
           Carnets PDF
         </button>
-        <button mat-flat-button class="btn-new-member" matTooltip="Crear un nuevo miembro" (click)="openCreateDialog()">
+        <button mat-flat-button class="btn-new-member" matTooltip="Crear un nuevo miembro" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Miembros'">
           <mat-icon>add</mat-icon>
           Nuevo Miembro
         </button>
       </div>
+
     </div>
   
     <!-- Barra de Filtros y Búsqueda -->
@@ -144,15 +156,15 @@
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
             </button>
-            <button mat-menu-item [disabled]="!miembro.iglesiaNombre" (click)="openTraspasoDialog(miembro)">
+            <button mat-menu-item [disabled]="!miembro.iglesiaNombre" (click)="openTraspasoDialog(miembro)" *appHasPrivilegio="'Escribir Miembros'">
               <mat-icon>swap_horiz</mat-icon>
               <span>Traspasar</span>
             </button>
-            <button mat-menu-item (click)="openEditDialog(miembro)">
+            <button mat-menu-item (click)="openEditDialog(miembro)" *appHasPrivilegio="'Escribir Miembros'">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>
             </button>
-            <button mat-menu-item (click)="deleteMiembro(miembro)">
+            <button mat-menu-item (click)="deleteMiembro(miembro)" *appHasPrivilegio="'Escribir Miembros'">
               <mat-icon style="color: #dc3545;">delete</mat-icon>
               <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
             </button>

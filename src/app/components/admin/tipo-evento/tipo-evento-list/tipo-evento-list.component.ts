@@ -20,6 +20,7 @@ import { TipoEventoDetailComponent } from '../tipo-evento-detail/tipo-evento-det
 import { TipoEventoEditComponent } from '../tipo-evento-edit/tipo-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../../core/services/security/auth.service';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-tipo-evento-list',
@@ -38,7 +39,8 @@ import { AuthService } from '../../../../core/services/security/auth.service';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './tipo-evento-list.component.html',
   styleUrls: ['./tipo-evento-list.component.css']

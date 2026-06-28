@@ -50,14 +50,7 @@ export class UserService {
    * @param user usuario a actualizar
    * @returns usuario actualizado
    */
-  updateUser(user: {
-    apellidos: any;
-    name: string;
-    id: number | undefined;
-    email: any;
-    username: any;
-    miembroId?: number;
-  }): Observable<User> {
+  updateUser(user: UpdateUserDto): Observable<User> {
     return this.http.put<User>(`${this.API_URL}/update`, user);
   }
 

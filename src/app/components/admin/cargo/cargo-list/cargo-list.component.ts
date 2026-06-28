@@ -31,6 +31,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-cargo-list',
@@ -51,7 +52,8 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
     MatChipsModule,
     MatSelectModule,
     MatMenuModule,
-    ImageUrlPipe
+    ImageUrlPipe,
+    HasPrivilegioDirective
   ],
   templateUrl: './cargo-list.component.html',
   styleUrls: ['./cargo-list.component.css']
@@ -225,12 +227,11 @@ export class CargoListComponent implements OnInit {
       width: '600px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
-      data: {
-        iglesias: this.iglesias,
-        tiposCargo: this.tiposCargo,
-        miembros: this.miembros,
-        filterRole: ''
-      }
+        data: {
+          iglesias: this.iglesias,
+          tiposCargo: this.tiposCargo,
+          miembros: this.miembros
+        }
     });
 
     dialogRef.afterClosed().subscribe(result => {

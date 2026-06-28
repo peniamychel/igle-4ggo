@@ -17,7 +17,7 @@
           <mat-icon>church</mat-icon>
           Tipos Ministerios
         </button>
-        <button mat-flat-button class="btn-new-member" (click)="openCreateDialog()">
+        <button mat-flat-button class="btn-new-member" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Cargos'">
           <mat-icon>add</mat-icon>
           Designar Obrero
         </button>
@@ -170,11 +170,11 @@
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
             </button>
-            <button mat-menu-item [disabled]="!item.estado" (click)="openEditDialog(item)">
+            <button mat-menu-item [disabled]="!item.estado" (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Cargos'">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>
             </button>
-            <button mat-menu-item [disabled]="!item.estado" (click)="toggleEstado(item)">
+            <button mat-menu-item [disabled]="!item.estado" (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Cargos'">
               <mat-icon [style.color]="item.estado ? '#ff9800' : '#b0bec5'">person_remove</mat-icon>
               <span [style.color]="item.estado ? '#ff9800' : '#b0bec5'" style="font-weight: 500;">Desvincular</span>
             </button>

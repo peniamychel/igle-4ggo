@@ -44,6 +44,33 @@ export class LoginPageComponent {
 
   isDarkMode = this.themeService.isDarkMode;
 
+  demoAccounts = [
+    {
+      username: 'admin',
+      password: '123456',
+      title: 'Administrador',
+      subtitle: 'Superusuario · Acceso total',
+      icon: 'security',
+      badge: 'admin'
+    },
+    {
+      username: 'romina',
+      password: '123456',
+      title: 'Pastora Romina',
+      subtitle: 'Pastor · Acceso Iglesias',
+      icon: 'church',
+      badge: 'romina'
+    },
+    {
+      username: 'marcelo',
+      password: '123456',
+      title: 'Pastor Marcelo',
+      subtitle: 'Pastor · Acceso Eventos',
+      icon: 'church',
+      badge: 'marcelo'
+    }
+  ];
+
   toggleTheme(): void {
     this.themeService.toggleTheme();
   }
@@ -77,6 +104,15 @@ export class LoginPageComponent {
         }
       });
     }
+  }
+
+  loginWithDemo(account: any): void {
+    if (this.loading) return;
+    this.loginForm.patchValue({
+      username: account.username,
+      password: account.password
+    });
+    this.onSubmit();
   }
 
   onSelectIglesia(iglesiaId: number): void {

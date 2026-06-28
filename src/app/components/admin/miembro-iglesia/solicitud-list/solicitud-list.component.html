@@ -80,11 +80,11 @@
           <mat-menu #menu="matMenu">
             <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
             <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
-              <button mat-menu-item (click)="aceptar(row)">
+              <button mat-menu-item (click)="aceptar(row)" *appHasPrivilegio="'Escribir MiembroIglesia'">
                 <mat-icon style="color: #4caf50;">check</mat-icon>
                 <span>Aceptar Traspaso</span>
               </button>
-              <button mat-menu-item (click)="rechazar(row)">
+              <button mat-menu-item (click)="rechazar(row)" *appHasPrivilegio="'Escribir MiembroIglesia'">
                 <mat-icon style="color: #f44336;">close</mat-icon>
                 <span>Rechazar Traspaso</span>
               </button>
@@ -92,11 +92,11 @@
 
             <!-- Solicitó el traspaso: Modificar / Cancelar -->
             <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
-              <button mat-menu-item (click)="modificar(row)">
+              <button mat-menu-item (click)="modificar(row)" *appHasPrivilegio="'Escribir MiembroIglesia'">
                 <mat-icon>edit</mat-icon>
                 <span>Modificar Solicitud</span>
               </button>
-              <button mat-menu-item (click)="cancelar(row)">
+              <button mat-menu-item (click)="cancelar(row)" *appHasPrivilegio="'Escribir MiembroIglesia'">
                 <mat-icon style="color: #dc3545;">delete_forever</mat-icon>
                 <span style="color: #dc3545; font-weight: 500;">Cancelar Solicitud</span>
               </button>

@@ -24,9 +24,11 @@ import { EventoDetailComponent } from '../evento-detail/evento-detail.component'
 import { EventoEditComponent } from '../evento-edit/evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { TipoEventoListComponent } from '../../tipo-evento/tipo-evento-list/tipo-evento-list.component';
 import { ResponsableEventoListComponent } from '../../responsable-evento/responsable-evento-list/responsable-evento-list.component';
 import { ParticipacionEventoListComponent } from '../../participacion-evento/participacion-evento-list/participacion-evento-list.component';
+import { EventoCalendarioComponent } from '../evento-calendario/evento-calendario.component';
 
 @Component({
   selector: 'app-evento-list',
@@ -48,9 +50,11 @@ import { ParticipacionEventoListComponent } from '../../participacion-evento/par
     MatTabsModule,
     MatSelectModule,
     MatMenuModule,
+    HasPrivilegioDirective,
     TipoEventoListComponent,
     ResponsableEventoListComponent,
-    ParticipacionEventoListComponent
+    ParticipacionEventoListComponent,
+    EventoCalendarioComponent
   ],
   templateUrl: './evento-list.component.html',
   styleUrls: ['./evento-list.component.css']

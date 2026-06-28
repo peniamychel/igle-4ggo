@@ -3,6 +3,7 @@ import { TipoEvento } from './tipo-evento.model';
 export interface Evento {
   id?: number;
   tipoEventoId: number;
+  iglesiaId?: number;
   nombre: string;
   motivo: string;
   uriFoto: string | null;
@@ -10,6 +11,8 @@ export interface Evento {
   fechaInicio: string;
   fechaFin: string;
   estado?: boolean;
+  alcance?: string;
+  mostrarEnCalendario?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 

@@ -22,6 +22,7 @@ import { ImageUrlPipe } from '../pipes/image-url.pipe';
 import { SolicitudListComponent } from '../../components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
 import { Subscription, interval } from 'rxjs';
 import { startWith } from 'rxjs/operators';
+import { ROUTE_VIEW_MAP } from '../../core/constants/privilegios.constants';
 
 
 export interface MenuItem {
@@ -103,7 +104,6 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   filteredMenuItems: MenuItem[] = [];
 
-
   menuItems: MenuItem[] = [
     { label: 'Inicio', route: '/inicio', icon: 'home' },
     {
@@ -111,28 +111,15 @@ export class SidenavComponent implements OnInit, OnDestroy {
       route: '/obreros',
       icon: 'work'
     },
-    {
-      label: 'Miembros',
-      icon: 'people',
-      children: [
-        { label: 'Lista Miembros', route: '/miembro', icon: 'list' },
-        { label: 'Cambios iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
-        { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' }
-      ]
-    },
+    { label: 'Miembros', route: '/miembro', icon: 'people' },
+    { label: 'Cambios iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
+    { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' },
     { label: 'Mi Iglesia', route: '/mi-iglesia', icon: 'church', nonAdminOnly: true },
-    {
-      label: 'Iglesias',
-      icon: 'church',
-      children: [
-        { label: 'Lista Iglesias', route: '/iglesia', icon: 'list' },
-        { label: 'Iglesia Miembros', route: '/miembroiglesia', icon: 'recent_actors' },
-        { label: 'Iglesia Grafico', route: '/graficoiglesias', icon: 'bar_chart' }
-      ]
-    },
+    { label: 'Iglesias', route: '/iglesia', icon: 'church' },
     { label: 'Eventos', route: '/eventos', icon: 'event' },
     { label: 'Certificados', route: '/certificados', icon: 'workspace_premium' },
     { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
+    { label: 'Inventario', route: '/activos', icon: 'inventory_2' },
     {
       label: 'Administración',
       icon: 'admin_panel_settings',
@@ -141,6 +128,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
         { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' }
       ]
     },
+
     { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
     { label: 'Configuración', route: '/configuracion', icon: 'settings' }
   ];
@@ -148,73 +136,42 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Mapa explícito de ruta → palabra clave del privilegio en el JWT.
-   * Los privilegios del JWT tienen el formato "Gestionar X" o "Ver X".
-   * La palabra clave se busca (contains) en cada authority del usuario.
+   * Determina si el usuario tiene el privilegio de VISUALIZACIÓN necesario para
+   * que un ítem de menú sea visible.
+   *
+   * Delega en el mapa único {@link ROUTE_VIEW_MAP} y en
+   * {@link AuthService.hasPrivilegio}, de modo que menú y `privilegioGuard`
+   * consultan exactamente la misma fuente y nunca se contradicen.
+   *
+   * Reglas:
+   *  - Rutas siempre visibles para autenticados (`/`, `/inicio`, `/mi-iglesia`,
+   *    `/perfil`, `/configuracion`) → `true`.
+   *  - Rutas no listadas en el mapa → `false` (no se muestra el ítem salvo
+   *    decisión explícita del `filterMenu`).
+   *  - Rutas listadas → exige el privilegio `Ver <Entidad>` correspondiente.
    */
-  private readonly ROUTE_PRIVILEGE_MAP: Record<string, string> = {
-    '/miembro':               'Gestionar Miembros',
-    '/persona':               'Gestionar Miembros',
-    '/iglesia':               'Gestionar Iglesias',
-    '/miembroiglesia':        'Gestionar MiembroIglesia',
-    '/graficoiglesias':       'Gestionar Iglesias',
-    '/tipocargo':             'Gestionar Obreros',
-    '/cargo':                 'Gestionar Obreros',
-    '/obreros':               'Gestionar Obreros',
-    '/pastores':              'Gestionar Obreros',
-    '/encargados':            'Gestionar Obreros',
-    '/lideres':               'Gestionar Obreros',
-    '/cambios-iglesia':       'Gestionar Iglesias',
-    '/solicitudes':           'Gestionar Miembros',
-    '/tipoevento':            'Gestionar Eventos',
-    '/eventos':               'Gestionar Eventos',
-    '/responsable-evento':    'Gestionar Eventos',
-    '/participacion-evento':  'Gestionar Eventos',
-    '/bautizos':              'Gestionar Eventos',
-    '/talleres':              'Gestionar Eventos',
-    '/tipocertificado':       'Gestionar Eventos',
-    '/certificados':          'Gestionar Eventos',
-    '/ofrendas':              'Gestionar Ofrendas',
-    '/usuariosistema':        'Gestionar Usuarios',
-    '/privilegios':           'Gestionar Privilegios',
-  };
-
-  /**
-   * Determina si el usuario tiene el privilegio necesario para una ruta.
-   * Usa el mapa explícito ROUTE_PRIVILEGE_MAP y compara contra las
-   * authorities guardadas en localStorage tras el login (provenientes del JWT).
-   */
-  private hasPrivilegeForRoute(route: string | undefined, label: string, _parentLabel: string = ''): boolean {
+  private hasPrivilegeForRoute(route: string | undefined): boolean {
     if (!route) return false;
 
-    // Rutas siempre visibles para cualquier usuario autenticado
-    if (route === '/' || route === '/inicio' || route === '/mi-iglesia' || route === '/perfil' || route === '/configuracion') {
+    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
+    if (isPastor && (route === '/cambios-iglesia' || route === '/solicitudes' || route === '/colaboradores')) {
       return true;
     }
 
-    const storedPrivilegios = localStorage.getItem('privilegios');
-    if (!storedPrivilegios) {
-      console.log(`[Sidenav Check] No hay privilegios en localStorage para ruta: ${route} (${label})`);
-      return false;
+    // Rutas siempre visibles para cualquier usuario autenticado.
+    if (route === '/' || route === '/inicio' || route === '/mi-iglesia'
+        || route === '/perfil' || route === '/configuracion') {
+      return true;
     }
 
-    let userPrivileges: string[] = [];
-    try {
-      userPrivileges = JSON.parse(storedPrivilegios);
-    } catch (e) {
-      console.error('Error al parsear privilegios del localStorage', e);
+    // El mapa usa la ruta SIN barra inicial.
+    const key = route.startsWith('/') ? route.slice(1) : route;
+    const requerido = ROUTE_VIEW_MAP[key];
+    if (!requerido) {
+      // Ruta no controlada por privilegio: no mostrar (defensivo).
       return false;
     }
-
-    const requiredPrivilege = this.ROUTE_PRIVILEGE_MAP[route];
-    if (!requiredPrivilege) {
-      console.log(`[Sidenav Check] No se requiere privilegio específico para ruta: ${route} (${label})`);
-      return false;
-    }
-
-    const hasPriv = userPrivileges.includes(requiredPrivilege);
-    console.log(`[Sidenav Check] Ruta: ${route} (${label}) -> Requiere: "${requiredPrivilege}". Usuario tiene? ${hasPriv}`);
-    return hasPriv;
+    return this.authService.hasPrivilegio(requerido);
   }
 
   /**
@@ -229,6 +186,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
    * @param parentLabel Nombre del menú padre actual (para contexto).
    */
   private filterMenu(items: MenuItem[], isAdmin: boolean, parentLabel: string = ''): MenuItem[] {
+    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
+
     return items
       .map(item => {
         if (item.children) {
@@ -238,6 +197,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
         return item;
       })
       .filter(item => {
+        // Hide entire Iglesia section/list for pastor
+        if (isPastor && (item.label === 'Iglesias' || item.route === '/iglesia')) {
+          return false;
+        }
+
         // Ocultar grupos/ítems marcados como adminOnly para no-admins
         if (item.adminOnly && !isAdmin) return false;
 
@@ -250,7 +214,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
         // Admin ve todo
         if (isAdmin) return true;
 
-        return this.hasPrivilegeForRoute(item.route, item.label, parentLabel);
+        return this.hasPrivilegeForRoute(item.route);
       });
   }
 
@@ -265,10 +229,28 @@ export class SidenavComponent implements OnInit, OnDestroy {
       return;
     }
     const isAdmin = this.authService.isLoggedRolAdmin();
-    console.log(`[Sidenav Update] actualizando menu. Es Admin? ${isAdmin}. Rol en localStorage: ${localStorage.getItem('role')}`);
-    console.log(`[Sidenav Update] Privilegios del usuario:`, localStorage.getItem('privilegios'));
+    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
+    let activeMenu = [...this.menuItems];
 
-    this.filteredMenuItems = this.filterMenu(this.menuItems, isAdmin);
+    if (isPastor) {
+      activeMenu = activeMenu.reduce((acc: MenuItem[], item) => {
+        if (item.route === '/miembro') {
+          // Omitir Miembros para pastor
+        } else if (item.label === 'Obreros') {
+          // Reemplazar "Obreros" por "Colaboradores"
+          acc.push({
+            label: 'Colaboradores',
+            route: '/colaboradores',
+            icon: 'people'
+          });
+        } else {
+          acc.push(item);
+        }
+        return acc;
+      }, []);
+    }
+
+    this.filteredMenuItems = this.filterMenu(activeMenu, isAdmin);
 
     // Restaurar estado de los menús
     const savedState = sessionStorage.getItem('expandedMenus');
@@ -504,7 +486,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     if (!this.isAuthenticated) return false;
     const isAdmin = this.authService.isLoggedRolAdmin();
     if (isAdmin) return true;
-    return this.hasPrivilegeForRoute('/solicitudes', 'Solicitudes');
+    return this.hasPrivilegeForRoute('/solicitudes');
   }
 
   openSolicitudesModal(): void {

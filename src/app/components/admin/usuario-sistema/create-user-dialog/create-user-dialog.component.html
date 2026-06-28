@@ -3,7 +3,7 @@
     <mat-icon class="header-icon">person_add</mat-icon>
     <div>
       <h2 mat-dialog-title>Crear Nuevo Usuario</h2>
-      <p class="header-subtitle">Complete los datos del nuevo usuario del sistema</p>
+      <p class="header-subtitle">Asigne los datos personales y privilegios individuales del usuario</p>
     </div>
   </div>
   <button mat-icon-button mat-dialog-close class="close-btn">
@@ -14,81 +14,133 @@
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
     
-    <!-- Selección de Miembro -->
-    <mat-form-field appearance="outline" class="w-100">
-      <mat-label>Seleccionar Miembro</mat-label>
-      <mat-select formControlName="miembroId" placeholder="Seleccione un miembro de la iglesia">
-        @for (miembro of miembros; track miembro.id) {
-          <mat-option [value]="miembro.id">
-            {{ miembro.nombre }} {{ miembro.apellido }} (CI: {{ miembro.ci }})
-          </mat-option>
-        }
-      </mat-select>
-      <mat-icon matPrefix>badge</mat-icon>
-      <mat-error *ngIf="userForm.get('miembroId')?.hasError('required')">
-        Debe asociar un miembro para crear el usuario
-      </mat-error>
-    </mat-form-field>
+    <div class="dialog-grid">
+      <!-- Columna Izquierda: Datos del Usuario -->
+      <div class="form-section">
+        <h3 class="section-title-custom">
+          <mat-icon>account_circle</mat-icon>
+          Datos de Acceso y Personales
+        </h3>
+        
+        <!-- Selección de Miembro -->
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Seleccionar Miembro</mat-label>
+          <mat-select formControlName="miembroId" placeholder="Seleccione un miembro de la iglesia">
+            @for (miembro of miembros; track miembro.id) {
+              <mat-option [value]="miembro.id">
+                {{ miembro.nombre }} {{ miembro.apellido }} (CI: {{ miembro.ci }})
+              </mat-option>
+            }
+          </mat-select>
+          <mat-icon matPrefix>badge</mat-icon>
+          <mat-error *ngIf="userForm.get('miembroId')?.hasError('required')">
+            Debe asociar un miembro para crear el usuario
+          </mat-error>
+          <mat-error *ngIf="userForm.get('miembroId')?.hasError('yaTieneUsuario')">
+            Este miembro ya cuenta con un usuario activo en el sistema.
+          </mat-error>
+        </mat-form-field>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Nombre de Usuario</mat-label>
-        <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
-        <mat-icon matPrefix>person</mat-icon>
-        <mat-error *ngIf="userForm.get('username')?.hasError('required')">
-          El nombre de usuario es requerido
-        </mat-error>
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de Usuario</mat-label>
+            <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+              El nombre de usuario es requerido
+            </mat-error>
+          </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Correo Electrónico</mat-label>
-        <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
-        <mat-icon matPrefix>email</mat-icon>
-        <mat-error *ngIf="userForm.get('email')?.hasError('required')">
-          El correo electrónico es requerido
-        </mat-error>
-        <mat-error *ngIf="userForm.get('email')?.hasError('email')">
-          Ingrese un correo electrónico válido
-        </mat-error>
-      </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Correo Electrónico</mat-label>
+            <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+              El correo electrónico es requerido
+            </mat-error>
+            <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+              Ingrese un correo electrónico válido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombres</mat-label>
+            <input matInput formControlName="name" placeholder="Nombres del miembro (se autocompletan)">
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error *ngIf="userForm.get('name')?.hasError('required')">
+              Los nombres son requeridos
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Apellidos</mat-label>
+            <input matInput formControlName="apellidos" placeholder="Apellidos del miembro (se autocompletan)">
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error *ngIf="userForm.get('apellidos')?.hasError('required')">
+              Los apellidos son requeridos
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Contraseña</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+            placeholder="Ingrese contraseña">
+          <mat-icon matPrefix>lock</mat-icon>
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+            La contraseña es requerida
+          </mat-error>
+          <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+            La contraseña debe tener al menos 4 caracteres
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Columna Derecha: Privilegios Directos del Usuario -->
+      <div class="privileges-section">
+        <h3 class="section-title-custom">
+          <mat-icon>vpn_key</mat-icon>
+          Privilegios Directos del Usuario
+        </h3>
+        <p class="section-subtitle-custom">Seleccione los accesos que se le otorgarán directamente a este usuario de manera independiente a sus cargos.</p>
+
+        <div class="privileges-cards-grid">
+          @for (mod of modules; track mod.key) {
+            <div class="privilege-module-card" [class.active]="isPrivilegeSelected(mod.viewPrivilege) || isPrivilegeSelected(mod.writePrivilege)">
+              <div class="module-card-header">
+                <mat-icon class="module-icon">{{ mod.icon }}</mat-icon>
+                <div class="module-info-meta">
+                  <div class="module-name-label">{{ mod.name }}</div>
+                  <div class="module-desc-label">{{ mod.desc }}</div>
+                </div>
+              </div>
+              
+              <div class="module-checkboxes">
+                <div class="checkbox-wrapper" (click)="togglePrivilegeSelection(mod.viewPrivilege)">
+                  <mat-icon class="check-state-icon" [class.checked]="isPrivilegeSelected(mod.viewPrivilege)">
+                    {{ isPrivilegeSelected(mod.viewPrivilege) ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span class="checkbox-label">Ver</span>
+                </div>
+                
+                <div class="checkbox-wrapper" (click)="togglePrivilegeSelection(mod.writePrivilege)">
+                  <mat-icon class="check-state-icon" [class.checked]="isPrivilegeSelected(mod.writePrivilege)">
+                    {{ isPrivilegeSelected(mod.writePrivilege) ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span class="checkbox-label">Modificar</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
     </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Nombres</mat-label>
-        <input matInput formControlName="name" placeholder="Nombres del miembro (se autocompletan)">
-        <mat-icon matPrefix>badge</mat-icon>
-        <mat-error *ngIf="userForm.get('name')?.hasError('required')">
-          Los nombres son requeridos
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Apellidos</mat-label>
-        <input matInput formControlName="apellidos" placeholder="Apellidos del miembro (se autocompletan)">
-        <mat-icon matPrefix>badge</mat-icon>
-        <mat-error *ngIf="userForm.get('apellidos')?.hasError('required')">
-          Los apellidos son requeridos
-        </mat-error>
-      </mat-form-field>
-    </div>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Contraseña</mat-label>
-      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-        placeholder="Ingrese contraseña">
-      <mat-icon matPrefix>lock</mat-icon>
-      <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Hide password'"
-        [attr.aria-pressed]="hidePassword" type="button">
-        <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-      </button>
-      <mat-error *ngIf="userForm.get('password')?.hasError('required')">
-        La contraseña es requerida
-      </mat-error>
-      <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
-        La contraseña debe tener al menos 4 caracteres
-      </mat-error>
-    </mat-form-field>
 
   </mat-dialog-content>
 

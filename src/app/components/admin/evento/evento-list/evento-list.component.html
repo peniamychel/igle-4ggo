@@ -1,5 +1,16 @@
 <div class="container">
   <mat-tab-group class="modern-tabs" animationDuration="200ms">
+    <!-- Pestaña 0: Calendario -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">calendar_month</mat-icon>
+        <span>Calendario Anual</span>
+      </ng-template>
+      <div class="tab-content">
+        <app-evento-calendario></app-evento-calendario>
+      </div>
+    </mat-tab>
+
     <!-- Pestaña 1: Eventos -->
     <mat-tab>
       <ng-template mat-tab-label>
@@ -22,7 +33,7 @@
               </div>
             </div>
             <div class="header-actions">
-              <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
+              <button mat-flat-button class="btn-new-item" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
                 <mat-icon>add</mat-icon>
                 Nuevo Evento
               </button>
@@ -127,15 +138,15 @@
                     <mat-icon>visibility</mat-icon>
                     <span>Ver detalle</span>
                   </button>
-                  <button mat-menu-item (click)="openEditDialog(item)">
+                  <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="openEditDialog(item)">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>
                   </button>
-                  <button mat-menu-item (click)="toggleEstado(item)">
+                  <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="toggleEstado(item)">
                     <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
                     <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
                   </button>
-                  <button mat-menu-item (click)="deleteEvento(item)">
+                  <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="deleteEvento(item)">
                     <mat-icon style="color: #dc3545;">delete</mat-icon>
                     <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
                   </button>

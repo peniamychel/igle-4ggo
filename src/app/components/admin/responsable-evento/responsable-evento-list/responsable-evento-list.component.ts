@@ -30,6 +30,7 @@ import { ResponsableEventoDetailComponent } from '../responsable-evento-detail/r
 import { ResponsableEventoEditComponent } from '../responsable-evento-edit/responsable-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-responsable-evento-list',
@@ -48,7 +49,8 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './responsable-evento-list.component.html',
   styleUrls: ['./responsable-evento-list.component.css']

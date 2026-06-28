@@ -20,6 +20,7 @@ import { TipoCertificadoDetailComponent } from '../tipo-certificado-detail/tipo-
 import { TipoCertificadoEditComponent } from '../tipo-certificado-edit/tipo-certificado-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../../core/services/security/auth.service';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-tipo-certificado-list',
@@ -38,7 +39,8 @@ import { AuthService } from '../../../../core/services/security/auth.service';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './tipo-certificado-list.component.html',
   styleUrls: ['./tipo-certificado-list.component.css']

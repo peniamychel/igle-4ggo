@@ -4,13 +4,11 @@ import { NgModule } from '@angular/core';
 import { MiembroListComponent } from './components/admin/miembro/miembro-list/miembro-list.component';
 import { IglesiaListComponent } from './components/admin/iglesia/iglesia-list/iglesia-list.component';
 import { IglesiaMiembroListComponent } from './components/admin/miembro-iglesia/iglesia-miembro-list/iglesia-miembro-list.component';
-import { ChartsComponent } from './components/graficos/charts/charts.component';
 import { authGuard } from './core/guards/auth.guard';
 import { UserTableComponent } from './components/admin/usuario-sistema/user-table/user-table.component';
 import { TipoCargoListComponent } from './components/admin/tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { CargoListComponent } from './components/admin/cargo/cargo-list/cargo-list.component';
 import { PrivilegioListComponent } from './components/admin/privilegio/privilegio-list/privilegio-list.component';
-import { adminGuard } from './core/guards/admin.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
@@ -27,6 +25,10 @@ import { LoginPageComponent } from './components/auth/login-page/login-page.comp
 import { SolicitudListComponent } from './components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
 import { MiIglesiaComponent } from './components/admin/mi-iglesia/mi-iglesia.component';
 import { NoAutorizadoComponent } from './components/auth/no-autorizado/no-autorizado.component';
+import { OfrendaListComponent } from './components/admin/ofrenda/ofrenda-list/ofrenda-list.component';
+import { ActivoListComponent } from './components/admin/activo/activo-list/activo-list.component';
+import { ColaboradoresComponent } from './components/admin/colaboradores/colaboradores.component';
+
 
 export const routes: Routes = [
   {
@@ -69,12 +71,6 @@ export const routes: Routes = [
         canActivate: [privilegioGuard]
       },
       {
-        path: 'graficoiglesias',
-        component: ChartsComponent,
-        title: 'Grafico',
-        canActivate: [privilegioGuard]
-      },
-      {
         path: 'tipocargo',
         component: TipoCargoListComponent,
         title: 'Tipo Ministerio',
@@ -107,6 +103,12 @@ export const routes: Routes = [
         path: 'mi-iglesia',
         component: MiIglesiaComponent,
         title: 'Mi Iglesia',
+        canActivate: [authGuard]
+      },
+      {
+        path: 'colaboradores',
+        component: ColaboradoresComponent,
+        title: 'Colaboradores',
         canActivate: [authGuard]
       },
       {
@@ -153,9 +155,15 @@ export const routes: Routes = [
       },
       {
         path: 'ofrendas',
-        component: DashboardComponent,
+        component: OfrendaListComponent,
         title: 'Ofrendas',
         canActivate: [privilegioGuard]
+      },
+      {
+        path: 'activos',
+        component: ActivoListComponent,
+        title: 'Inventario',
+        canActivate: [authGuard]
       },
       {
         path: 'perfil',
@@ -176,7 +184,7 @@ export const routes: Routes = [
         path: 'usuariosistema',
         component: UserTableComponent,
         title: 'Usuario Sistema',
-        canActivate: [adminGuard]
+        canActivate: [privilegioGuard]
       },
     ]
   },

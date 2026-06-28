@@ -26,6 +26,7 @@ import { ParticipacionEventoDetailComponent } from '../participacion-evento-deta
 import { ParticipacionEventoEditComponent } from '../participacion-evento-edit/participacion-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { CertificadoRenderComponent } from '../../certificado/certificado-render/certificado-render.component';
 
 @Component({
@@ -45,7 +46,8 @@ import { CertificadoRenderComponent } from '../../certificado/certificado-render
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './participacion-evento-list.component.html',
   styleUrls: ['./participacion-evento-list.component.css']

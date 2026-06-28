@@ -9,6 +9,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CargoService } from '../../../../core/services/cargo.service';
 import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
@@ -29,7 +30,8 @@ import { Cargo } from '../../../../core/models/cargo.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSnackBarModule
   ],
   templateUrl: './cargo-create.component.html',
   styleUrls: ['./cargo-create.component.css']
@@ -43,16 +45,17 @@ export class CargoCreateComponent implements OnInit {
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
-  filterRole: string = '';
-  hideCargoSelect: boolean = false;
   selectedFile: File | null = null;
+
+  cargosActivos: Cargo[] = [];
 
   constructor(
     private fb: FormBuilder,
     private cargoService: CargoService,
     private miembroIglesiaService: MiembroIglesiaService,
     private dialogRef: MatDialogRef<CargoCreateComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[], filterRole?: string }
+    private snackBar: MatSnackBar,
+    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
   ) {
     this.cargoForm = this.fb.group({
       rolCargoId: ['', Validators.required],
@@ -71,20 +74,41 @@ export class CargoCreateComponent implements OnInit {
       this.tiposCargo = this.data.tiposCargo.filter(tc => tc.estado);
       this.miembros = [];
       this.filteredMiembros = [];
-      this.filterRole = this.data.filterRole || '';
-
-      if (this.filterRole) {
-        this.hideCargoSelect = true;
-        const tipoCargoMatch = this.tiposCargo.find(tc => {
-          const nombre = tc.nombre?.toLowerCase() || '';
-          return nombre.includes(this.filterRole.toLowerCase());
-        });
-        if (tipoCargoMatch) {
-          this.cargoForm.patchValue({ rolCargoId: tipoCargoMatch.id });
+      // Cargar cargos para filtrar los miembros que ya tienen roles activos
+      this.cargoService.getCargos().subscribe({
+        next: (res) => {
+          this.cargosActivos = res.datos || [];
+        },
+        error: (err) => {
+          console.error('[CargoCreate] Error loading active cargos:', err);
         }
-      }
+      });
 
       this.registerIglesiaChangeHandler();
+
+      if (this.iglesias.length === 1) {
+        this.cargoForm.patchValue({ iglesiaId: this.iglesias[0].id });
+        this.cargoForm.get('iglesiaId')?.disable();
+      }
+    }
+  }
+
+  memberCargoName = '';
+
+  checkMiembroCargo(miembroId: number) {
+    if (!miembroId) return;
+    const cargoMiembro = this.cargosActivos.find(c => Number(c.idMiembro) === Number(miembroId) && c.estado === true);
+    if (cargoMiembro) {
+      const rolNombre = cargoMiembro.tipoCargoDto?.nombre || (cargoMiembro as any).rolCargo?.nombre || 'un cargo';
+      this.memberCargoName = rolNombre;
+      this.cargoForm.get('idMiembro')?.setErrors({ yaTieneCargo: true });
+    } else {
+      const control = this.cargoForm.get('idMiembro');
+      if (control?.errors && control.errors['yaTieneCargo']) {
+        const errors = { ...control.errors };
+        delete errors['yaTieneCargo'];
+        control.setErrors(Object.keys(errors).length ? errors : null);
+      }
     }
   }
 
@@ -92,6 +116,11 @@ export class CargoCreateComponent implements OnInit {
     if (!this.cargoForm.get('iglesiaId')?.value) {
       this.cargoForm.get('idMiembro')?.disable();
     }
+
+    // Suscribirse a cambios de miembro para validar si ya tiene cargo
+    this.cargoForm.get('idMiembro')?.valueChanges.subscribe(miembroId => {
+      this.checkMiembroCargo(Number(miembroId));
+    });
 
     this.cargoForm.get('iglesiaId')?.valueChanges.subscribe(iglesiaId => {
       if (iglesiaId) {
@@ -148,7 +177,7 @@ export class CargoCreateComponent implements OnInit {
 
   onSubmit() {
     if (this.cargoForm.valid) {
-      const cargoData: Partial<Cargo> = this.cargoForm.value;
+      const cargoData: Partial<Cargo> = this.cargoForm.getRawValue();
       this.cargoService.createCargo(cargoData).subscribe({
         next: (response: any) => {
           const cargoId = response.datos?.id;
@@ -161,7 +190,11 @@ export class CargoCreateComponent implements OnInit {
             this.dialogRef.close(true);
           }
         },
-        error: () => this.dialogRef.close(false)
+        error: (err) => {
+          console.error('Error saving cargo:', err);
+          const errorMsg = err.error?.message || 'Error al guardar el cargo. Si el problema persiste, por favor contacte con soporte técnico.';
+          this.snackBar.open(errorMsg, 'Cerrar', { duration: 5000 });
+        }
       });
     }
   }
@@ -181,6 +214,7 @@ export class CargoCreateComponent implements OnInit {
     const control = this.cargoForm.get(controlName);
     if (control?.hasError('required')) return 'Este campo es requerido';
     if (control?.hasError('maxlength')) return 'Longitud máxima excedida';
+    if (control?.hasError('yaTieneCargo')) return 'Este miembro ya tiene el rol: ' + this.memberCargoName;
     return '';
   }
 

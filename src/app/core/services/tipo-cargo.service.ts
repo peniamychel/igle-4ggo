@@ -22,6 +22,13 @@ export class TipoCargoService {
   }
 
   /**
+   * Obtiene todos los tipos de cargo para colaboradores (accesible por pastores)
+   */
+  getTipoCargosParaColaboradores(): Observable<ApiResponse<TipoCargo[]>> {
+    return this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall-cargo`);
+  }
+
+  /**
    * Obtiene un tipo de cargo por id
    * @param id id del tipo de cargo
    * @returns tipo de cargo encontrado

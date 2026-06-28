@@ -11,7 +11,7 @@
           <p class="subtitle">{{ dataSource.filteredData.length }} registros</p>
         </div>
       </div>
-      <div class="header-actions" *ngIf="authService.isLoggedRolAdmin()">
+      <div class="header-actions" *appHasPrivilegio="'Escribir Eventos'">
         <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo tipo de evento" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>
           Nuevo Tipo
@@ -55,15 +55,15 @@
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
             </button>
-            <button mat-menu-item (click)="openEditDialog(item)">
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="openEditDialog(item)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>
             </button>
-            <button mat-menu-item (click)="toggleEstado(item)">
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="toggleEstado(item)">
               <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
               <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
             </button>
-            <button mat-menu-item (click)="deleteTipoEvento(item)">
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="deleteTipoEvento(item)">
               <mat-icon style="color: #dc3545;">delete</mat-icon>
               <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
             </button>

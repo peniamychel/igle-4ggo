@@ -9,6 +9,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ParticipacionEventoService } from '../../../../core/services/participacion-evento.service';
 import { Evento } from '../../../../core/models/evento.model';
 import { Miembro } from '../../../../core/models/miembro.model';
@@ -27,7 +28,8 @@ import { Certificado } from '../../../../core/models/certificado.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSnackBarModule
   ],
   templateUrl: './participacion-evento-create.component.html',
   styleUrls: ['./participacion-evento-create.component.css']
@@ -45,6 +47,7 @@ export class ParticipacionEventoCreateComponent implements OnInit {
     private fb: FormBuilder,
     private participacionService: ParticipacionEventoService,
     private dialogRef: MatDialogRef<ParticipacionEventoCreateComponent>,
+    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: { eventos: Evento[], miembros: Miembro[], certificados: Certificado[] }
   ) {
     this.participacionForm = this.fb.group({
@@ -108,8 +111,15 @@ export class ParticipacionEventoCreateComponent implements OnInit {
   onSubmit() {
     if (this.participacionForm.valid) {
       const participacionData = this.participacionForm.value;
-      this.participacionService.createParticipacion(participacionData).subscribe(() => {
-        this.dialogRef.close(true);
+      this.participacionService.createParticipacion(participacionData).subscribe({
+        next: () => {
+          this.dialogRef.close(true);
+        },
+        error: (err) => {
+          console.error('Error al registrar participacion:', err);
+          const errorMsg = err.error?.message || 'Error al guardar la participación. Si el problema persiste, por favor contacte con soporte técnico.';
+          this.snackBar.open(errorMsg, 'Cerrar', { duration: 5000 });
+        }
       });
     }
   }

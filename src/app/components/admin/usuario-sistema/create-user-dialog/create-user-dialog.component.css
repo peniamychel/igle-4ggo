@@ -55,6 +55,7 @@ h2[mat-dialog-title] {
   padding: 0 24px 16px !important;
   max-height: 65vh;
   overflow-y: auto;
+  overflow-x: hidden !important;
 }
 
 /* Photo Section */
@@ -296,14 +297,170 @@ h2[mat-dialog-title] {
   max-height: 70vh !important;
 }
 
+/* Dialog grid layout */
+.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.section-title-custom mat-icon {
+  color: #7c4dff;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.privileges-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-subtitle-custom {
+  margin: -8px 0 16px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.privileges-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.privilege-module-card {
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s ease;
+  min-width: 0;
+}
+
+.privilege-module-card:hover {
+  border-color: #ab92ff;
+  box-shadow: 0 4px 16px rgba(124, 77, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.privilege-module-card.active {
+  border-color: #7c4dff;
+  background: rgba(124, 77, 255, 0.04);
+}
+
+.module-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.module-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #ab92ff;
+  background: rgba(124, 77, 255, 0.1);
+  padding: 5px;
+  border-radius: 8px;
+  box-sizing: content-box;
+}
+
+.module-info-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.module-name-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.module-desc-label {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.module-checkboxes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 8px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.check-state-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.check-state-icon.checked {
+  color: #00bfa5;
+}
+
+.checkbox-label {
+  font-size: 0.74rem;
+  color: var(--text-primary);
+  user-select: none;
+}
+
 /* Responsive */
+@media (max-width: 850px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;
     gap: 0;
   }
 
-  .roles-grid {
+  .privileges-cards-grid {
     grid-template-columns: 1fr;
   }
 

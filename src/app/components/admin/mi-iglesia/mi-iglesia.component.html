@@ -21,7 +21,7 @@
           <mat-icon>grid_on</mat-icon>
           Excel
         </button>
-        <button mat-flat-button class="btn-new-item" matTooltip="Registrar un nuevo miembro" (click)="addNewMiembro()">
+        <button mat-flat-button class="btn-new-item" matTooltip="Registrar un nuevo miembro" (click)="addNewMiembro()" *appHasPrivilegio="'Escribir MiembroIglesia'">
           <mat-icon>add</mat-icon>
           Nuevo Miembro
         </button>
@@ -115,14 +115,16 @@
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
             </button>
-            <button mat-menu-item *ngIf="!hasCargo(item)" (click)="openTraspasoDialog(item)">
-              <mat-icon>swap_horiz</mat-icon>
-              <span>Traspasar</span>
-            </button>
-            <button mat-menu-item *ngIf="!hasCargo(item)" (click)="deleteMiembroAsignacion(item)">
-              <mat-icon style="color: #dc3545;">delete</mat-icon>
-              <span style="color: #dc3545; font-weight: 500;">Quitar miembro</span>
-            </button>
+            <ng-container *ngIf="!hasCargo(item)">
+              <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="openTraspasoDialog(item)">
+                <mat-icon>swap_horiz</mat-icon>
+                <span>Traspasar</span>
+              </button>
+              <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="deleteMiembroAsignacion(item)">
+                <mat-icon style="color: #dc3545;">delete</mat-icon>
+                <span style="color: #dc3545; font-weight: 500;">Quitar miembro</span>
+              </button>
+            </ng-container>
           </mat-menu>
         </mat-cell>
       </ng-container>

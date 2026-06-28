@@ -95,10 +95,31 @@
   background-color: rgba(127, 11, 133, 0.05) !important;
 }
 
+.btn-download-template {
+  border: 1px solid #107c41 !important;
+  color: #107c41 !important;
+  background-color: transparent !important;
+}
+
+.btn-download-template:hover {
+  background-color: rgba(16, 124, 65, 0.05) !important;
+}
+
+.btn-import-excel {
+  border: 1px solid #107c41 !important;
+  color: #107c41 !important;
+  background-color: transparent !important;
+}
+
+.btn-import-excel:hover {
+  background-color: rgba(16, 124, 65, 0.05) !important;
+}
+
 .btn-new-member {
   background-color: #0b857f !important;
   color: #ffffff !important;
 }
+
 
 .btn-new-member:hover {
   background-color: #096d68 !important;

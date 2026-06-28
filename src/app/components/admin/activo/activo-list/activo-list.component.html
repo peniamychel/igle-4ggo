@@ -1,0 +1,129 @@
+<div class="container">
+  
+  <div class="header-section">
+    <div class="title-wrapper">
+      <div class="title-icon-circle">
+        <mat-icon class="header-icon">inventory_2</mat-icon>
+      </div>
+      <div>
+        <h2>Inventario de Activos y Bienes</h2>
+        <p class="subtitle">{{ dataSource.filteredData.length }} bienes registrados</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" class="btn-new-asset" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Nuevo Activo
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre o descripción..." #searchInput>
+    </div>
+    
+    <div class="select-filters" *ngIf="isAdmin">
+      <mat-form-field appearance="outline" class="filter-select">
+        <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+          <mat-option value="all">Todas las iglesias</mat-option>
+          <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <mat-table [dataSource]="dataSource" matSort>
+      
+      <!-- Nombre -->
+      <ng-container matColumnDef="nombre">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <div class="asset-info-cell">
+            <span class="asset-name">{{ row.nombre }}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Descripcion -->
+      <ng-container matColumnDef="descripcion">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="asset-desc">{{ row.descripcion || 'Sin descripción' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Cantidad -->
+      <ng-container matColumnDef="cantidad">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Cantidad </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="asset-qty">{{ row.cantidad }} uds.</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Estado Conservacion -->
+      <ng-container matColumnDef="estadoConservacion">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+            {{ row.estadoConservacion }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Valor Estimado -->
+      <ng-container matColumnDef="valorEstimado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="asset-val">{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Fecha Adquisicion -->
+      <ng-container matColumnDef="fechaAdquisicion">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Adquisición </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Iglesia -->
+      <ng-container matColumnDef="iglesiaNombre">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span>{{ row.iglesiaNombre || 'N/A' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Acciones -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="acciones-cell">
+          <button mat-icon-button color="primary" (click)="openEditDialog(row)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteActivo(row)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" colspan="8">
+          <div class="no-results">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron activos que coincidan con la búsqueda.</span>
+          </div>
+        </td>
+      </tr>
+    </mat-table>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de activos"></mat-paginator>
+  </div>
+</div>

@@ -8,12 +8,13 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatSelectModule} from '@angular/material/select';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatNativeDateModule} from '@angular/material/core';
-import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, MatDialog} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {MiembroService} from '../../../../core/services/miembro.service';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
+import { ImageCropDialogComponent } from '../../../../shared/components/image-crop-dialog/image-crop-dialog.component';
 
 @Component({
   selector: 'app-miembro-edit',
@@ -47,6 +48,7 @@ export class MiembroFormEditarComponent implements OnInit {
     private fb: FormBuilder,
     private miembroService: MiembroService,
     private dialogRef: MatDialogRef<MiembroFormEditarComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: Miembro
   ) {
     this.createForm();
@@ -89,12 +91,27 @@ export class MiembroFormEditarComponent implements OnInit {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      this.selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imagePreview = reader.result as string;
-      };
-      reader.readAsDataURL(this.selectedFile);
+      const file = input.files[0];
+      
+      const dialogRef = this.dialog.open(ImageCropDialogComponent, {
+        data: { imageFile: file },
+        width: '400px',
+        maxWidth: '95vw',
+        disableClose: true
+      });
+      
+      dialogRef.afterClosed().subscribe((croppedFile: File) => {
+        if (croppedFile) {
+          this.selectedFile = croppedFile;
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.imagePreview = reader.result as string;
+          };
+          reader.readAsDataURL(this.selectedFile);
+        } else {
+          input.value = '';
+        }
+      });
     }
   }
 

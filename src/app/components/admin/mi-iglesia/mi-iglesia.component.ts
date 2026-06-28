@@ -27,6 +27,7 @@ import { ImageUrlPipe } from '../../../shared/pipes/image-url.pipe';
 import * as XLSX from 'xlsx';
 import autoTable from 'jspdf-autotable';
 import { jsPDF } from 'jspdf';
+import { HasPrivilegioDirective } from '../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-mi-iglesia',
@@ -44,7 +45,8 @@ import { jsPDF } from 'jspdf';
     MatSnackBarModule,
     MatTooltipModule,
     MatMenuModule,
-    ImageUrlPipe
+    ImageUrlPipe,
+    HasPrivilegioDirective
   ],
   templateUrl: './mi-iglesia.component.html',
   styleUrls: ['./mi-iglesia.component.css']

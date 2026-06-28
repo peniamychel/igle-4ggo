@@ -28,6 +28,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 import { forkJoin } from 'rxjs';
 import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
 import { TipoCertificadoListComponent } from '../../tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-certificado-list',
@@ -49,7 +50,8 @@ import { TipoCertificadoListComponent } from '../../tipo-certificado/tipo-certif
     MatTabsModule,
     MatSelectModule,
     MatMenuModule,
-    TipoCertificadoListComponent
+    TipoCertificadoListComponent,
+    HasPrivilegioDirective
   ],
   templateUrl: './certificado-list.component.html',
   styleUrls: ['./certificado-list.component.css']

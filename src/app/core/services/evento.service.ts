@@ -36,4 +36,8 @@ export class EventoService {
   deleteEvento(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
+
+  cloneYearEvents(fromYear: number, toYear: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/clonar?from=${fromYear}&to=${toYear}`, {});
+  }
 }

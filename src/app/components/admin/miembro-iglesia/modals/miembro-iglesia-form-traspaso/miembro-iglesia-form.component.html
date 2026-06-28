@@ -1,59 +1,181 @@
-<h2 mat-dialog-title>Registrar Traspaso de Miembro</h2>
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">send</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Nueva solicitud de traspaso</h2>
+      <p class="header-subtitle">Traspase un miembro de su iglesia actual a otra congregación.</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button" matTooltip="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
-    <div class="form-container">
-      <mat-form-field appearance="outline">
-        <mat-label>Nueva Iglesia</mat-label>
-        <mat-select formControlName="iglesiaId">
-          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
-            {{iglesia.nombre}} - {{iglesia.direccion}}
+  <mat-dialog-content class="dialog-content-scroll">
+    
+
+    <!-- Iglesia origen (Solo para el Administrador) -->
+    <div class="form-section" *ngIf="!data.iglesia?.id">
+      <label class="section-label">Iglesia origen *</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Seleccione iglesia de origen...</mat-label>
+        <mat-select [value]="resolvedOriginIglesia?.id" (selectionChange)="onOriginChurchChange($event.value)">
+          <mat-option *ngFor="let igl of allChurches" [value]="igl.id">
+            {{igl.nombre}} ({{igl.direccion}})
           </mat-option>
         </mat-select>
-        <mat-error *ngIf="form.get('iglesiaId')?.hasError('required')">
-          Seleccione una iglesia
+      </mat-form-field>
+    </div>
+
+    <!-- Miembro a traspasar select -->
+    <div class="form-section">
+      <label class="section-label">Miembro a traspasar *</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ resolvedOriginIglesia ? 'Buscar miembro de la iglesia...' : 'Seleccione primero la iglesia de origen' }}</mat-label>
+        <mat-select formControlName="miembroId" [disabled]="!resolvedOriginIglesia">
+          <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
+            {{miembro.nombre}} {{miembro.apellido}} (CI: {{miembro.ci || 'Sin CI'}})
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('miembroId')?.hasError('required')">
+          Debe seleccionar un miembro a traspasar
         </mat-error>
       </mat-form-field>
+    </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Motivo del Traspaso</mat-label>
-        <textarea matInput formControlName="motivoTraspaso" rows="3"></textarea>
-        <mat-error *ngIf="form.get('motivoTraspaso')?.hasError('required')">
-          El motivo es requerido
-        </mat-error>
-      </mat-form-field>
+    <!-- Flujo del traspaso -->
+    <div class="form-section">
+      <label class="section-label">Flujo del traspaso</label>
+      <div class="traspaso-flow-container">
+        <!-- ORIGEN -->
+        <div class="flow-card origin-card" [class.empty]="!resolvedOriginIglesia">
+          <ng-container *ngIf="resolvedOriginIglesia; else noOriginPlaceholder">
+            <div class="flow-card-header">
+              <mat-icon class="flow-card-icon">home</mat-icon>
+              <span class="flow-card-badge">ORIGEN</span>
+            </div>
+            <div class="flow-card-body">
+              <h4 class="church-name">{{resolvedOriginIglesia.nombre}}</h4>
+              <p class="church-location">{{resolvedOriginIglesia.direccion}}</p>
+              <p class="church-pastor">{{getPastorName(resolvedOriginIglesia.id)}}</p>
+            </div>
+          </ng-container>
+          <ng-template #noOriginPlaceholder>
+            <div class="flow-card-header">
+              <mat-icon class="flow-card-icon">home</mat-icon>
+              <span class="flow-card-badge">ORIGEN</span>
+            </div>
+            <div class="flow-card-body empty-body">
+              <span class="placeholder-text">Sin iglesia asignada</span>
+            </div>
+          </ng-template>
+        </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha de Traspaso</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="fechaTraspaso">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="form.get('fechaTraspaso')?.hasError('required')">
-          La fecha es requerida
-        </mat-error>
-      </mat-form-field>
+        <!-- Arrow direction -->
+        <div class="flow-arrow-container">
+          <div class="arrow-circle">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </div>
 
-      <div class="file-upload-container">
-        <button type="button" mat-stroked-button (click)="fileInput.click()">
-          <mat-icon>upload_file</mat-icon> Seleccionar Carta de Traspaso
-        </button>
-        <input #fileInput type="file" style="display: none;" (change)="onFileSelected($event)" accept="image/*,application/pdf">
-        <span class="file-name" *ngIf="selectedFileName" style="display: flex; align-items: center; gap: 4px;">
-          <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #00875a;">check_circle</mat-icon>
-          {{selectedFileName}}
-        </span>
-        <input type="hidden" formControlName="uriCartaTraspaso">
-        <mat-error *ngIf="form.get('uriCartaTraspaso')?.hasError('required') && form.get('uriCartaTraspaso')?.touched" style="font-size: 0.75rem; margin-top: -4px; color: #f44336;">
-          La carta de traspaso es requerida
-        </mat-error>
+        <!-- DESTINO -->
+        <div class="flow-card destination-card" [class.empty]="!selectedDestinoIglesia">
+          <ng-container *ngIf="selectedDestinoIglesia; else selectDestinoPlaceholder">
+            <div class="flow-card-header">
+              <mat-icon class="flow-card-icon">place</mat-icon>
+              <span class="flow-card-badge">DESTINO</span>
+            </div>
+            <div class="flow-card-body">
+              <h4 class="church-name">{{selectedDestinoIglesia.nombre}}</h4>
+              <p class="church-location">{{selectedDestinoIglesia.direccion}}</p>
+              <p class="church-pastor">{{getPastorName(selectedDestinoIglesia.id)}}</p>
+            </div>
+          </ng-container>
+          <ng-template #selectDestinoPlaceholder>
+            <div class="flow-card-header">
+              <mat-icon class="flow-card-icon">place</mat-icon>
+              <span class="flow-card-badge">DESTINO</span>
+            </div>
+            <div class="flow-card-body empty-body">
+              <span class="placeholder-text">Seleccione destino</span>
+            </div>
+          </ng-template>
+        </div>
       </div>
     </div>
+
+    <!-- Iglesia destino selection grid -->
+    <div class="form-section">
+      <label class="section-label">Iglesia destino *</label>
+      <div class="iglesias-selection-grid">
+        <div class="iglesia-selection-card" 
+             *ngFor="let iglesia of iglesias"
+             [class.active]="form.get('iglesiaId')?.value === iglesia.id"
+             (click)="selectDestination(iglesia)">
+          <div class="iglesia-initials-circle">
+            {{getIglesiaInitials(iglesia)}}
+          </div>
+          <div class="iglesia-details">
+            <span class="iglesia-name">{{iglesia.nombre}}</span>
+            <span class="iglesia-location">{{iglesia.direccion}}</span>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" formControlName="iglesiaId">
+      <mat-error *ngIf="form.get('iglesiaId')?.hasError('required') && form.get('iglesiaId')?.touched" style="font-size: 0.75rem; margin-top: 4px; color: #f44336;">
+        Debe seleccionar una iglesia de destino
+      </mat-error>
+    </div>
+
+    <!-- Motivo del traspaso -->
+    <div class="form-section">
+      <label class="section-label">Motivo del traspaso *</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Describa el motivo del traspaso: cambio de domicilio, asignación pastoral, motivos familiares, etc.</mat-label>
+        <textarea matInput formControlName="motivoTraspaso" rows="4" maxlength="500"></textarea>
+        <mat-error *ngIf="form.get('motivoTraspaso')?.hasError('required')">
+          El motivo del traspaso es requerido
+        </mat-error>
+        <mat-error *ngIf="form.get('motivoTraspaso')?.hasError('minlength')">
+          El motivo debe tener al menos 10 caracteres
+        </mat-error>
+      </mat-form-field>
+      <div class="counter-container">
+        <span>{{form.get('motivoTraspaso')?.value?.length || 0}}/500 caracteres • mínimo 10</span>
+      </div>
+    </div>
+
+    <!-- Carta de Traspaso (Opcional - Documento de soporte) -->
+    <div class="form-section file-upload-section">
+      <label class="section-label">Carta de Traspaso (Opcional)</label>
+      <div class="file-upload-wrapper">
+        <div class="file-input-container">
+          <input type="file" id="cartaTraspasoInput" (change)="onFileSelected($event)" accept="image/*,application/pdf" style="display: none;" />
+          <button mat-stroked-button type="button" class="file-select-btn" onclick="document.getElementById('cartaTraspasoInput').click()">
+            <mat-icon>upload_file</mat-icon>
+            {{ selectedFileName ? 'Reemplazar Carta' : 'Adjuntar Carta de Traspaso' }}
+          </button>
+          <span class="file-name-badge" *ngIf="selectedFileName">
+            <mat-icon class="file-icon">description</mat-icon>
+            <span class="file-name-text">{{ selectedFileName }}</span>
+            <button mat-icon-button type="button" class="file-remove-btn" (click)="removeFile()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
-      Registrar Traspaso
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!form.valid || !resolvedOriginIglesia" class="btn-submit">
+      <mat-icon>description</mat-icon>
+      Enviar solicitud
     </button>
   </mat-dialog-actions>
 </form>

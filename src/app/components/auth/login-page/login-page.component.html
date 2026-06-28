@@ -63,6 +63,29 @@
           <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
           <span *ngIf="!loading">Iniciar Sesión</span>
         </button>
+
+        <!-- ── Demo Accounts Section ── -->
+        <div class="demo-section">
+          <div class="demo-divider">
+            <span>CUENTAS DEMO</span>
+          </div>
+          <div class="demo-cards">
+            @for (acc of demoAccounts; track acc.username) {
+              <div class="demo-card" (click)="loginWithDemo(acc)">
+                <div class="demo-card-left">
+                  <div class="demo-icon-circle">
+                    <mat-icon>{{ acc.icon }}</mat-icon>
+                  </div>
+                  <div class="demo-info">
+                    <span class="demo-title">{{ acc.title }}</span>
+                    <span class="demo-subtitle">{{ acc.subtitle }}</span>
+                  </div>
+                </div>
+                <span class="demo-badge">{{ acc.badge }}</span>
+              </div>
+            }
+          </div>
+        </div>
       </form>
 
       <div *ngIf="requiresSelection" class="selection-container">

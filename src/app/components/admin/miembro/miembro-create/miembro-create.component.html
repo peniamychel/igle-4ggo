@@ -1,18 +1,18 @@
-<div class="dialog-header">
-  <div class="header-title">
-    <div class="header-icon-circle">
-      <mat-icon class="header-icon">person_add</mat-icon>
+<form [formGroup]="miembroForm" (ngSubmit)="onSubmit()" class="dialog-form-container">
+  <div class="dialog-header">
+    <div class="header-title">
+      <div class="header-icon-circle">
+        <mat-icon class="header-icon">person_add</mat-icon>
+      </div>
+      <div>
+        <h2 mat-dialog-title>Crear Miembro</h2>
+        <p class="header-subtitle" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Registrar un nuevo miembro en el sistema</p>
+      </div>
     </div>
-    <div>
-      <h2 mat-dialog-title>Crear Miembro</h2>
-      <p class="header-subtitle" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Registrar un nuevo miembro en el sistema</p>
-    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
-  <button mat-icon-button mat-dialog-close class="close-btn" type="button">
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
-<form [formGroup]="miembroForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
 
     <div class="photo-section">
@@ -83,6 +83,18 @@
       <mat-label>Dirección</mat-label>
       <input matInput formControlName="direccion">
     </mat-form-field>
+
+    <div class="row" *ngIf="isAdmin">
+      <mat-form-field appearance="outline">
+        <mat-label>Iglesia a Asignar</mat-label>
+        <mat-select formControlName="iglesiaId">
+          <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">
+            {{ iglesia.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>La iglesia es obligatoria</mat-error>
+      </mat-form-field>
+    </div>
 
     <div class="row">
       <mat-form-field appearance="outline">

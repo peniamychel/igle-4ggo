@@ -1,0 +1,40 @@
+<div class="crop-dialog-container">
+  <div class="crop-dialog-header">
+    <h3>Ajustar Foto</h3>
+    <p>Arrastra la imagen y haz zoom para encuadrar el rostro dentro del círculo</p>
+  </div>
+
+  <div class="crop-wrapper">
+    <div #cropContainer 
+         class="crop-container" 
+         (pointerdown)="onPointerDown($event)"
+         (pointermove)="onPointerMove($event)"
+         (pointerup)="onPointerUp($event)"
+         (pointercancel)="onPointerUp($event)"
+         (wheel)="onWheelZoom($event)">
+      
+      <img #imageElement 
+           [src]="imageUrl" 
+           (load)="onImageLoad()" 
+           class="crop-image" 
+           alt="Imagen original">
+      
+      <!-- The circle crop mask overlay -->
+      <div class="crop-mask"></div>
+    </div>
+  </div>
+
+  <div class="crop-controls">
+    <button mat-icon-button class="control-btn" (click)="zoomOut()" matTooltip="Reducir">
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+    <button mat-icon-button class="control-btn" (click)="zoomIn()" matTooltip="Ampliar">
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+  </div>
+
+  <div class="crop-actions">
+    <button mat-button class="btn-cancel" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button class="btn-crop" (click)="crop()">Recortar y Guardar</button>
+  </div>
+</div>

@@ -12,6 +12,89 @@
                  animationDuration="300ms"
                  class="config-tabs">
 
+    <!-- Tab 0: Iglesia (Only for Pastores) -->
+    <mat-tab *ngIf="isPastor">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">church</mat-icon>
+        <span class="tab-label-text">Mi Iglesia</span>
+      </ng-template>
+      <div class="tab-content">
+        <div class="theme-settings-container" *ngIf="iglesiaPastor">
+          <div class="settings-card-header">
+            <mat-icon class="section-header-icon">church</mat-icon>
+            <div>
+              <h3 class="theme-section-title">Datos de la Iglesia</h3>
+              <p class="section-subtitle">Administra los detalles de la iglesia a tu cargo</p>
+            </div>
+          </div>
+
+          <div class="pastor-church-card">
+            <div class="church-profile-top">
+              <div class="church-avatar-large">
+                <img *ngIf="iglesiaPastor.uriFoto" [src]="iglesiaPastor.uriFoto | imageUrl" [alt]="iglesiaPastor.nombre" />
+                <span *ngIf="!iglesiaPastor.uriFoto"><mat-icon>church</mat-icon></span>
+              </div>
+              <div class="church-meta-large">
+                <h2>{{ iglesiaPastor.nombre }}</h2>
+                <p class="church-status-badge"><span class="badge-status-pill active">Activa</span></p>
+              </div>
+            </div>
+
+            <div class="church-details-list">
+              <div class="detail-row">
+                <mat-icon>place</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Dirección</span>
+                  <span class="detail-value">{{ iglesiaPastor.direccion || 'Sin dirección registrada' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>phone</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Teléfono</span>
+                  <span class="detail-value">{{ iglesiaPastor.telefono || 'Sin teléfono registrado' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>calendar_today</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Fecha de fundación</span>
+                  <span class="detail-value">{{ (iglesiaPastor.fechaFundacion | date:'dd/MM/yyyy') || 'Sin fecha registrada' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>gps_fixed</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Coordenadas geográficas</span>
+                  <span class="detail-value" *ngIf="iglesiaPastor.latitud && iglesiaPastor.longitud">{{ iglesiaPastor.latitud }}, {{ iglesiaPastor.longitud }}</span>
+                  <span class="detail-value" *ngIf="!iglesiaPastor.latitud || !iglesiaPastor.longitud">No configuradas</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="church-actions-row">
+              <button mat-flat-button color="primary" class="btn-action-primary" (click)="openEditPastorChurch()">
+                <mat-icon>edit</mat-icon>
+                Editar datos de Iglesia
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="placeholder-section" *ngIf="!iglesiaPastor && !loadingIglesia">
+          <mat-icon class="placeholder-icon">warning</mat-icon>
+          <h3>Sin iglesia asignada</h3>
+          <p>No se pudo cargar la información de tu iglesia activa. Por favor, verifica el contexto o inicia sesión nuevamente.</p>
+        </div>
+
+        <div class="placeholder-section" *ngIf="loadingIglesia">
+          <mat-icon class="placeholder-icon rotating">sync</mat-icon>
+          <h3>Cargando información...</h3>
+          <p>Por favor espera un momento.</p>
+        </div>
+      </div>
+    </mat-tab>
+
     <!-- Tab 1: General -->
     <mat-tab>
       <ng-template mat-tab-label>

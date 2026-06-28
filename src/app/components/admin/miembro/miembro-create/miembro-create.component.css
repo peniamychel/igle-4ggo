@@ -4,13 +4,20 @@
   color: var(--mat-tab-header-active-label-text-color, #7c4dff);
 }
 
+.dialog-form-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
 mat-dialog-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 80vh;
+  flex: 1;
   overflow-y: auto;
-  padding: 8px 24px 16px 24px;
+  padding: 16px 24px 24px 24px !important;
   box-sizing: border-box;
 }
 
@@ -253,7 +260,4 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   gap: 6px;
 }
 
-/* Overwrite mat-dialog-content padding to accommodate custom header */
-mat-dialog-content {
-  padding: 24px !important;
-}
+/* Redundant mat-dialog-content rules removed */

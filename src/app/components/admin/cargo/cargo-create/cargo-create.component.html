@@ -1,11 +1,11 @@
 <h2 mat-dialog-title>
   <mat-icon class="title-icon">add_circle</mat-icon>
-  {{ hideCargoSelect ? (filterRole === 'pastor' ? 'Designar Nuevo Pastor' : 'Designar Nuevo Encargado') : 'Designar Obrero' }}
+    Designar Obrero
 </h2>
 
 <form [formGroup]="cargoForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    
+
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Iglesia</mat-label>
@@ -21,7 +21,7 @@
       </mat-form-field>
     </div>
 
-    <div class="form-row" *ngIf="!hideCargoSelect">
+    <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Cargo</mat-label>
         <mat-select formControlName="rolCargoId">
@@ -93,7 +93,7 @@
     </div>
 
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close type="button">Cancelar</button>
     <button mat-raised-button color="primary" type="submit" [disabled]="!cargoForm.valid">

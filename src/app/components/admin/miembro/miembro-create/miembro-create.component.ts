@@ -7,13 +7,19 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatSelectModule} from '@angular/material/select';
 import {MatNativeDateModule} from '@angular/material/core';
-import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
+import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MiembroService} from '../../../../core/services/miembro.service';
+import {IglesiaService} from '../../../../core/services/iglesia.service';
+import {MiembroIglesiaService} from '../../../../core/services/miembro-iglesia.service';
+import {AuthService} from '../../../../core/services/security/auth.service';
+import {Iglesia} from '../../../../core/models/iglesia.model';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
+import { ImageCropDialogComponent } from '../../../../shared/components/image-crop-dialog/image-crop-dialog.component';
 
 @Component({
   selector: 'app-miembro-create',
@@ -33,6 +39,7 @@ import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
     MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
+    MatSnackBarModule,
     ImageUrlPipe
   ]
 })
@@ -41,17 +48,27 @@ export class MiembroCreateComponent implements OnInit {
   editMode = false;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
+  isAdmin = false;
+  iglesias: Iglesia[] = [];
+  loadingChurches = false;
 
   constructor(
     private fb: FormBuilder,
     private miembroService: MiembroService,
+    private iglesiaService: IglesiaService,
+    private miembroIglesiaService: MiembroIglesiaService,
+    private authService: AuthService,
     private dialogRef: MatDialogRef<MiembroCreateComponent>,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: Miembro
   ) {
+    this.isAdmin = this.authService.isLoggedRolAdmin();
     this.createForm();
   }
 
   createForm() {
+    const currentIglesiaId = this.authService.getCurrentIglesiaId();
     this.miembroForm = this.fb.group({
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
@@ -62,8 +79,9 @@ export class MiembroCreateComponent implements OnInit {
       direccion: ['', Validators.required],
       fechaConvercion: [''],
       lugarConvercion: ['', Validators.required],
-      interventores: ['', Validators.required],
-      detalles: ['', Validators.required]
+      interventores: [''],
+      detalles: [''],
+      iglesiaId: [this.isAdmin ? '' : (currentIglesiaId || ''), Validators.required]
     });
   }
 
@@ -72,6 +90,23 @@ export class MiembroCreateComponent implements OnInit {
       this.editMode = true;
       this.patchFormValues();
     }
+    if (this.isAdmin) {
+      this.loadActiveChurches();
+    }
+  }
+
+  loadActiveChurches() {
+    this.loadingChurches = true;
+    this.iglesiaService.getIglesias().subscribe({
+      next: (response) => {
+        this.iglesias = (response.datos || []).filter(i => i.estado);
+        this.loadingChurches = false;
+      },
+      error: (err) => {
+        console.error('[MiembroCreate] Error loading churches:', err);
+        this.loadingChurches = false;
+      }
+    });
   }
 
   patchFormValues() {
@@ -88,12 +123,27 @@ export class MiembroCreateComponent implements OnInit {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      this.selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imagePreview = reader.result as string;
-      };
-      reader.readAsDataURL(this.selectedFile);
+      const file = input.files[0];
+      
+      const dialogRef = this.dialog.open(ImageCropDialogComponent, {
+        data: { imageFile: file },
+        width: '400px',
+        maxWidth: '95vw',
+        disableClose: true
+      });
+      
+      dialogRef.afterClosed().subscribe((croppedFile: File) => {
+        if (croppedFile) {
+          this.selectedFile = croppedFile;
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.imagePreview = reader.result as string;
+          };
+          reader.readAsDataURL(this.selectedFile);
+        } else {
+          input.value = '';
+        }
+      });
     }
   }
 
@@ -122,15 +172,29 @@ export class MiembroCreateComponent implements OnInit {
       };
 
       try {
+        // 1. Create the Miembro
         const response = await this.miembroService.createMiembro(miembroData).toPromise();
         const miembroId = response.datos.id;
 
+        // 2. Upload photo if selected
         if (this.selectedFile && miembroId) {
           await this.miembroService.uploadPhoto(miembroId, this.selectedFile).toPromise();
         }
+
+        // 3. Assign the Miembro to the selected Iglesia
+        const iglesiaId = formValue.iglesiaId;
+        if (miembroId && iglesiaId) {
+          await this.miembroIglesiaService.createMiembroIglesia({
+            miembroId: miembroId,
+            iglesiaId: Number(iglesiaId)
+          }).toPromise();
+        }
+
         this.dialogRef.close(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error al crear el miembro:', error);
+        const errorMsg = error?.error?.message || 'Error al crear el miembro. Si el problema persiste, por favor contacte con soporte técnico.';
+        this.snackBar.open(errorMsg, 'Cerrar', { duration: 5000 });
       }
     }
   }

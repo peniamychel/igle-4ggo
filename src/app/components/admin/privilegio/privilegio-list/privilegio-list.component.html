@@ -1,117 +1,201 @@
-<div class="container">
-  <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nuevo Privilegio
-    </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Gestionar" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+<div class="privileges-dashboard">
+  <!-- Cabecera Premium -->
+  <div class="dashboard-header">
+    <div class="header-info">
+      <h1>Panel de Roles y Control de Acceso (RBAC)</h1>
+      <p>Configure los permisos del sistema asignando privilegios específicos a cada cargo de la iglesia.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" class="btn-nuevo-privilegio" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Privilegios'">
+        <mat-icon>add</mat-icon>
+        Nuevo Privilegio
+      </button>
+    </div>
   </div>
 
-  <div class="table-container">
-  <mat-table [dataSource]="dataSource" matSort>
+  <!-- Contenedor Principal de Doble Columna -->
+  <div class="dashboard-layout">
+    
+    <!-- COLUMNA IZQUIERDA: Sidebar de Roles con Barras de Progreso -->
+    <div class="roles-sidebar">
+      <div class="sidebar-title-wrapper">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <h2>Cargos y Roles</h2>
+      </div>
+      
+      <div class="roles-list">
+        <div *ngFor="let rol of rolesDisponibles" 
+             class="role-item-card"
+             [class.active]="selectedRolCargoId === rol.id"
+             (click)="seleccionarRol(rol.id!)">
+          
+          <div class="role-avatar-wrapper">
+            <mat-icon class="role-avatar-icon">
+              {{ rol.nombreRol === 'ADMIN' ? 'security' : rol.nombreRol === 'PASTOR' ? 'church' : rol.nombreRol === 'TESORERO' ? 'monetization_on' : 'account_circle' }}
+            </mat-icon>
+          </div>
 
-    <ng-container matColumnDef="nombre">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.nombre }}</mat-cell>
-    </ng-container>
+          <div class="role-card-info">
+            <span class="role-name">{{ rol.nombre }}</span>
+            <span class="role-code">{{ rol.nombreRol }}</span>
+            
+            <!-- Barra de Progreso de Permisos -->
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width.%]="getRolePrivilegesPercentage(rol.id!)"></div>
+              </div>
+              <span class="progress-text">{{ getRolePrivilegesPercentage(rol.id!) }}% de permisos</span>
+            </div>
+          </div>
 
-    <ng-container matColumnDef="acto">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Acto</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.acto }}</mat-cell>
-    </ng-container>
+          <div class="active-indicator-chevron">
+            <mat-icon>chevron_right</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <ng-container matColumnDef="estado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
-          {{ item.estado ? 'Activo' : 'Inactivo' }}
-        </span>
-      </mat-cell>
-    </ng-container>
+    <!-- COLUMNA DERECHA: Configuración de Privilegios Categorizados -->
+    <div class="privileges-main-panel" *ngIf="selectedRolCargoId">
+      
+      <!-- Ficha Informativa del Rol Activo -->
+      <div class="active-role-banner">
+        <div class="banner-avatar">
+          <mat-icon>badge</mat-icon>
+        </div>
+        <div class="banner-text">
+          <h3>Configurando Privilegios para: <strong>{{ getSelectedRolName() }}</strong></h3>
+          <p>Los cambios en los interruptores se aplican en tiempo real al rol seleccionado.</p>
+        </div>
+      </div>
 
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item" class="acciones-cell">
-        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #menu="matMenu">
-          <button mat-menu-item (click)="openEditDialog(item)">
-            <mat-icon>edit</mat-icon>
-            <span>Editar</span>
-          </button>
-          <button mat-menu-item (click)="toggleEstado(item)">
-            <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-            <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
-          </button>
-        </mat-menu>
-      </mat-cell>
-    </ng-container>
+      <!-- Cuadrícula de Categorías (Acordeones/Tarjetas) -->
+      <div class="categories-grid">
+        <div *ngFor="let group of privilegeGroups" class="category-card">
+          
+          <!-- Cabecera de Categoría con Switch Maestro -->
+          <div class="category-header">
+            <div class="category-title-info">
+              <div class="category-icon-wrapper">
+                <mat-icon>{{ group.icon }}</mat-icon>
+              </div>
+              <div class="category-titles">
+                <h4>{{ group.categoryName }}</h4>
+                <p>{{ group.description }}</p>
+              </div>
+            </div>
+            
+            <!-- Master Switch (Checkbox Custom Styled) -->
+            <div class="master-switch-wrapper" matTooltip="Activar/Desactivar toda la categoría">
+              <label class="switch-control master-switch">
+                <input type="checkbox" 
+                       [checked]="hasAllCategoryPrivileges(selectedRolCargoId!, group)"
+                       (change)="toggleCategoryPrivileges(selectedRolCargoId!, group)">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+          <mat-divider></mat-divider>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">No se encontraron datos que coincidan con "{{ input.value }}"</td>
-    </tr>
-  </mat-table>
-
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de privilegios">
-  </mat-paginator>
+          <!-- Listado de Privilegios en la Categoría -->
+          <div class="category-body">
+            <div *ngFor="let pName of group.privilegeNames" class="privilege-row">
+              <div class="privilege-label-info">
+                <span class="privilege-name">{{ pName }}</span>
+                <span class="privilege-desc">
+                  {{ pName.startsWith('Ver') ? 'Permite entrar al módulo y realizar búsquedas o consultas.' : 'Permite realizar operaciones de escritura (crear, modificar, borrar y cambiar estados).' }}
+                </span>
+              </div>
+              
+              <!-- Switch Individual (Checkbox Custom Styled) -->
+              <div class="individual-switch-wrapper">
+                <label class="switch-control" [class.type-write]="!pName.startsWith('Ver')">
+                  <input type="checkbox" 
+                         [checked]="hasPrivilege(selectedRolCargoId!, pName)"
+                         (change)="togglePrivilege(selectedRolCargoId!, pName)">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <mat-divider class="section-divider"></mat-divider>
 
-  <mat-card class="roles-card">
+  <!-- SECCIÓN SECUNDARIA: Administrar Privilegios Maestrías del Sistema (Flat Table) -->
+  <mat-card class="master-privileges-card">
     <mat-card-header>
-      <mat-icon mat-card-avatar>admin_panel_settings</mat-icon>
-      <mat-card-title>Asignación de Privilegios por Rol</mat-card-title>
-      <mat-card-subtitle>Seleccione un rol para gestionar sus privilegios</mat-card-subtitle>
+      <mat-icon mat-card-avatar>list_alt</mat-icon>
+      <mat-card-title>Tabla Maestra de Privilegios del Sistema</mat-card-title>
+      <mat-card-subtitle>Sección avanzada para dar de alta, modificar o de baja privilegios generales.</mat-card-subtitle>
     </mat-card-header>
-
-    <mat-card-content>
-      <div class="rol-selector">
-        <mat-button-toggle-group [value]="selectedRolCargoId" (change)="seleccionarRol($event.value)">
-          <mat-button-toggle *ngFor="let rol of rolesDisponibles" [value]="rol.id">
-            {{ rol.nombre }}
-          </mat-button-toggle>
-        </mat-button-toggle-group>
+    
+    <mat-card-content class="advanced-table-content">
+      <div class="table-search-bar">
+        <mat-form-field appearance="outline">
+          <mat-label>Filtrar privilegios...</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Bautizos" #input>
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
       </div>
 
-      <div class="privilegios-asignados">
-        <h4>Privilegios de <strong>{{ getSelectedRolName() }}</strong></h4>
-        <mat-chip-set *ngIf="privilegiosPorRol.length > 0">
-          <mat-chip *ngFor="let p of privilegiosPorRol" (removed)="quitarPrivilegio(p.id)">
-            {{ p.nombre }}
-            <button matChipRemove>
-              <mat-icon>cancel</mat-icon>
-            </button>
-          </mat-chip>
-        </mat-chip-set>
-        <p class="empty-message" *ngIf="privilegiosPorRol.length === 0">
-          No tiene privilegios asignados
-        </p>
-      </div>
+      <div class="table-wrapper">
+        <mat-table [dataSource]="dataSource" matSort>
+          <!-- Columna Nombre -->
+          <ng-container matColumnDef="nombre">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Nombre del Privilegio</mat-header-cell>
+            <mat-cell *matCellDef="let item" class="font-semibold">{{ item.nombre }}</mat-cell>
+          </ng-container>
 
-      <mat-divider></mat-divider>
+          <!-- Columna Descripción/Acto -->
+          <ng-container matColumnDef="acto">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Descripción (Acto)</mat-header-cell>
+            <mat-cell *matCellDef="let item" class="text-secondary">{{ item.acto }}</mat-cell>
+          </ng-container>
 
-      <div class="privilegios-disponibles">
-        <h4>Agregar Privilegios</h4>
-        <div class="available-list" *ngIf="privilegiosDisponibles.length > 0">
-          <mat-chip-set>
-            <mat-chip *ngFor="let p of privilegiosDisponibles" (click)="agregarPrivilegio(p.id!)" class="add-chip">
-              <mat-icon matChipAvatar>add</mat-icon>
-              {{ p.nombre }}
-            </mat-chip>
-          </mat-chip-set>
-        </div>
-        <p class="empty-message" *ngIf="privilegiosDisponibles.length === 0">
-          Todos los privilegios están asignados a este rol
-        </p>
+          <!-- Columna Estado -->
+          <ng-container matColumnDef="estado">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+                {{ item.estado ? 'Activo' : 'Inactivo' }}
+              </span>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="acciones">
+            <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+            <mat-cell *matCellDef="let item" class="acciones-cell">
+              <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Privilegios'">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar</span>
+                </button>
+                <button mat-menu-item (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Privilegios'">
+                  <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+                  <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+                </button>
+              </mat-menu>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data-cell" colspan="4">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+          </tr>
+        </mat-table>
+
+        <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Seleccionar página de privilegios"></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>

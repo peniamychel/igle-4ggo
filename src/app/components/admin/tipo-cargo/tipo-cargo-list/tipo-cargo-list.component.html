@@ -13,7 +13,7 @@
 
 <div [class.dialog-content]="dialogRef" [class.container]="!dialogRef">
   <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Cargos'">
       <mat-icon>add</mat-icon>
       Nuevo Tipo Ministerio
     </button>
@@ -61,15 +61,15 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button mat-menu-item (click)="openEditDialog(item)">
+          <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Cargos'">
             <mat-icon>edit</mat-icon>
             <span>Editar</span>
           </button>
-          <button mat-menu-item (click)="toggleEstado(item)">
+          <button mat-menu-item (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Cargos'">
             <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
             <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
           </button>
-          <button mat-menu-item (click)="deleteTipoCargo(item)">
+          <button mat-menu-item (click)="deleteTipoCargo(item)" *appHasPrivilegio="'Escribir Cargos'">
             <mat-icon style="color: #dc3545;">delete</mat-icon>
             <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
           </button>

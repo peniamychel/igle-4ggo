@@ -1,5 +1,5 @@
 <!-- ════════════════════════════════════════════════
-     USUARIOS SISTEMA — Unificado con Roles & Permisos
+     USUARIOS SISTEMA — Módulo de Gestión y Permisos
      ════════════════════════════════════════════════ -->
 
 <div class="container">
@@ -48,17 +48,9 @@
             </div>
             <div class="user-info">
               <span class="user-name">{{user.name}} {{user.apellidos}}</span>
-              <span class="user-username">&#64;{{user.username}}</span>
+              <span class="user-username">&#64;{{user.username}} · {{user.email}}</span>
             </div>
           </div>
-        </td>
-      </ng-container>
-
-      <!-- Columna: Contacto -->
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Contacto</th>
-        <td mat-cell *matCellDef="let user" class="email-cell">
-          {{user.email}}
         </td>
       </ng-container>
 
@@ -76,11 +68,29 @@
         </td>
       </ng-container>
 
+      <!-- Columna: Iglesia -->
+      <ng-container matColumnDef="iglesia">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Iglesia</th>
+        <td mat-cell *matCellDef="let user" class="iglesia-cell">
+          {{ user.iglesiaNombre || 'Sede Central' }}
+        </td>
+      </ng-container>
+
       <!-- Columna: Último Acceso -->
       <ng-container matColumnDef="lastLogin">
         <th mat-header-cell *matHeaderCellDef>Último acceso</th>
         <td mat-cell *matCellDef="let user" class="last-login-cell">
           {{ user.username === 'admin' ? '18 jun 2026' : 'Nunca' }}
+        </td>
+      </ng-container>
+
+      <!-- Columna: Privilegios Directos -->
+      <ng-container matColumnDef="privilegios">
+        <th mat-header-cell *matHeaderCellDef>Privilegios</th>
+        <td mat-cell *matCellDef="let user" class="privilegios-count-cell">
+          <span class="privilegios-counter-badge" [class.has-privs]="user.privilegios && user.privilegios.length > 0">
+            {{ user.privilegios?.length || 0 }} / 17
+          </span>
         </td>
       </ng-container>
 
@@ -199,65 +209,16 @@
 
   <div class="spacing-divider"></div>
 
-  <!-- ── 3. Sección: Roles del Sistema ── -->
-  <div class="section-container">
-    <div class="section-header">
-      <mat-icon class="section-icon">shield</mat-icon>
-      <div>
-        <h3>Roles del Sistema</h3>
-        <p class="section-subtitle">Roles disponibles para asignar a usuarios</p>
-      </div>
-    </div>
-
-    <div class="roles-cards-grid">
-      @for (role of rolesInfo; track role.key) {
-        <div class="role-card" [ngClass]="role.colorClass" [class.selected]="selectedMatrixRole === role.key" (click)="selectMatrixRole(role.key)">
-          <div class="role-card-header">
-            <div class="role-icon-circle">
-              <mat-icon>{{ role.iconName }}</mat-icon>
-            </div>
-            <div>
-              <h4>{{ role.nombre }}</h4>
-              <p class="role-card-users-count">{{ getUsersCountByRole(role.key) }} usuario(s)</p>
-            </div>
-          </div>
-          <p class="role-card-desc">{{ role.desc }}</p>
-        </div>
-      }
-    </div>
-  </div>
-
-  <div class="spacing-divider"></div>
-
-  <!-- ── 4. Sección: Roles y Permisos Matrix ── -->
+  <!-- ── 3. Sección: Matriz de Privilegios por Usuario ── -->
   <div class="section-container">
     <div class="matrix-premium-header">
       <div class="matrix-header-left">
         <mat-icon class="matrix-icon">verified_user</mat-icon>
         <div>
-          <h3>Roles y Permisos</h3>
-          <p class="matrix-subtitle">Matriz de permisos por rol - qué módulos puede acceder cada tipo de usuario</p>
+          <h3>Matriz de Privilegios por Usuario</h3>
+          <p class="matrix-subtitle">Haga clic en los círculos para asignar o revocar directamente privilegios individuales a cada usuario.</p>
         </div>
       </div>
-    </div>
-
-    <!-- Cards Selector tabs for the Matrix columns -->
-    <div class="matrix-tabs">
-      @for (role of rolesInfo; track role.key) {
-        <div class="matrix-tab-card" 
-             [ngClass]="role.colorClass" 
-             [class.active]="selectedMatrixRole === role.key"
-             (click)="selectMatrixRole(role.key)">
-          <div class="matrix-tab-icon">
-            <mat-icon>{{ role.iconName }}</mat-icon>
-          </div>
-          <div class="matrix-tab-info">
-            <span class="matrix-tab-title">{{ role.nombre }}</span>
-            <span class="matrix-tab-modules">{{ getActiveModulesCount(role.key) }} módulos</span>
-            <p class="matrix-tab-desc">{{ role.longDesc }}</p>
-          </div>
-        </div>
-      }
     </div>
 
     <!-- The actual Matrix Table -->
@@ -265,31 +226,38 @@
       <table class="matrix-table">
         <thead>
           <tr>
-            <th class="col-modulo">Módulo</th>
-            @for (role of rolesInfo; track role.key) {
-              <th class="col-role-header" [class.highlighted]="selectedMatrixRole === role.key" (click)="selectMatrixRole(role.key)">
-                {{ role.nombre }}
+            <th class="col-modulo">Usuario</th>
+            @for (col of matrixColumns; track col.privilege) {
+              <th class="col-role-header">
+                <div class="matrix-col-header-content">
+                  <mat-icon class="col-icon-small">{{ col.icon }}</mat-icon>
+                  <span>{{ col.label }}</span>
+                </div>
               </th>
             }
           </tr>
         </thead>
         <tbody>
-          @for (mod of matrixModules; track mod.name) {
+          @for (user of dataSource.data; track user.id) {
             <tr class="matrix-row">
               <td class="cell-modulo">
                 <div class="modulo-name-wrapper">
-                  <mat-icon class="modulo-icon">{{ mod.icon }}</mat-icon>
-                  <span>{{ mod.name }}</span>
+                  <div class="matrix-user-avatar-mini" *ngIf="!user.uriFoto" [style.background-color]="getAvatarColor(user.name || user.username)">
+                    {{ getInitials(user.name || user.username) }}
+                  </div>
+                  <img *ngIf="user.uriFoto" [src]="user.uriFoto | imageUrl" class="matrix-user-avatar-mini img">
+                  <div class="matrix-user-meta">
+                    <span class="matrix-user-name">{{ user.name || user.username }}</span>
+                    <span class="matrix-user-username">&#64;{{ user.username }}</span>
+                  </div>
                 </div>
               </td>
-              @for (role of rolesInfo; track role.key) {
-                <td class="cell-role-status" 
-                    [class.highlighted]="selectedMatrixRole === role.key" 
-                    (click)="togglePrivilege(role.key, mod.privilegeName, $event)">
-                  @if (hasPrivilege(role.key, mod.privilegeName)) {
+              @for (col of matrixColumns; track col.privilege) {
+                <td class="cell-role-status clickable-matrix-cell" (click)="toggleUserPrivilege(user, col.privilege)">
+                  @if (userHasPrivilege(user, col.privilege)) {
                     <mat-icon class="status-icon active-icon">check_circle</mat-icon>
                   } @else {
-                    <mat-icon class="status-icon inactive-icon">cancel</mat-icon>
+                    <mat-icon class="status-icon inactive-icon">close</mat-icon>
                   }
                 </td>
               }
@@ -303,7 +271,7 @@
     <div class="security-info-banner">
       <mat-icon>lock</mat-icon>
       <p>
-        <strong>Seguridad:</strong> Los módulos no autorizados para un rol se ocultan automáticamente del menú lateral y la búsqueda global. El acceso directo vía URL también está restringido en el backend para operaciones críticas como backup/restauración de base de datos.
+        <strong>Seguridad y Triangulación:</strong> La matriz gestiona privilegios a nivel de usuario. Se triangula con los privilegios heredados por sus Cargos y Roles para resolver su acceso definitivo.
       </p>
     </div>
   </div>

@@ -12,6 +12,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../../core/services/user.service';
 import { MiembroService } from '../../../../core/services/miembro.service';
+import { PrivilegioService } from '../../../../core/services/privilegio.service';
+import { PrivilegioDto } from '../../../../core/models/interfaces/privilegio.interface';
 import { Miembro } from '../../../../core/models/miembro.model';
 import { User } from '../../../../core/models/user.model';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
@@ -45,6 +47,19 @@ export class EditUserDialogComponent implements OnInit {
   hideNewPassword = true;
   changePassword = false;
   miembros: Miembro[] = [];
+  todosPrivilegios: PrivilegioDto[] = [];
+  selectedPrivilegioIds: Set<number> = new Set<number>();
+
+  modules = [
+    { key: 'Usuarios', name: 'Usuarios', viewPrivilege: 'Ver Usuarios', writePrivilege: 'Escribir Usuarios', icon: 'switch_account', desc: 'Gestionar acceso al sistema' },
+    { key: 'Miembros', name: 'Miembros', viewPrivilege: 'Ver Miembros', writePrivilege: 'Escribir Miembros', icon: 'people', desc: 'Gestionar feligreses y registros' },
+    { key: 'Iglesias', name: 'Iglesias', viewPrivilege: 'Ver Iglesias', writePrivilege: 'Escribir Iglesias', icon: 'church', desc: 'Administrar templos y anexos' },
+    { key: 'MiembroIglesia', name: 'Membresías', viewPrivilege: 'Ver MiembroIglesia', writePrivilege: 'Escribir MiembroIglesia', icon: 'recent_actors', desc: 'Asignaciones y traslados' },
+    { key: 'Cargos', name: 'Cargos y Roles', viewPrivilege: 'Ver Cargos', writePrivilege: 'Escribir Cargos', icon: 'work', desc: 'Asignación de cargos' },
+    { key: 'Eventos', name: 'Eventos', viewPrivilege: 'Ver Eventos', writePrivilege: 'Escribir Eventos', icon: 'event', desc: 'Planificación de actividades' },
+    { key: 'Certificados', name: 'Certificados', viewPrivilege: 'Ver Certificados', writePrivilege: 'Escribir Certificados', icon: 'workspace_premium', desc: 'Emisión de constancias' },
+    { key: 'Privilegios', name: 'Privilegios', viewPrivilege: 'Ver Privilegios', writePrivilege: 'Escribir Privilegios', icon: 'vpn_key', desc: 'Políticas y permisos' }
+  ];
 
   get hasChanges(): boolean {
     const basicDetailsChanged =
@@ -54,7 +69,18 @@ export class EditUserDialogComponent implements OnInit {
 
     const passwordChanged = this.changePassword && this.passwordForm.valid;
 
-    return basicDetailsChanged || passwordChanged;
+    const originalIds = new Set(this.data.privilegios?.map(p => p.id).filter(id => id !== undefined) || []);
+    let privilegesChanged = originalIds.size !== this.selectedPrivilegioIds.size;
+    if (!privilegesChanged) {
+      for (const id of this.selectedPrivilegioIds) {
+        if (!originalIds.has(id)) {
+          privilegesChanged = true;
+          break;
+        }
+      }
+    }
+
+    return basicDetailsChanged || passwordChanged || privilegesChanged;
   }
 
   constructor(
@@ -63,6 +89,7 @@ export class EditUserDialogComponent implements OnInit {
     private fb: FormBuilder,
     private userService: UserService,
     private miembroService: MiembroService,
+    private privilegioService: PrivilegioService,
     private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
@@ -76,10 +103,17 @@ export class EditUserDialogComponent implements OnInit {
     this.passwordForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    if (data.privilegios) {
+      data.privilegios.forEach(p => {
+        if (p.id) this.selectedPrivilegioIds.add(p.id);
+      });
+    }
   }
 
   ngOnInit(): void {
     this.loadMiembros();
+    this.loadPrivileges();
     this.userForm.get('miembroId')?.valueChanges.subscribe(miembroId => {
       const selectedMiembro = this.miembros.find(m => m.id === miembroId);
       if (selectedMiembro) {
@@ -94,6 +128,50 @@ export class EditUserDialogComponent implements OnInit {
         });
       }
     });
+  }
+
+  loadPrivileges(): void {
+    this.privilegioService.getAll().subscribe({
+      next: (privs) => {
+        this.todosPrivilegios = privs;
+      },
+      error: (err) => {
+        console.error('Error al cargar privilegios:', err);
+      }
+    });
+  }
+
+  getPrivilegeIdByName(name: string): number | undefined {
+    return this.todosPrivilegios.find(p => p.nombre === name)?.id;
+  }
+
+  isPrivilegeSelected(name: string): boolean {
+    const id = this.getPrivilegeIdByName(name);
+    return id ? this.selectedPrivilegioIds.has(id) : false;
+  }
+
+  togglePrivilegeSelection(name: string): void {
+    const id = this.getPrivilegeIdByName(name);
+    if (!id) return;
+    if (this.selectedPrivilegioIds.has(id)) {
+      this.selectedPrivilegioIds.delete(id);
+      if (name.startsWith('Ver ')) {
+        const writeName = name.replace('Ver ', 'Escribir ');
+        const writeId = this.getPrivilegeIdByName(writeName);
+        if (writeId) {
+          this.selectedPrivilegioIds.delete(writeId);
+        }
+      }
+    } else {
+      this.selectedPrivilegioIds.add(id);
+      if (name.startsWith('Escribir ')) {
+        const viewName = name.replace('Escribir ', 'Ver ');
+        const viewId = this.getPrivilegeIdByName(viewName);
+        if (viewId) {
+          this.selectedPrivilegioIds.add(viewId);
+        }
+      }
+    }
   }
 
   loadMiembros(): void {
@@ -118,20 +196,31 @@ export class EditUserDialogComponent implements OnInit {
         this.userForm.value.email !== this.data.email ||
         this.userForm.value.miembroId !== this.data.miembroId;
 
+      const originalIds = new Set(this.data.privilegios?.map(p => p.id).filter(id => id !== undefined) || []);
+      let privilegesChanged = originalIds.size !== this.selectedPrivilegioIds.size;
+      if (!privilegesChanged) {
+        for (const id of this.selectedPrivilegioIds) {
+          if (!originalIds.has(id)) {
+            privilegesChanged = true;
+            break;
+          }
+        }
+      }
+
       const passwordChanged = this.changePassword && this.passwordForm.valid;
 
       let obs$ = of<any>(null);
 
-      if (basicDetailsChanged) {
-        // Get raw value to include disabled controls (name/apellidos)
+      if (basicDetailsChanged || privilegesChanged) {
         const formRaw = this.userForm.getRawValue();
         const updateUserData = {
-          id: this.data.id,
+          id: this.data.id!,
           username: formRaw.username,
           email: formRaw.email,
           name: formRaw.name,
           apellidos: formRaw.apellidos,
-          miembroId: formRaw.miembroId
+          miembroId: formRaw.miembroId,
+          privilegioIds: Array.from(this.selectedPrivilegioIds)
         };
         obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
       }

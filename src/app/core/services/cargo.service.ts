@@ -25,6 +25,15 @@ export class CargoService {
   }
 
   /**
+   * Obtiene los colaboradores de la iglesia activa, con datos de miembro y rol embebidos.
+   * Accesible para PASTOR sin necesitar privilegios adicionales.
+   * @returns lista de cargos enriquecidos
+   */
+  getMisColaboradores(): Observable<CargosResponse> {
+    return this.http.get<CargosResponse>(`${this.apiUrl}/mis-colaboradores`);
+  }
+
+  /**
    * Obtiene un cargo por id
    * @param id id del cargo
    * @returns cargo encontrado

@@ -20,9 +20,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { MiembroIglesiaFormTraspasoComponent } from '../../miembro-iglesia/modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
+import { AuthService } from '../../../../core/services/security/auth.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -46,7 +48,8 @@ import autoTable from 'jspdf-autotable';
     MatTooltipModule,
     MatSelectModule,
     MatMenuModule,
-    ImageUrlPipe
+    ImageUrlPipe,
+    HasPrivilegioDirective
   ],
   templateUrl: './miembro-list.component.html',
   styleUrls: ['./miembro-list.component.css']
@@ -68,6 +71,7 @@ export class MiembroListComponent implements OnInit {
   constructor(
     private miembroService: MiembroService,
     private iglesiaService: IglesiaService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
@@ -383,4 +387,62 @@ export class MiembroListComponent implements OnInit {
       message, 'Cerrar', { duration: 3000, panelClass: [panelClass] }
     );
   }
+
+  descargarPlantilla() {
+    this.miembroService.downloadTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Plantilla_Miembros.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.messageSnackBar('Plantilla descargada con éxito', 'success');
+      },
+      error: () => {
+        this.messageSnackBar('Error al descargar la plantilla', 'error');
+      }
+    });
+  }
+
+  importarExcel(event: Event) {
+    const element = event.target as HTMLInputElement; // use event.target instead of event.currentTarget to clear value afterwards
+    let fileList: FileList | null = element.files;
+    if (fileList && fileList.length > 0) {
+      const file = fileList[0];
+      
+      let targetIglesiaId: number | undefined;
+      const isAdmin = this.authService.isLoggedRolAdmin();
+      
+      if (isAdmin) {
+        const churchNames = this.iglesias.map(i => `${i.id}: ${i.nombre}`).join('\n');
+        const input = prompt(`Por favor ingrese el ID de la iglesia de destino:\n\n${churchNames}`);
+        if (!input) {
+          element.value = '';
+          return;
+        }
+        targetIglesiaId = parseInt(input, 10);
+        if (isNaN(targetIglesiaId)) {
+          this.messageSnackBar('ID de iglesia no válido.', 'error');
+          element.value = '';
+          return;
+        }
+      }
+
+      this.miembroService.importExcel(file, targetIglesiaId).subscribe({
+        next: (res) => {
+          this.loadMiembros();
+          this.messageSnackBar(res.message || 'Membresía importada con éxito.', 'success');
+          element.value = '';
+        },
+        error: (err) => {
+          this.messageSnackBar('Error al importar archivo. Verifique el formato.', 'error');
+          element.value = '';
+        }
+      });
+    }
+  }
 }
+

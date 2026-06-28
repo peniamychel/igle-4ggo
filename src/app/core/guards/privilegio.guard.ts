@@ -1,74 +1,51 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/security/auth.service';
+import { ROUTE_VIEW_MAP } from '../constants/privilegios.constants';
 
 /**
- * Mapeo explícito ruta → nombre exacto del privilegio en la BD.
- * Usar nombres exactos evita el matching frágil por keywords.
- * Rutas sin entrada en este mapa son accesibles a cualquier usuario autenticado.
+ * Guard de autorización por privilegio de VISUALIZACIÓN.
+ *
+ * Usa el mapa único {@link ROUTE_VIEW_MAP} (ruta → `Ver <Entidad>`) en lugar
+ * del fuzzy matching anterior. Así menú y guard consultan la misma fuente y
+ * nunca se contradicen.
+ *
+ * Reglas:
+ *  1. ADMIN → bypass, acceso total.
+ *  2. Ruta no listada en el mapa (p. ej. `/inicio`, `/perfil`) → acceso libre
+ *     para autenticados (el `authGuard` de la ruta padre ya validó el token).
+ *  3. Ruta listada → exige el privilegio `Ver <Entidad>` correspondiente.
+ *     Si el usuario no lo tiene → redirige a `/`.
  */
-const ROUTE_PRIVILEGE_MAP: Record<string, string> = {
-  'miembro':           'Gestionar Miembros',
-  'iglesia':           'Gestionar Iglesias',
-  'miembroiglesia':    'Gestionar MiembroIglesia',
-  'cambios-iglesia':   'Gestionar Iglesias',
-  'graficoiglesias':   'Gestionar Iglesias',
-  'tipocargo':         'Gestionar Obreros',
-  'obreros':           'Gestionar Obreros',
-  'cargo':             'Gestionar Obreros',
-  'solicitudes':       'Gestionar Miembros',
-  'eventos':           'Gestionar Eventos',
-  'tipoevento':        'Gestionar Eventos',
-  'bautizos':          'Gestionar Eventos',
-  'talleres':          'Gestionar Eventos',
-  'responsable-evento':'Gestionar Eventos',
-  'participacion-evento': 'Gestionar Eventos',
-  'certificados':      'Gestionar Eventos',
-  'tipocertificado':   'Gestionar Eventos',
-  'ofrendas':          'Gestionar Ofrendas',
-  'privilegios':       'Gestionar Privilegios',
-  'usuariosistema':    'Gestionar Usuarios',
-};
-
-export const privilegioGuard: CanActivateFn = (route, state) => {
+export const privilegioGuard: CanActivateFn = (route, _state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Admins tienen acceso a todo
+  // 1. Admin: acceso total.
   if (authService.isLoggedRolAdmin()) {
     return true;
   }
 
-  // Obtener ruta actual
+  // 2. Resolver la ruta.
   const path = route.routeConfig?.path;
-  if (!path) return true;
-
-  // Si la ruta no requiere privilegio específico, permitir
-  const requiredPrivilege = ROUTE_PRIVILEGE_MAP[path];
-  if (!requiredPrivilege) return true;
-
-  // Obtener privilegios del usuario desde localStorage
-  const storedPrivilegios = localStorage.getItem('privilegios');
-  if (!storedPrivilegios) {
-    router.navigate(['/no-autorizado']);
-    return false;
-  }
-
-  let userPrivileges: string[] = [];
-  try {
-    userPrivileges = JSON.parse(storedPrivilegios);
-  } catch (e) {
-    router.navigate(['/no-autorizado']);
-    return false;
-  }
-
-  // Comparación exacta con el privilegio requerido
-  const hasPrivilege = userPrivileges.includes(requiredPrivilege);
-
-  if (hasPrivilege) {
+  if (!path) {
+    // Ruta vacía o wildcard: permitir (el authGuard padre ya autenticó).
     return true;
-  } else {
-    router.navigate(['/no-autorizado']);
-    return false;
   }
+
+  // 3. Privilegio requerido para VER la página.
+  const requerido = ROUTE_VIEW_MAP[path];
+  if (!requerido) {
+    // Ruta pública: no requiere privilegio de visualización.
+    return true;
+  }
+
+  // 4. ¿El usuario lo tiene?
+  if (authService.hasPrivilegio(requerido)) {
+    return true;
+  }
+
+  // 5. Sin privilegio: al inicio.
+  router.navigate(['/']);
+  return false;
 };

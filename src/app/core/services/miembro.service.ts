@@ -58,4 +58,19 @@ export class MiembroService {
   deleteMiembro(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
+
+  importExcel(file: File, iglesiaId?: number): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    let url = `${this.apiUrl}/importar`;
+    if (iglesiaId) {
+      url += `?iglesiaId=${iglesiaId}`;
+    }
+    return this.http.post(url, formData);
+  }
+
+  downloadTemplate(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/plantilla`, { responseType: 'blob' });
+  }
 }
+

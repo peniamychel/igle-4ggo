@@ -223,4 +223,38 @@ export class AuthService {
   isLoggedRolEncargado() {
     return localStorage.getItem('role') === 'ROLE_ENCARGADO_IGLESIA';
   }
+
+  /**
+   * Verifica si el usuario posee un privilegio (o alguno de varios).
+   *
+   * Modelo de 2 niveles: los privilegios son strings del tipo
+   * `Ver <Entidad>` / `Escribir <Entidad>` que viajan en el JWT y se guardan
+   * en `localStorage['privilegios']` (array de strings) tras el login.
+   *
+   * - El rol ADMIN tiene bypass: siempre devuelve `true` (el backend le
+   *   asigna TODOS los privilegios por código, pero reforzamos acá).
+   * - La comparación es EXACTA (sensible a mayúsculas/acentos): los nombres
+   *   deben coincidir con `privilegio.nombre` en la BD.
+   *
+   * @param privilegio Nombre del privilegio, o lista de nombres (basta con
+   *                   tener uno solo de la lista).
+   * @returns `true` si el usuario tiene el privilegio (o es admin).
+   */
+  hasPrivilegio(privilegio: string | string[]): boolean {
+    if (this.isLoggedRolAdmin()) return true;
+
+    const raw = localStorage.getItem('privilegios');
+    if (!raw) return false;
+
+    let userPrivileges: string[];
+    try {
+      userPrivileges = JSON.parse(raw);
+    } catch {
+      return false;
+    }
+    if (!Array.isArray(userPrivileges)) return false;
+
+    const buscados = Array.isArray(privilegio) ? privilegio : [privilegio];
+    return buscados.some(p => userPrivileges.includes(p));
+  }
 }

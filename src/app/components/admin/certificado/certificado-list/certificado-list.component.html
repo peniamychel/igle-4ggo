@@ -22,7 +22,7 @@
               </div>
             </div>
             <div class="header-actions">
-              <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo certificado" (click)="openCreateDialog()">
+              <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo certificado" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Certificados'">
                 <mat-icon>add</mat-icon>
                 Nuevo Certificado
               </button>
@@ -113,19 +113,19 @@
                     <mat-icon>visibility</mat-icon>
                     <span>Ver detalle</span>
                   </button>
-                  <button mat-menu-item (click)="openEditDialog(item)">
+                  <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Certificados'">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>
                   </button>
-                  <button mat-menu-item (click)="openDesignerDialog(item)">
+                  <button mat-menu-item (click)="openDesignerDialog(item)" *appHasPrivilegio="'Escribir Certificados'">
                     <mat-icon>brush</mat-icon>
                     <span>Diseñar Plantilla</span>
                   </button>
-                  <button mat-menu-item (click)="toggleEstado(item)">
+                  <button mat-menu-item (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Certificados'">
                     <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
                     <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
                   </button>
-                  <button mat-menu-item (click)="deleteCertificado(item)">
+                  <button mat-menu-item (click)="deleteCertificado(item)" *appHasPrivilegio="'Escribir Certificados'">
                     <mat-icon style="color: #dc3545;">delete</mat-icon>
                     <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
                   </button>

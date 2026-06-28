@@ -49,8 +49,19 @@ import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
   styleUrls: ['./user-table.component.css']
 })
 export class UserTableComponent implements OnInit, AfterViewInit {
-  allColumns: string[] = ['name', 'email', 'roles', 'lastLogin', 'estado', 'actions'];
+  allColumns: string[] = ['name', 'roles', 'iglesia', 'lastLogin', 'privilegios', 'estado', 'actions'];
   displayedColumns: string[] = [...this.allColumns];
+
+  matrixColumns = [
+    { label: 'Usuarios', privilege: 'Ver Usuarios', icon: 'switch_account' },
+    { label: 'Miembros', privilege: 'Ver Miembros', icon: 'people' },
+    { label: 'Iglesias', privilege: 'Ver Iglesias', icon: 'church' },
+    { label: 'Eventos', privilege: 'Ver Eventos', icon: 'event' },
+    { label: 'Certificados', privilege: 'Ver Certificados', icon: 'workspace_premium' },
+    { label: 'Privilegios', privilege: 'Ver Privilegios', icon: 'vpn_key' },
+    { label: 'Finanzas', privilege: 'Ver Ofrendas', icon: 'monetization_on' },
+    { label: 'Bitácora', privilege: 'Ver Bitácora', icon: 'history' }
+  ];
   dataSource: MatTableDataSource<User>;
   pagedData: User[] = [];
   pageSize = 15;
@@ -64,20 +75,39 @@ export class UserTableComponent implements OnInit, AfterViewInit {
 
   rolesInfo: any[] = [];
 
+  /**
+   * Matriz de módulos × privilegios.
+   * Modelo de 2 niveles: cada entidad expone "Ver" (consulta) y "Escribir"
+   * (crear/editar/eliminar/estado/actas/fotos/traspasos/plantilla).
+   * Los módulos de solo lectura conservan un único privilegio "Ver X".
+   *
+   * Los `privilegeName` deben coincidir EXACTAMENTE con `privilegio.nombre`
+   * en la BD (ver api-iglesia/database/migracion-privilegios.sql).
+   */
   matrixModules = [
-    { name: 'Dashboard', privilegeName: 'Ver Dashboard', icon: 'dashboard' },
-    { name: 'Miembros', privilegeName: 'Gestionar Miembros', icon: 'people' },
-    { name: 'Iglesias', privilegeName: 'Gestionar Iglesias', icon: 'church' },
-    { name: 'Obreros', privilegeName: 'Gestionar Obreros', icon: 'work' },
-    { name: 'Eventos', privilegeName: 'Gestionar Eventos', icon: 'event' },
-    { name: 'Certificados', privilegeName: 'Gestionar Certificados', icon: 'workspace_premium' },
-    { name: 'Ofrendas', privilegeName: 'Gestionar Ofrendas', icon: 'monetization_on' },
-    { name: 'Inventario', privilegeName: 'Gestionar Inventario', icon: 'inventory' },
-    { name: 'Usuarios', privilegeName: 'Gestionar usuario', icon: 'switch_account' },
-    { name: 'Reportes', privilegeName: 'Ver Reportes', icon: 'bar_chart' },
-    { name: 'Bitácora', privilegeName: 'Ver Bitácora', icon: 'history' },
-    { name: 'Configuración', privilegeName: 'Gestionar Privilegios', icon: 'settings' },
-    { name: 'Ayuda', privilegeName: 'Ver Ayuda', icon: 'help' }
+    // --- Entidades operativas (lectura + escritura) ---
+    { name: 'Miembros',         privilegeName: 'Ver Miembros',            icon: 'people' },
+    { name: 'Miembros',         privilegeName: 'Escribir Miembros',       icon: 'edit' },
+    { name: 'Iglesias',         privilegeName: 'Ver Iglesias',            icon: 'church' },
+    { name: 'Iglesias',         privilegeName: 'Escribir Iglesias',       icon: 'edit' },
+    { name: 'Membresías',       privilegeName: 'Ver MiembroIglesia',      icon: 'recent_actors' },
+    { name: 'Membresías',       privilegeName: 'Escribir MiembroIglesia', icon: 'edit' },
+    { name: 'Cargos',           privilegeName: 'Ver Cargos',              icon: 'work' },
+    { name: 'Cargos',           privilegeName: 'Escribir Cargos',         icon: 'edit' },
+    { name: 'Eventos',          privilegeName: 'Ver Eventos',             icon: 'event' },
+    { name: 'Eventos',          privilegeName: 'Escribir Eventos',        icon: 'edit' },
+    { name: 'Certificados',     privilegeName: 'Ver Certificados',        icon: 'workspace_premium' },
+    { name: 'Certificados',     privilegeName: 'Escribir Certificados',   icon: 'edit' },
+    { name: 'Usuarios',         privilegeName: 'Ver Usuarios',            icon: 'switch_account' },
+    { name: 'Usuarios',         privilegeName: 'Escribir Usuarios',       icon: 'edit' },
+    { name: 'Privilegios',      privilegeName: 'Ver Privilegios',         icon: 'vpn_key' },
+    { name: 'Privilegios',      privilegeName: 'Escribir Privilegios',    icon: 'edit' },
+    // --- Módulos de solo lectura (sin operaciones de escritura) ---
+    { name: 'Dashboard',        privilegeName: 'Ver Dashboard',           icon: 'dashboard' },
+    { name: 'Reportes',         privilegeName: 'Ver Reportes',            icon: 'bar_chart' },
+    { name: 'Bitácora',         privilegeName: 'Ver Bitácora',            icon: 'history' },
+    { name: 'Ofrendas',         privilegeName: 'Ver Ofrendas',            icon: 'monetization_on' },
+    { name: 'Ayuda',            privilegeName: 'Ver Ayuda',               icon: 'help' },
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -424,8 +454,92 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   }
 
   toggleUserStatus(user: User): void {
-    user.estado = !user.estado;
-    this.dataSource.data = [...this.dataSource.data];
+    if (!user.id) return;
+    const nextEstado = !user.estado;
+    const updateDto = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name || '',
+      apellidos: user.apellidos || '',
+      miembroId: user.miembroId,
+      estado: nextEstado,
+      privilegioIds: user.privilegios ? user.privilegios.map(p => p.id!).filter(id => id !== undefined) : []
+    };
+    this.userService.updateUser(updateDto).subscribe({
+      next: (updatedUser) => {
+        user.estado = updatedUser.estado;
+        this.dataSource.data = [...this.dataSource.data];
+        this.updatePagedData();
+        this.snackBar.open(`Estado del usuario actualizado a ${updatedUser.estado ? 'Activo' : 'Inactivo'}`, 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: () => {
+        this.snackBar.open('Error al actualizar el estado del usuario', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
+  }
+
+  userHasPrivilege(user: User, privilegeName: string): boolean {
+    if (!user.privilegios) return false;
+    return user.privilegios.some(p => p.nombre === privilegeName);
+  }
+
+  toggleUserPrivilege(user: User, privilegeName: string) {
+    if (!user.id) return;
+    
+    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
+    if (!priv || !priv.id) {
+      this.snackBar.open(`El privilegio '${privilegeName}' no está registrado en el sistema`, 'Cerrar', { duration: 3000 });
+      return;
+    }
+    
+    const userPrivs = user.privilegios || [];
+    const hasIt = userPrivs.some(p => p.id === priv.id);
+    
+    let newPrivIds: number[] = [];
+    if (hasIt) {
+      newPrivIds = userPrivs.filter(p => p.id !== priv.id).map(p => p.id!).filter(id => id !== undefined);
+    } else {
+      newPrivIds = [...userPrivs.map(p => p.id!).filter(id => id !== undefined), priv.id];
+    }
+    
+    const updateDto = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name || '',
+      apellidos: user.apellidos || '',
+      miembroId: user.miembroId,
+      privilegioIds: newPrivIds,
+      estado: user.estado
+    };
+    
+    this.userService.updateUser(updateDto).subscribe({
+      next: (updatedUser) => {
+        const idx = this.dataSource.data.findIndex(u => u.id === user.id);
+        if (idx > -1) {
+          this.dataSource.data[idx] = updatedUser;
+          this.dataSource.data = [...this.dataSource.data];
+          this.updatePagedData();
+        }
+        this.snackBar.open(`Privilegio '${privilegeName}' actualizado para @${user.username}`, 'Cerrar', {
+          duration: 2500,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: () => {
+        this.snackBar.open('Error al actualizar privilegio del usuario', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
   }
 
   savePageSize(pageSize: number): void {

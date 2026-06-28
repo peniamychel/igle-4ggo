@@ -1,26 +1,282 @@
-<div class="grid-container">
-  <h1 class="mat-h1">Dashboard</h1>
-  <mat-grid-list cols="2" rowHeight="350px">
-    @for (card of cards | async; track card) {
-      <mat-grid-tile [colspan]="card.cols" [rowspan]="card.rows">
-        <mat-card class="dashboard-card">
-          <mat-card-header>
-            <mat-card-title>
-              {{card.title}}
-              <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #menu="matMenu" xPosition="before">
-                <button mat-menu-item>Expand</button>
-                <button mat-menu-item>Remove</button>
-              </mat-menu>
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content class="dashboard-card-content">
-            <div>Card Content Here</div>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    }
-  </mat-grid-list>
+<div class="dashboard-container">
+  
+  <!-- Cabecera Premium -->
+  <div class="dashboard-header-block">
+    <div class="header-info">
+      <div class="welcome-title">Bienvenido de nuevo</div>
+      <div class="welcome-subtitle">Resumen General De La Comunidad De Fe · {{ currentDate }}</div>
+    </div>
+  </div>
+
+  <!-- KPI Cards (Rejilla de 4 columnas) -->
+  <div class="kpi-grid">
+    <!-- Miembros Totales -->
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Miembros totales</span>
+        <span class="kpi-value">{{ totalMembers | number:'1.0-0':'es-ES' }}</span>
+        <span class="kpi-subtext">Activos en {{ totalChurches }} iglesias</span>
+        <div class="kpi-trend positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+8.4%</span>
+          <span class="trend-compare">vs. mes anterior</span>
+        </div>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>people</mat-icon>
+      </div>
+    </div>
+
+    <!-- Iglesias Activas -->
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Iglesias activas</span>
+        <span class="kpi-value">{{ totalChurches }}</span>
+        <span class="kpi-subtext">1 inactiva (Oruro)</span>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>church</mat-icon>
+      </div>
+    </div>
+
+    <!-- Eventos del Mes -->
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Eventos del mes</span>
+        <span class="kpi-value">23</span>
+        <span class="kpi-subtext">4 programados esta semana</span>
+        <div class="kpi-trend positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+12.5%</span>
+          <span class="trend-compare">vs. mes anterior</span>
+        </div>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>event</mat-icon>
+      </div>
+    </div>
+
+    <!-- Certificados Emitidos -->
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Certificados emitidos</span>
+        <span class="kpi-value">{{ totalCertificados }}</span>
+        <span class="kpi-subtext">{{ entregadosCertificados }} entregados · {{ pendientesCertificados }} pendientes</span>
+        <div class="kpi-trend negative">
+          <mat-icon>trending_down</mat-icon>
+          <span>-3.2%</span>
+          <span class="trend-compare">vs. mes anterior</span>
+        </div>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Gráficos (Grid de 2x2) -->
+  <div class="charts-section-grid">
+    <!-- 1. Crecimiento de membresía -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Crecimiento de membresía</h3>
+        <p class="chart-subtitle">Total de miembros y altas nuevas · últimos 12 meses</p>
+      </div>
+      <div class="chart-body area-chart-wrapper">
+        <ngx-charts-area-chart
+          [view]="viewArea"
+          [scheme]="purpleScheme"
+          [results]="membresiaGrowthData"
+          [gradient]="true"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showGridLines]="true"
+          [autoScale]="true">
+        </ngx-charts-area-chart>
+      </div>
+    </div>
+
+    <!-- 2. Eventos por tipo -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Eventos por tipo</h3>
+        <p class="chart-subtitle">Distribución de eventos · últimos 12 meses</p>
+      </div>
+      <div class="chart-body donut-chart-flex">
+        <div class="donut-chart-container">
+          <ngx-charts-pie-chart
+            [view]="viewDonut"
+            [scheme]="donutScheme"
+            [results]="eventosTipoData"
+            [doughnut]="true"
+            [gradient]="false"
+            [legend]="false"
+            [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+        <div class="donut-legend-container">
+          <div class="legend-item" *ngFor="let item of eventosTipoData; let idx = index">
+            <span class="legend-color-dot" [style.background-color]="donutScheme.domain[idx]"></span>
+            <span class="legend-name">{{ item.name }}</span>
+            <span class="legend-value">{{ item.value }}</span>
+            <span class="legend-percent">{{ item.percentage }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Top iglesias por miembros -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Top iglesias por miembros</h3>
+        <p class="chart-subtitle">Iglesias con mayor membresía activa</p>
+      </div>
+      <div class="chart-body">
+        <ngx-charts-bar-horizontal
+          [view]="viewHorizontalBar"
+          [scheme]="purpleScheme"
+          [results]="topIglesiasData"
+          [gradient]="false"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showGridLines]="true"
+          [barPadding]="12">
+        </ngx-charts-bar-horizontal>
+      </div>
+    </div>
+
+    <!-- 4. Certificados emitidos -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Certificados emitidos</h3>
+        <p class="chart-subtitle">Emitidos vs. entregados · últimos 12 meses</p>
+      </div>
+      <div class="chart-body">
+        <ngx-charts-bar-vertical-2d
+          [view]="viewGroupedBar"
+          [scheme]="certificatesScheme"
+          [results]="certificadosEmitidosData"
+          [gradient]="false"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showGridLines]="true"
+          [barPadding]="4"
+          [groupPadding]="8">
+        </ngx-charts-bar-vertical-2d>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila Inferior: Actividad Reciente y Próximos Eventos -->
+  <div class="bottom-widgets-row">
+    <!-- Panel de Actividad Reciente (Izquierda) -->
+    <div class="bottom-widget-card activity-panel">
+      <div class="widget-header">
+        <h3 class="widget-title">Actividad reciente</h3>
+      </div>
+      
+      <!-- Selector de pestañas -->
+      <div class="tabs-container">
+        <button class="tab-button" [class.active]="activeTab === 'traspasos'" (click)="selectTab('traspasos')">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Traspasos</span>
+          <span class="tab-badge" *ngIf="pendingTraspasosCount > 0">{{ pendingTraspasosCount }}</span>
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'certificados'" (click)="selectTab('certificados')">
+          <mat-icon>workspace_premium</mat-icon>
+          <span>Certificados</span>
+        </button>
+      </div>
+
+      <div class="widget-body tab-content-scroll">
+        <!-- Contenido de Traspasos -->
+        <div class="activity-list" *ngIf="activeTab === 'traspasos'">
+          <div class="no-activity-placeholder" *ngIf="recentTraspasos.length === 0">
+            <mat-icon>check_circle_outline</mat-icon>
+            <p>No hay solicitudes de traspaso pendientes</p>
+          </div>
+          
+          <div class="activity-item traspaso-row" *ngFor="let t of recentTraspasos">
+            <div class="activity-icon-box purple-bg">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="activity-info">
+              <div class="activity-member-header">
+                <span class="member-name">{{ t.miembroNombre }}</span>
+                <span class="member-ci">CI: {{ t.ci }}</span>
+              </div>
+              <div class="activity-route">
+                <span class="route-church">{{ t.iglesiaOrigen }}</span>
+                <mat-icon>sync_alt</mat-icon>
+                <span class="route-church dest">{{ t.iglesiaDestino }}</span>
+              </div>
+              <div class="activity-reason">{{ t.motivo }}</div>
+              <div class="activity-footer">
+                <span class="status-badge pending">{{ t.estado }}</span>
+                <span class="activity-date">{{ t.fecha }}</span>
+              </div>
+            </div>
+            <div class="activity-actions">
+              <button class="btn-approve" (click)="aprobarTraspaso(t)">Aprobar</button>
+              <button class="btn-reject" (click)="rechazarTraspaso(t)">Rechazar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenido de Certificados -->
+        <div class="activity-list" *ngIf="activeTab === 'certificados'">
+          <div class="activity-item certificado-row" *ngFor="let c of recentCertificados">
+            <div class="activity-icon-box teal-bg">
+              <mat-icon>workspace_premium</mat-icon>
+            </div>
+            <div class="activity-info">
+              <div class="activity-member-header">
+                <span class="member-name">{{ c.miembroNombre }}</span>
+                <span class="member-ci">CI: {{ c.ci }}</span>
+              </div>
+              <div class="certificado-details">
+                <span class="cert-type">{{ c.tipoCertificado }}</span>
+                <span class="cert-event">· {{ c.evento }}</span>
+              </div>
+              <div class="activity-footer">
+                <span class="status-badge" [class.delivered]="c.estado === 'ENTREGADO'" [class.pending]="c.estado === 'PENDIENTE'">
+                  {{ c.estado }}
+                </span>
+                <span class="activity-date">{{ c.fecha }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Próximos Eventos (Derecha) -->
+    <div class="bottom-widget-card upcoming-panel">
+      <div class="widget-header">
+        <h3 class="widget-title">Próximos eventos</h3>
+      </div>
+      <div class="widget-body events-list-scroll">
+        <div class="event-row-card" *ngFor="let ev of upcomingEvents">
+          <div class="event-date-card">
+            <span class="day-number">{{ ev.fechaInicio | date:'d' }}</span>
+            <span class="month-label">{{ ev.fechaInicio | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="event-details-card">
+            <span class="event-name-title">{{ ev.nombre }}</span>
+            <span class="event-location-text">{{ ev.ubicacion }}</span>
+            <div class="event-meta-line">
+              <span class="event-type-pill">{{ ev.tipo }}</span>
+              <span class="event-time-text">
+                <mat-icon>schedule</mat-icon>
+                {{ ev.fechaInicio | date:'hh:mm a' }}
+              </span>
+              <span class="event-parts-text">· {{ ev.participantes }} part.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+

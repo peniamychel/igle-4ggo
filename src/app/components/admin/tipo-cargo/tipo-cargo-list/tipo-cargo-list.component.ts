@@ -19,6 +19,7 @@ import { TipoCargoCreateComponent } from '../tipo-cargo-create/tipo-cargo-create
 import { TipoCargoDetailComponent } from '../tipo-cargo-detail/tipo-cargo-detail.component';
 import { TipoCargoEditComponent } from '../tipo-cargo-edit/tipo-cargo-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-tipo-cargo-list',
@@ -37,7 +38,8 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    HasPrivilegioDirective
   ],
   templateUrl: './tipo-cargo-list.component.html',
   styleUrls: ['./tipo-cargo-list.component.css']
