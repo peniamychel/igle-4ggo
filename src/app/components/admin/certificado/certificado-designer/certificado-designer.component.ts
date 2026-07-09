@@ -47,7 +47,8 @@ export class CertificadoDesignerComponent implements OnInit, AfterViewInit {
     { id: 'nombre_miembro', type: 'text', label: '[Nombre del Miembro]', x: 100, y: 150, fontSize: 24, color: '#000000' },
     { id: 'nombre_evento', type: 'text', label: '[Nombre del Evento]', x: 100, y: 200, fontSize: 18, color: '#000000' },
     { id: 'fecha', type: 'text', label: '[Fecha]', x: 100, y: 250, fontSize: 16, color: '#000000' },
-    { id: 'qr', type: 'qr', label: '[Código QR]', x: 50, y: 50, width: 100 }
+    { id: 'qr', type: 'qr', label: '[Código QR]', x: 50, y: 50, width: 100 },
+    { id: 'codigo_verificacion', type: 'text', label: '[Código de Verificación]', x: 100, y: 300, fontSize: 12, color: '#666666' }
   ];
 
   selectedElement: DragElement | null = null;
@@ -136,6 +137,20 @@ export class CertificadoDesignerComponent implements OnInit, AfterViewInit {
             if (el.type === 'marcaAgua' && !el.width) el.width = 400;
             return el;
           });
+          
+          // Inyectar el código de verificación por defecto si no existe en plantillas anteriores
+          const hasCodigo = this.elements.some(el => el.id === 'codigo_verificacion');
+          if (!hasCodigo) {
+            this.elements.push({
+              id: 'codigo_verificacion',
+              type: 'text',
+              label: '[Código de Verificación]',
+              x: 100,
+              y: 300,
+              fontSize: 12,
+              color: '#666666'
+            });
+          }
         }
         if (config.orientacion) this.orientacion = config.orientacion;
       } catch (e) {

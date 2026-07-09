@@ -62,9 +62,9 @@ export class LoginPageComponent {
       badge: 'romina'
     },
     {
-      username: 'marcelo',
+      username: 'salo',
       password: '123456',
-      title: 'Pastor Marcelo',
+      title: 'Pastor Salome',
       subtitle: 'Pastor · Acceso Eventos',
       icon: 'church',
       badge: 'marcelo'

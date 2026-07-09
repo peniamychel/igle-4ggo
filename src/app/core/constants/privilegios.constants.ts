@@ -1,73 +1,64 @@
 /**
- * Fuente ÚNICA de verdad para el mapeo ruta ↔ privilegio de visualización.
+ * Fuente ÚNICA de verdad para el mapeo de ruta a la autoridad del SERVICIO.
  *
- * Modelo de privilegios de 2 niveles:
- *   - `Ver <Entidad>`     → deja ENTRAR a la página del módulo (guard + sidenav).
- *   - `Escribir <Entidad>`→ habilita los botones de acción dentro (directiva
- *                           `*appHasPrivilegio` en las plantillas).
- *
- * Los nombres de privilegio DEBEN coincidir EXACTAMENTE con `privilegio.nombre`
- * en la BD (ver `api-iglesia/database/migracion-privilegios.sql`). Si no coinciden
- * (casing, acentos), `hasAuthority` / `includes` fallan silenciosamente.
- *
- * Cualquier ruta nueva con control de privilegio DEBE registrarse acá. Tanto el
- * `privilegioGuard` como el `SidenavComponent` importan este mismo mapa, de modo
- * que menú y guard nunca se contradicen.
- *
- * Rutas NO listadas (p. ej. `/inicio`, `/perfil`, `/configuracion`, `/mi-iglesia`)
- * son públicas para cualquier usuario autenticado y no requieren privilegio.
+ * Modelo SERVICIO:ACCION:
+ *   - `SERVICIO:VER` → permite navegar a la ruta del módulo (guard + sidenav).
+ *   - `SERVICIO:<ACCION>` → autoriza acciones específicas de escritura o gestión.
  */
 export const ROUTE_VIEW_MAP: Readonly<Record<string, string>> = {
   // --- Miembros ---
-  'miembro':              'Ver Miembros',
-  'solicitudes':          'Ver Miembros',
+  'miembro':              'MIEMBROS:VER',
+  'mi-iglesia':           'MIEMBROS:VER',
+  'solicitudes':          'MIEMBROS:VER',
   // --- Iglesias ---
-  'iglesia':              'Ver Iglesias',
-  'cambios-iglesia':      'Ver MiembroIglesia',
-  'graficoiglesias':      'Ver Iglesias',
+  'iglesia':              'IGLESIAS:VER',
+  'cambios-iglesia':      'IGLESIAS:VER',
+  'graficoiglesias':      'IGLESIAS:VER',
   // --- MiembroIglesia (membresías) ---
-  'miembroiglesia':       'Ver MiembroIglesia',
+  'miembroiglesia':       'MIEMBROS:VER',
   // --- Cargos (Obreros) ---
-  'cargo':                'Ver Cargos',
-  'obreros':              'Ver Cargos',
-  'tipocargo':            'Ver Cargos',
+  'cargo':                'OBREROS:VER',
+  'obreros':              'OBREROS:VER',
+  'colaboradores':        'OBREROS:VER',
+  'tipocargo':            'OBREROS:VER',
   // --- Eventos ---
-  'eventos':              'Ver Eventos',
-  'tipoevento':           'Ver Eventos',
-  'responsable-evento':   'Ver Eventos',
-  'participacion-evento': 'Ver Eventos',
+  'eventos':              'EVENTOS:VER',
+  'tipoevento':           'EVENTOS:VER',
+  'responsable-evento':   'EVENTOS:VER',
+  'participacion-evento': 'EVENTOS:VER',
   // --- Certificados ---
-  'certificados':         'Ver Certificados',
-  'tipocertificado':      'Ver Certificados',
+  'certificados':         'CERTIFICADOS:VER',
+  'tipocertificado':      'CERTIFICADOS:VER',
   // --- Usuarios ---
-  'usuariosistema':       'Ver Usuarios',
-  // --- Privilegios ---
-  'privilegios':          'Ver Privilegios',
-  // --- Ofrendas (módulo futuro, sin backend todavía) ---
-  'ofrendas':             'Ver Ofrendas',
+  'usuariosistema':       'USUARIOS:VER',
+  'privilegios':          'USUARIOS:VER',
+  'servicios':            'USUARIOS:VER',
+  // --- Dashboard & Bitácora ---
+  'dashboard':            'DASHBOARD:VER',
+  'bitacora':             'BITACORA:VER',
+  // --- Ofrendas ---
+  'ofrendas':             'OFRENDAS:VER',
 };
 
-/**
- * Privilegio requerido para ACCIONES de escritura por ruta de módulo.
- * Se usa como fallback en componentes que conocen su ruta pero no su entidad.
- * Preferir invocar la directiva con el privilegio literal en cada plantilla.
- */
 export const ROUTE_WRITE_MAP: Readonly<Record<string, string>> = {
-  'miembro':              'Escribir Miembros',
-  'solicitudes':          'Escribir MiembroIglesia', // aceptar/rechazar traspasos
-  'iglesia':              'Escribir Iglesias',
-  'cambios-iglesia':      'Escribir MiembroIglesia',
-  'miembroiglesia':       'Escribir MiembroIglesia',
-  'cargo':                'Escribir Cargos',
-  'obreros':              'Escribir Cargos',
-  'tipocargo':            'Escribir Cargos',
-  'eventos':              'Escribir Eventos',
-  'tipoevento':           'Escribir Eventos',
-  'responsable-evento':   'Escribir Eventos',
-  'participacion-evento': 'Escribir Eventos',
-  'certificados':         'Escribir Certificados',
-  'tipocertificado':      'Escribir Certificados',
-  'usuariosistema':       'Escribir Usuarios',
-  'privilegios':          'Escribir Privilegios',
-  'ofrendas':             'Escribir Ofrendas',
+  'ofrendas':             'OFRENDAS:CREAR',
+  'miembro':              'MIEMBROS:EDITAR',
+  'mi-iglesia':           'MIEMBROS:EDITAR',
+  'solicitudes':          'MIEMBROS:EDITAR',
+  'iglesia':              'IGLESIAS:EDITAR',
+  'cambios-iglesia':      'IGLESIAS:EDITAR',
+  'miembroiglesia':       'MIEMBROS:EDITAR',
+  'cargo':                'OBREROS:DESIGNAR',
+  'obreros':              'OBREROS:DESIGNAR',
+  'colaboradores':        'OBREROS:DESIGNAR',
+  'tipocargo':            'OBREROS:EDITAR',
+  'eventos':              'EVENTOS:EDITAR',
+  'tipoevento':           'EVENTOS:EDITAR',
+  'responsable-evento':   'EVENTOS:EDITAR',
+  'participacion-evento': 'EVENTOS:EDITAR',
+  'certificados':         'CERTIFICADOS:GENERAR',
+  'tipocertificado':      'CERTIFICADOS:GENERAR',
+  'usuariosistema':       'USUARIOS:EDITAR',
+  'privilegios':          'USUARIOS:EDITAR',
+  'servicios':            'USUARIOS:EDITAR',
 };

@@ -5,7 +5,20 @@
       <h1>Panel de Roles y Control de Acceso (RBAC)</h1>
       <p>Configure los permisos del sistema asignando privilegios específicos a cada cargo de la iglesia.</p>
     </div>
-    <div class="header-actions">
+
+    <!-- Toggle Selector de Tab -->
+    <div class="tab-selector-wrapper">
+      <mat-button-toggle-group [(ngModel)]="currentTab" name="currentTab" class="custom-toggle-group">
+        <mat-button-toggle value="categorized">
+          <mat-icon>tune</mat-icon> Permisos Categorizados
+        </mat-button-toggle>
+        <mat-button-toggle value="matrix">
+          <mat-icon>grid_on</mat-icon> Asignación por Servicio
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="header-actions" *ngIf="currentTab === 'categorized'">
       <button mat-raised-button color="primary" class="btn-nuevo-privilegio" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Privilegios'">
         <mat-icon>add</mat-icon>
         Nuevo Privilegio
@@ -13,8 +26,9 @@
     </div>
   </div>
 
-  <!-- Contenedor Principal de Doble Columna -->
-  <div class="dashboard-layout">
+  <ng-container *ngIf="currentTab === 'categorized'">
+    <!-- Contenedor Principal de Doble Columna -->
+    <div class="dashboard-layout">
     
     <!-- COLUMNA IZQUIERDA: Sidebar de Roles con Barras de Progreso -->
     <div class="roles-sidebar">
@@ -199,4 +213,50 @@
       </div>
     </mat-card-content>
   </mat-card>
+  </ng-container>
+
+  <!-- SECCIÓN TERCIARIA: Asignación de Roles por Servicio (Matrix Layout) -->
+  <div class="matrix-layout-container" *ngIf="currentTab === 'matrix'">
+    <mat-card class="matrix-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="matrix-header-icon">grid_on</mat-icon>
+        <mat-card-title class="matrix-title">Asignación de Roles por Servicio</mat-card-title>
+        <mat-card-subtitle class="matrix-subtitle">Gestione el acceso global a los servicios para cada rol del sistema.</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="matrix-card-content">
+        <div class="matrix-table-wrapper">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th class="col-service">Servicio</th>
+                <th *ngFor="let rol of rolesDisponibles" class="col-role text-center">{{ rol.nombre }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let service of todosServicios">
+                <td class="service-cell">
+                  <div class="service-icon-info">
+                    <mat-icon class="service-icon-box">{{ service.icono || 'settings' }}</mat-icon>
+                    <div class="service-texts">
+                      <span class="service-name-text">{{ service.nombre }}</span>
+                      <span class="service-desc-text">{{ service.descripcion }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td *ngFor="let rol of rolesDisponibles" class="text-center">
+                  <mat-checkbox 
+                    [checked]="hasServiceAccess(rol.id!, service.codigo)"
+                    [disabled]="rol.nombreRol === 'ADMIN'"
+                    (change)="toggleServiceAccess($event, rol.id!, service.id!)"
+                    color="primary">
+                  </mat-checkbox>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 </div>

@@ -1,8 +1,12 @@
 <div class="container" [class.dialog-mode]="dialogRef">
+  <!-- 1. Header -->
   <div class="header-section">
-    <div>
-      <h2>Solicitudes de Traspaso Pendientes</h2>
-      <p class="subtitle" *ngIf="currentIglesiaNombre">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">swap_horiz</mat-icon>
+        <span>Solicitudes de Traspaso Pendientes</span>
+      </h2>
+      <p class="subtitle-text" *ngIf="currentIglesiaNombre">
         Iglesia Destino: <strong>{{currentIglesiaNombre}}</strong>
       </p>
     </div>

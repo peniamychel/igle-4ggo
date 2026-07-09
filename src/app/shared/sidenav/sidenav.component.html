@@ -69,7 +69,7 @@
           <span>Mi Perfil</span>
         </button>
 
-        <button mat-menu-item [routerLink]="'/configuracion'" class="menu-item-config">
+        <button *ngIf="canViewConfig()" mat-menu-item [routerLink]="'/configuracion'" class="menu-item-config">
           <mat-icon>tune</mat-icon>
           <span>Configuración</span>
         </button>
@@ -159,7 +159,12 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="content">
-      <router-outlet></router-outlet>
+      <div class="main-content-area">
+        <router-outlet></router-outlet>
+      </div>
+      <footer class="app-footer">
+        <span>© 2026 Iglesia Movimiento Cristiano Misionero Maranatha (MCMMaranatha). Todos los derechos reservados.</span>
+      </footer>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

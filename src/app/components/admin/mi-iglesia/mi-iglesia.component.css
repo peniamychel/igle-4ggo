@@ -1,71 +1,51 @@
+/* ========================================
+   Mi Iglesia — Skill: igle_list_layout
+   ======================================== */
+
+/* 1. Contenedor principal (Flexbox) */
 .container {
-  padding: 16px 24px 24px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
-/* Cabecera pegajosa (Sticky Header) */
-.sticky-header {
-  position: sticky;
-  top: -16px;
-  z-index: 100;
-  background-color: var(--bg-content);
-  padding-top: 16px;
-  margin-top: -16px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* Cabecera del Listado */
+/* 2. Header */
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 16px;
 }
 
-.title-wrapper {
+.page-title {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.title-icon-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
-  border: 1px solid rgba(127, 11, 133, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-color);
-}
-
-.header-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
-}
-
-.title-wrapper h2 {
+  gap: 10px;
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
 }
 
-.title-wrapper .subtitle {
-  margin: 2px 0 0 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+.icon-primary {
+  color: var(--primary-color, #7c4dff);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
   font-weight: 500;
 }
 
-/* Acciones en la cabecera */
 .header-actions {
   display: flex;
   align-items: center;
@@ -73,18 +53,32 @@
   flex-wrap: wrap;
 }
 
-.header-actions button {
-  border-radius: 8px;
-  font-weight: 500;
-  padding: 8px 16px;
-  height: 40px;
+.btn-action-primary {
+  background-color: var(--primary-color, #7c4dff) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 700;
+  font-size: 0.88rem;
+  height: 42px !important;
+  padding: 0 18px !important;
   transition: all 0.2s ease;
 }
 
+.btn-action-primary:hover {
+  background-color: #673ab7 !important;
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.25) !important;
+}
+
+/* PDF and Excel specific buttons */
 .btn-pdf {
   border: 1px solid #e65100 !important;
   color: #e65100 !important;
   background-color: transparent !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  height: 42px !important;
+  padding: 0 18px !important;
+  transition: all 0.2s ease;
 }
 
 .btn-pdf:hover {
@@ -95,24 +89,18 @@
   border: 1px solid #2e7d32 !important;
   color: #2e7d32 !important;
   background-color: transparent !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  height: 42px !important;
+  padding: 0 18px !important;
+  transition: all 0.2s ease;
 }
 
 .btn-excel:hover {
   background-color: rgba(46, 125, 50, 0.05) !important;
 }
 
-.btn-new-item {
-  background-color: #0b857f !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 6px rgba(11, 133, 127, 0.2);
-}
-
-.btn-new-item:hover {
-  background-color: #096d68 !important;
-  box-shadow: 0 4px 12px rgba(11, 133, 127, 0.3) !important;
-}
-
-/* Barra de Filtros */
+/* 3. Filtros y Búsqueda */
 .filters-bar {
   display: flex;
   justify-content: space-between;
@@ -124,8 +112,8 @@
 .search-box {
   display: flex;
   align-items: center;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
   border-radius: 30px;
   padding: 6px 18px;
   gap: 12px;
@@ -139,12 +127,12 @@
 }
 
 .search-box:focus-within {
-  border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.08);
+  border-color: var(--primary-color, #7c4dff);
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.08);
 }
 
 .search-icon {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #8792a2);
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -155,38 +143,27 @@
   outline: none;
   background: transparent;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-primary, #1a1f36);
   width: 100%;
 }
 
 .search-box input::placeholder {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #8792a2);
   opacity: 0.8;
 }
 
-/* Contenedor de la Tabla */
+/* 4. Tabla */
 .table-container {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .mat-table {
   width: 100%;
   background: transparent;
-}
-
-/* Estilos de las Celdas */
-.mat-header-cell {
-  background-color: var(--border-color);
-  color: var(--text-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.8px;
 }
 
 .clickable-row {
@@ -195,7 +172,7 @@
 }
 
 .clickable-row:hover {
-  background-color: rgba(127, 11, 133, 0.03) !important;
+  background-color: rgba(124, 77, 255, 0.03) !important;
 }
 
 /* Perfil de Miembro */
@@ -215,19 +192,19 @@
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-color, #e3e8ee);
 }
 
 .miembro-avatar-placeholder {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
-  border: 2px solid rgba(127, 11, 133, 0.15);
+  background: linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(124, 77, 255, 0.05) 100%);
+  border: 2px solid rgba(124, 77, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-color);
+  color: var(--primary-color, #7c4dff);
   font-weight: 600;
   font-size: 16px;
   text-transform: uppercase;
@@ -242,12 +219,12 @@
 .miembro-name {
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--text-primary);
+  color: var(--text-primary, #1a1f36);
 }
 
 .miembro-ci-age {
   font-size: 0.76rem;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #697386);
 }
 
 .cargo-badge {
@@ -281,14 +258,14 @@
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: var(--text-primary);
+  color: var(--text-primary, #1a1f36);
 }
 
 .contacto-icon {
   font-size: 15px;
   width: 15px;
   height: 15px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #8792a2);
 }
 
 /* Columna Bautismo */
@@ -297,7 +274,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: var(--text-primary);
+  color: var(--text-primary, #1a1f36);
 }
 
 .bautismo-icon {
@@ -347,39 +324,14 @@
   align-items: center;
 }
 
-.action-btn {
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.view-btn:hover {
-  background-color: rgba(11, 133, 127, 0.08) !important;
-  color: var(--accent-color) !important;
-}
-
-.transfer-btn:hover {
-  background-color: rgba(127, 11, 133, 0.08) !important;
-  color: var(--primary-color) !important;
-}
-
-.delete-btn:hover {
-  background-color: rgba(220, 53, 69, 0.08) !important;
-  color: #dc3545 !important;
-}
-
-/* No data cell */
-.no-data-cell {
-  padding: 48px 0 !important;
-}
-
+/* Sin Resultados */
 .no-results {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
   gap: 12px;
+  color: var(--text-secondary, #8792a2);
   padding: 40px 16px;
 }
 
@@ -388,11 +340,6 @@
   width: 48px;
   height: 48px;
   opacity: 0.6;
-}
-
-.no-results span {
-  font-size: 0.9rem;
-  font-weight: 500;
 }
 
 /* Column Widths & Flex Grow Proportions */
@@ -424,15 +371,8 @@
   max-width: 180px !important;
 }
 
-/* Responsive Table Columns */
+/* 5. Responsive */
 @media (max-width: 1200px) {
-  .acciones-cell {
-    gap: 0 !important;
-  }
-  .acciones-cell .action-btn {
-    transform: scale(0.85);
-    margin: 0 -4px !important;
-  }
   .mat-column-bautismo {
     display: none !important;
   }
@@ -444,17 +384,9 @@
   }
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .container {
-    padding: 12px;
-  }
-  
-  .sticky-header {
-    position: static !important;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    border-bottom: none !important;
+    padding: 16px;
   }
 
   .header-section {
@@ -478,7 +410,16 @@
   }
 
   .search-box {
-    width: 100%;
     max-width: 100%;
   }
+}
+
+.btn-action-disabled {
+  background-color: #e0e0e0 !important;
+  color: #a0a0a0 !important;
+  border-radius: 10px !important;
+  font-weight: 700;
+  height: 42px !important;
+  padding: 0 18px !important;
+  cursor: not-allowed;
 }

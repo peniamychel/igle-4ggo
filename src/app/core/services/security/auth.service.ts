@@ -31,13 +31,27 @@ export class AuthService {
   private handleSuccessfulLogin(response: LoginResponse): void {
     if (response.token) {
       localStorage.setItem(this.TOKEN_KEY, response.token);
+      
+      try {
+        const payloadBase64 = response.token.split('.')[1];
+        const payloadDecoded = JSON.parse(atob(payloadBase64));
+        const authorities: string[] = payloadDecoded.authorities || [];
+        
+        const roleAuthority = authorities.find(a => a.startsWith('ROLE_'));
+        localStorage.setItem(this.ROLE, roleAuthority || 'ROLE_USER');
+        
+        const privilegios = authorities.filter(a => !a.startsWith('ROLE_'));
+        localStorage.setItem('privilegios', JSON.stringify(privilegios));
+      } catch (err) {
+        console.error('Error parsing authorities from JWT token', err);
+      }
     }
     localStorage.setItem(this.USER_KEY, JSON.stringify(response));
     if (response.iglesias) {
       localStorage.setItem('user_iglesias', JSON.stringify(response.iglesias));
     }
-    if (response.roles) {
-      // Normalizar roles para soportar tanto objetos de tipo Role como strings planos
+    if (!response.token && response.roles) {
+      // Fallback fallback if token is not parsed but roles exist
       const normalizedRoles = response.roles.map((r: any) => {
         if (typeof r === 'string') {
           return { authority: r };
@@ -240,6 +254,27 @@ export class AuthService {
    *                   tener uno solo de la lista).
    * @returns `true` si el usuario tiene el privilegio (o es admin).
    */
+  private readonly PRIVILEGE_MAPPING: Record<string, string[]> = {
+    'Ver Miembros': ['MIEMBROS:VER'],
+    'Escribir Miembros': ['MIEMBROS:CREAR', 'MIEMBROS:EDITAR', 'MIEMBROS:ELIMINAR', 'MIEMBROS:SUBIR_FOTO'],
+    'Ver Iglesias': ['IGLESIAS:VER'],
+    'Escribir Iglesias': ['IGLESIAS:CREAR', 'IGLESIAS:EDITAR', 'IGLESIAS:ELIMINAR', 'IGLESIAS:ASIGNAR_PASTOR'],
+    'Ver Cargos': ['OBREROS:VER'],
+    'Escribir Cargos': ['OBREROS:DESIGNAR', 'OBREROS:EDITAR', 'OBREROS:DESVINCULAR', 'OBREROS:SUBIR_ACTA'],
+    'Ver Eventos': ['EVENTOS:VER'],
+    'Escribir Eventos': ['EVENTOS:CREAR', 'EVENTOS:EDITAR', 'EVENTOS:ELIMINAR'],
+    'Ver Certificados': ['CERTIFICADOS:VER'],
+    'Escribir Certificados': ['CERTIFICADOS:GENERAR', 'CERTIFICADOS:IMPRIMIR'],
+    'Ver Usuarios': ['USUARIOS:VER'],
+    'Escribir Usuarios': ['USUARIOS:CREAR', 'USUARIOS:EDITAR', 'USUARIOS:CAMBIAR_PASSWORD'],
+    'Ver Privilegios': ['USUARIOS:VER'],
+    'Escribir Privilegios': ['USUARIOS:EDITAR'],
+    'Ver Dashboard': ['DASHBOARD:VER'],
+    'Ver Bitácora': ['BITACORA:VER'],
+    'Ver MiembroIglesia': ['MIEMBROS:VER'],
+    'Escribir MiembroIglesia': ['MIEMBROS:CREAR', 'MIEMBROS:EDITAR', 'MIEMBROS:ELIMINAR']
+  };
+
   hasPrivilegio(privilegio: string | string[]): boolean {
     if (this.isLoggedRolAdmin()) return true;
 
@@ -255,6 +290,19 @@ export class AuthService {
     if (!Array.isArray(userPrivileges)) return false;
 
     const buscados = Array.isArray(privilegio) ? privilegio : [privilegio];
-    return buscados.some(p => userPrivileges.includes(p));
+    const resolvedBuscados: string[] = [];
+    for (const b of buscados) {
+      resolvedBuscados.push(b);
+      const mapped = this.PRIVILEGE_MAPPING[b];
+      if (mapped) {
+        resolvedBuscados.push(...mapped);
+      }
+    }
+
+    return resolvedBuscados.some(p => userPrivileges.includes(p));
+  }
+
+  hasAccion(accion: string | string[]): boolean {
+    return this.hasPrivilegio(accion);
   }
 }

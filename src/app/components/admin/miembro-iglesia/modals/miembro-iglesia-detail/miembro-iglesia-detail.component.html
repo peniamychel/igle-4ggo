@@ -6,6 +6,9 @@
     <h2>Historial de Membresía</h2>
     <p class="subtitle">Detalles de asignaciones e iglesia actual</p>
   </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button" matTooltip="Cerrar ventana">
+    <mat-icon>close</mat-icon>
+  </button>
 </h2>
 
 <mat-dialog-content class="detail-content">
@@ -132,8 +135,7 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-flat-button color="accent" class="btn-print" (click)="generatePDF()" style="margin-right: 8px;">
+  <button mat-flat-button color="accent" class="btn-print" (click)="generatePDF()">
     <mat-icon>picture_as_pdf</mat-icon> Imprimir PDF
   </button>
-  <button mat-stroked-button class="btn-close" mat-dialog-close>Cerrar</button>
 </mat-dialog-actions>

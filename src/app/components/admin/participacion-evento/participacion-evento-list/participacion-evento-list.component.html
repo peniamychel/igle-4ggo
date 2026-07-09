@@ -11,21 +11,39 @@
           <p class="subtitle">{{ dataSource.filteredData.length }} registros</p>
         </div>
       </div>
-      <div class="header-actions">
-        <button mat-flat-button class="btn-new-item" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Registrar una nueva participación" (click)="openCreateDialog()">
-          <mat-icon>add</mat-icon>
-          Registrar Participación
-        </button>
-      </div>
     </div>
-
-    <div class="filters-bar">
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por miembro o evento..." #input>
-      </div>
-    </div>
-  </div>
+ 
+     <div class="filters-bar">
+       <div class="search-box">
+         <mat-icon class="search-icon">search</mat-icon>
+         <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por miembro o evento..." #input>
+       </div>
+ 
+       <div class="custom-filters">
+         <mat-form-field appearance="outline" class="filter-field">
+           <mat-label>Tipo de Evento</mat-label>
+           <mat-select [(value)]="selectedTipoEventoId" (selectionChange)="onFilterChange()">
+             <mat-option value="all">Todos los tipos</mat-option>
+             <mat-option *ngFor="let te of tiposEvento" [value]="te.id ? te.id.toString() : ''">{{ te.nombre }}</mat-option>
+           </mat-select>
+         </mat-form-field>
+ 
+         <mat-form-field appearance="outline" class="filter-field">
+           <mat-label>Nombre de Evento</mat-label>
+           <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Ej. Bautismo">
+         </mat-form-field>
+ 
+         <mat-form-field appearance="outline" class="filter-field">
+           <mat-label>Certificación</mat-label>
+           <mat-select [(value)]="selectedCertificadoStatus" (selectionChange)="onFilterChange()">
+             <mat-option value="all">Todos</mat-option>
+             <mat-option value="con">Con certificado</mat-option>
+             <mat-option value="sin">Sin certificado</mat-option>
+           </mat-select>
+         </mat-form-field>
+       </div>
+     </div>
+   </div>
 
   <div class="table-container">
     <mat-table [dataSource]="dataSource" matSort>
@@ -47,7 +65,7 @@
 
       <ng-container matColumnDef="certificado">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Certificado</mat-header-cell>
-        <mat-cell *matCellDef="let item" class="certificado-cell">{{ item.certificadoDto?.codigoCertificado || 'Sin certificado' }}</mat-cell>
+        <mat-cell *matCellDef="let item" class="certificado-cell">{{ item.certificadoDto ? (item.certificadoDto.tipoCertificadoDto?.nombre || 'Certificado') : 'Sin certificado' }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="estado">

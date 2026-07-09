@@ -1,69 +1,79 @@
 <div class="container">
 
-  <!-- Contenedor pegajoso para cabecera y filtros -->
-  <div class="sticky-header">
-    <!-- Cabecera de listado -->
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">people</mat-icon>
-        </div>
-        <div>
-          <h2>Listado de Miembros</h2>
-          <p class="subtitle">{{ miembros.filteredData.length }} miembros registrados</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button mat-stroked-button class="btn-download-template" matTooltip="Descargar plantilla de importación Excel" (click)="descargarPlantilla()" *appHasPrivilegio="'Escribir Miembros'">
-          <mat-icon>table_view</mat-icon>
-          Plantilla Excel
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">people</mat-icon>
+        <span>Miembros</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ totalElements }} miembros registrados
+      </p>
+    </div>
+    <div class="header-actions">
+      <!-- Botón Herramientas (mat-menu trigger) -->
+      <button mat-stroked-button [matMenuTriggerFor]="toolsMenu" class="btn-tools-menu" matTooltip="Importar / Exportar / Reportes">
+        <mat-icon>tune</mat-icon>
+        <span>Herramientas</span>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #toolsMenu="matMenu">
+        <button mat-menu-item (click)="descargarPlantilla()" *appHasPrivilegio="'Escribir Miembros'">
+          <mat-icon style="color: #2e7d32;">table_view</mat-icon>
+          <span>Descargar Plantilla Excel</span>
         </button>
         
-        <input type="file" #excelInput style="display: none;" accept=".xlsx, .xls" (change)="importarExcel($event)">
-        <button mat-stroked-button class="btn-import-excel" matTooltip="Importar miembros desde Excel" (click)="excelInput.click()" *appHasPrivilegio="'Escribir Miembros'">
-          <mat-icon>upload_file</mat-icon>
-          Importar Excel
+        <button mat-menu-item (click)="excelInput.click()" *appHasPrivilegio="'Escribir Miembros'">
+          <mat-icon style="color: #2e7d32;">upload_file</mat-icon>
+          <span>Importar desde Excel</span>
         </button>
+        
+        <mat-divider *appHasPrivilegio="'Escribir Miembros'"></mat-divider>
+        
+        <button mat-menu-item (click)="generateDirectorPdf()">
+          <mat-icon style="color: #e65100;">download</mat-icon>
+          <span>Descargar Directorio PDF</span>
+        </button>
+        
+        <button mat-menu-item (click)="generateCardsPdf()">
+          <mat-icon style="color: #7f0b85;">card_membership</mat-icon>
+          <span>Descargar Carnets PDF</span>
+        </button>
+      </mat-menu>
 
-        <button mat-stroked-button class="btn-pdf-director" matTooltip="Descargar Directorio Completo en PDF" (click)="generateDirectorPdf()">
-          <mat-icon>download</mat-icon>
-          Directorio PDF
-        </button>
-        <button mat-stroked-button class="btn-pdf-cards" matTooltip="Descargar Reporte para Credenciales" (click)="generateCardsPdf()">
-          <mat-icon>card_membership</mat-icon>
-          Carnets PDF
-        </button>
-        <button mat-flat-button class="btn-new-member" matTooltip="Crear un nuevo miembro" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Miembros'">
-          <mat-icon>add</mat-icon>
-          Nuevo Miembro
-        </button>
-      </div>
+      <!-- Hidden file input for excel upload -->
+      <input type="file" #excelInput style="display: none;" accept=".xlsx, .xls" (change)="importarExcel($event)">
 
+      <button mat-flat-button class="btn-action-primary" matTooltip="Crear un nuevo miembro" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Miembros'">
+        <mat-icon>add</mat-icon>
+        Nuevo Miembro
+      </button>
     </div>
-  
-    <!-- Barra de Filtros y Búsqueda -->
-    <div class="filters-bar">
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, apellido o CI..." #searchInput>
-      </div>
-      
-      <div class="select-filters">
-        <mat-form-field appearance="outline" class="filter-select">
-          <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
-            <mat-option value="all">Todas las iglesias</mat-option>
-            <mat-option *ngFor="let ig of iglesias" [value]="ig.nombre">{{ ig.nombre }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="filter-select">
-          <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
-            <mat-option value="all">Todos los estados</mat-option>
-            <mat-option value="active">Activo</mat-option>
-            <mat-option value="inactive">Inactivo</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+  </div>
+
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, apellido o CI..." #searchInput>
+    </div>
+    
+    <div class="select-filters">
+      <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+        <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+          <mat-option value="all">Todas las iglesias</mat-option>
+          <mat-option *ngFor="let ig of iglesias" [value]="ig.nombre">{{ ig.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-select">
+        <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+          <mat-option value="all">Todos los estados</mat-option>
+          <mat-option value="active">Activo</mat-option>
+          <mat-option value="inactive">Inactivo</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
@@ -187,8 +197,14 @@
       </tr>
     </mat-table>
 
-    <!-- Paginador -->
-    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de miembros"></mat-paginator>
+    <!-- Paginador Paginado por Servidor -->
+    <mat-paginator [length]="totalElements"
+                   [pageSize]="pageSize"
+                   [pageIndex]="pageIndex"
+                   [pageSizeOptions]="[10, 25, 50, 100]"
+                   (page)="onPageChange($event)"
+                   aria-label="Seleccionar página de miembros">
+    </mat-paginator>
   </div>
 
 </div>

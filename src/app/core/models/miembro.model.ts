@@ -25,6 +25,26 @@ export interface MiembroResponse {
   nombreModelo: string;
 }
 
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: any;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  size: number;
+  number: number;
+  sort: any;
+  numberOfElements: number;
+  first: boolean;
+  empty: boolean;
+}
+
+export interface MiembroPaginatedResponse {
+  message: string;
+  datos: PaginatedResponse<Miembro>;
+  nombreModelo: string;
+}
+
 export interface MiembroDetail {
   message: string;
   datos: Miembro;

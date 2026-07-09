@@ -4,7 +4,21 @@
   <div class="dashboard-header-block">
     <div class="header-info">
       <div class="welcome-title">Bienvenido de nuevo</div>
-      <div class="welcome-subtitle">Resumen General De La Comunidad De Fe · {{ currentDate }}</div>
+      <div class="welcome-subtitle">
+        <span *ngIf="isAdmin">Resumen General De La Comunidad De Fe · {{ currentDate }}</span>
+        <span *ngIf="!isAdmin">Sede Local: <strong>{{ currentChurchName }}</strong> · {{ currentDate }}</span>
+      </div>
+    </div>
+
+    <!-- Selector de Iglesia para Administrador -->
+    <div class="header-actions" *ngIf="isAdmin" style="display: flex; align-items: center; gap: 12px;">
+      <mat-form-field appearance="outline" style="min-width: 250px; margin-bottom: -1.25em;">
+        <mat-icon matPrefix style="margin-right: 8px; color: #7c4dff;">church</mat-icon>
+        <mat-select [(value)]="selectedIglesiaId" (selectionChange)="onIglesiaChange()">
+          <mat-option value="all">Todas las iglesias (Global)</mat-option>
+          <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
@@ -13,13 +27,13 @@
     <!-- Miembros Totales -->
     <div class="kpi-card">
       <div class="kpi-content">
-        <span class="kpi-label">Miembros totales</span>
+        <span class="kpi-label">{{ isAdmin ? 'Miembros totales' : 'Miembros de la iglesia' }}</span>
         <span class="kpi-value">{{ totalMembers | number:'1.0-0':'es-ES' }}</span>
-        <span class="kpi-subtext">Activos en {{ totalChurches }} iglesias</span>
+        <span class="kpi-subtext" *ngIf="isAdmin">Activos en {{ totalChurches }} iglesias</span>
+        <span class="kpi-subtext" *ngIf="!isAdmin">Registrados en {{ currentChurchName }}</span>
         <div class="kpi-trend positive">
           <mat-icon>trending_up</mat-icon>
-          <span>+8.4%</span>
-          <span class="trend-compare">vs. mes anterior</span>
+          <span>Activo</span>
         </div>
       </div>
       <div class="kpi-icon-container purple-theme">
@@ -27,12 +41,13 @@
       </div>
     </div>
 
-    <!-- Iglesias Activas -->
+    <!-- Iglesias / Sede -->
     <div class="kpi-card">
       <div class="kpi-content">
-        <span class="kpi-label">Iglesias activas</span>
+        <span class="kpi-label">{{ isAdmin ? 'Iglesias activas' : 'Sede activa' }}</span>
         <span class="kpi-value">{{ totalChurches }}</span>
-        <span class="kpi-subtext">1 inactiva (Oruro)</span>
+        <span class="kpi-subtext" *ngIf="isAdmin">Filiales en el sistema</span>
+        <span class="kpi-subtext" *ngIf="!isAdmin">{{ currentChurchName }}</span>
       </div>
       <div class="kpi-icon-container purple-theme">
         <mat-icon>church</mat-icon>
@@ -43,12 +58,11 @@
     <div class="kpi-card">
       <div class="kpi-content">
         <span class="kpi-label">Eventos del mes</span>
-        <span class="kpi-value">23</span>
-        <span class="kpi-subtext">4 programados esta semana</span>
+        <span class="kpi-value">{{ totalEventsMonth }}</span>
+        <span class="kpi-subtext">{{ upcomingEvents.length }} próximos programados</span>
         <div class="kpi-trend positive">
-          <mat-icon>trending_up</mat-icon>
-          <span>+12.5%</span>
-          <span class="trend-compare">vs. mes anterior</span>
+          <mat-icon>event_available</mat-icon>
+          <span>En agenda</span>
         </div>
       </div>
       <div class="kpi-icon-container purple-theme">
@@ -62,11 +76,6 @@
         <span class="kpi-label">Certificados emitidos</span>
         <span class="kpi-value">{{ totalCertificados }}</span>
         <span class="kpi-subtext">{{ entregadosCertificados }} entregados · {{ pendientesCertificados }} pendientes</span>
-        <div class="kpi-trend negative">
-          <mat-icon>trending_down</mat-icon>
-          <span>-3.2%</span>
-          <span class="trend-compare">vs. mes anterior</span>
-        </div>
       </div>
       <div class="kpi-icon-container purple-theme">
         <mat-icon>workspace_premium</mat-icon>
@@ -80,7 +89,7 @@
     <div class="chart-card-wrapper">
       <div class="chart-card-header">
         <h3 class="chart-title">Crecimiento de membresía</h3>
-        <p class="chart-subtitle">Total de miembros y altas nuevas · últimos 12 meses</p>
+        <p class="chart-subtitle">Histórico y evolución de miembros</p>
       </div>
       <div class="chart-body area-chart-wrapper">
         <ngx-charts-area-chart
@@ -100,7 +109,7 @@
     <div class="chart-card-wrapper">
       <div class="chart-card-header">
         <h3 class="chart-title">Eventos por tipo</h3>
-        <p class="chart-subtitle">Distribución de eventos · últimos 12 meses</p>
+        <p class="chart-subtitle">Distribución de actividades registradas</p>
       </div>
       <div class="chart-body donut-chart-flex">
         <div class="donut-chart-container">
@@ -116,7 +125,7 @@
         </div>
         <div class="donut-legend-container">
           <div class="legend-item" *ngFor="let item of eventosTipoData; let idx = index">
-            <span class="legend-color-dot" [style.background-color]="donutScheme.domain[idx]"></span>
+            <span class="legend-color-dot" [style.background-color]="donutScheme.domain[idx % donutScheme.domain.length]"></span>
             <span class="legend-name">{{ item.name }}</span>
             <span class="legend-value">{{ item.value }}</span>
             <span class="legend-percent">{{ item.percentage }}</span>
@@ -125,8 +134,8 @@
       </div>
     </div>
 
-    <!-- 3. Top iglesias por miembros -->
-    <div class="chart-card-wrapper">
+    <!-- 3. Top iglesias por miembros (Sólo para Admin) o Ficha Local -->
+    <div class="chart-card-wrapper" *ngIf="isAdmin">
       <div class="chart-card-header">
         <h3 class="chart-title">Top iglesias por miembros</h3>
         <p class="chart-subtitle">Iglesias con mayor membresía activa</p>
@@ -146,29 +155,48 @@
     </div>
 
     <!-- 4. Certificados emitidos -->
-    <div class="chart-card-wrapper">
+    <div class="chart-card-wrapper" [class.full-width]="!isAdmin">
       <div class="chart-card-header">
         <h3 class="chart-title">Certificados emitidos</h3>
-        <p class="chart-subtitle">Emitidos vs. entregados · últimos 12 meses</p>
+        <p class="chart-subtitle">Emitidos vs. entregados</p>
       </div>
       <div class="chart-body">
-        <ngx-charts-bar-vertical-2d
-          [view]="viewGroupedBar"
-          [scheme]="certificatesScheme"
-          [results]="certificadosEmitidosData"
-          [gradient]="false"
-          [xAxis]="true"
-          [yAxis]="true"
-          [showGridLines]="true"
-          [barPadding]="4"
-          [groupPadding]="8">
-        </ngx-charts-bar-vertical-2d>
+        <div style="display: flex; gap: 24px; align-items: center; justify-content: center; padding: 30px 0;">
+          <div class="cert-stats-box">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #7c4dff;">workspace_premium</mat-icon>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">{{ totalCertificados }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Total Registrados</div>
+          </div>
+          <div class="cert-stats-box delivered-box">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #00bfa5;">check_circle</mat-icon>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">{{ entregadosCertificados }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Entregados</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- 📌 SECCIÓN DEL CALENDARIO DE EVENTOS (INTEGRADO EN DASHBOARD) -->
+  <div class="calendar-dashboard-section" *ngIf="canViewEvents">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(124, 77, 255, 0.1); color: #7c4dff; display: flex; align-items: center; justify-content: center;">
+        <mat-icon style="font-size: 24px;">calendar_month</mat-icon>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">Calendario de Eventos y Aniversarios</h3>
+        <p style="margin: 2px 0 0 0; font-size: 0.88rem; color: var(--text-secondary); font-weight: 500;">
+          Agenda interactiva de actividades {{ isAdmin ? 'nacionales y locales' : 'de la iglesia' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Componente del Calendario -->
+    <app-evento-calendario></app-evento-calendario>
+  </div>
+
   <!-- Fila Inferior: Actividad Reciente y Próximos Eventos -->
-  <div class="bottom-widgets-row">
+  <div class="bottom-widgets-row" [class.has-events]="canViewEvents">
     <!-- Panel de Actividad Reciente (Izquierda) -->
     <div class="bottom-widget-card activity-panel">
       <div class="widget-header">
@@ -225,6 +253,10 @@
 
         <!-- Contenido de Certificados -->
         <div class="activity-list" *ngIf="activeTab === 'certificados'">
+          <div class="no-activity-placeholder" *ngIf="recentCertificados.length === 0">
+            <mat-icon>workspace_premium</mat-icon>
+            <p>No hay certificados registrados recientemente</p>
+          </div>
           <div class="activity-item certificado-row" *ngFor="let c of recentCertificados">
             <div class="activity-icon-box teal-bg">
               <mat-icon>workspace_premium</mat-icon>
@@ -251,11 +283,15 @@
     </div>
 
     <!-- Panel de Próximos Eventos (Derecha) -->
-    <div class="bottom-widget-card upcoming-panel">
+    <div class="bottom-widget-card upcoming-panel" *ngIf="canViewEvents">
       <div class="widget-header">
         <h3 class="widget-title">Próximos eventos</h3>
       </div>
       <div class="widget-body events-list-scroll">
+        <div class="no-activity-placeholder" *ngIf="upcomingEvents.length === 0">
+          <mat-icon>event_available</mat-icon>
+          <p>No hay eventos próximos agendados</p>
+        </div>
         <div class="event-row-card" *ngFor="let ev of upcomingEvents">
           <div class="event-date-card">
             <span class="day-number">{{ ev.fechaInicio | date:'d' }}</span>
@@ -270,7 +306,6 @@
                 <mat-icon>schedule</mat-icon>
                 {{ ev.fechaInicio | date:'hh:mm a' }}
               </span>
-              <span class="event-parts-text">· {{ ev.participantes }} part.</span>
             </div>
           </div>
         </div>
@@ -279,4 +314,3 @@
   </div>
 
 </div>
-

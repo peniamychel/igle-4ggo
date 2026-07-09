@@ -1,9 +1,12 @@
-<div class="config-wrapper">
+<div class="container">
   <!-- ── Encabezado de la Página ── -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Configuración</h1>
-      <p class="page-subtitle">Administra tus preferencias del sistema, seguridad y bitácora de auditoría</p>
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">settings</mat-icon>
+        <span>Configuración</span>
+      </h2>
+      <p class="subtitle-text">Administra tus preferencias del sistema, seguridad y bitácora de auditoría</p>
     </div>
   </div>
 
@@ -178,7 +181,7 @@
     </mat-tab>
 
     <!-- Tab 3: Bitácora de Auditoría (activa por defecto) -->
-    <mat-tab>
+    <mat-tab *ngIf="canViewBitacora">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">history</mat-icon>
         <span class="tab-label-text">Bitácora de Auditoría</span>

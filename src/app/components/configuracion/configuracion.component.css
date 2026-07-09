@@ -6,32 +6,47 @@
   display: block;
 }
 
-.config-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 28px 40px;
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
 /* ── Page Header ── */
-.page-header {
-  margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .page-title {
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 6px;
-  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
 }
 
-.page-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
+.icon-primary {
+  color: var(--primary-color, #7c4dff);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 /* ── Tab Group ── */
@@ -322,15 +337,15 @@
 
 /* ══════════ Responsive ══════════ */
 @media (max-width: 768px) {
-  .config-wrapper {
-    padding: 16px 14px 32px;
+  .container {
+    padding: 16px;
   }
 
   .page-title {
-    font-size: 1.35rem;
+    font-size: 1.5rem;
   }
 
-  .page-subtitle {
+  .subtitle-text {
     font-size: 0.82rem;
   }
 
@@ -494,15 +509,15 @@
   margin-top: 8px;
 }
 
-.btn-action-primary {
-  background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%) !important;
-  color: #ffffff !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
-  padding: 8px 16px !important;
+.pastor-church-card button.btn-action-primary {
+  background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 16px;
 }
 
-.btn-action-primary:hover {
+.pastor-church-card button.btn-action-primary:hover {
   opacity: 0.9;
 }
 

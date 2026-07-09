@@ -29,8 +29,34 @@ export const privilegioGuard: CanActivateFn = (route, _state) => {
   // 2. Resolver la ruta.
   const path = route.routeConfig?.path;
   if (!path) {
-    // Ruta vacía o wildcard: permitir (el authGuard padre ya autenticó).
     return true;
+  }
+  if (path === 'activos') {
+    const role = localStorage.getItem('role');
+    const isAuthorized = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA' || role === 'ROLE_DIACONO';
+    if (isAuthorized) {
+      return true;
+    } else {
+      router.navigate(['/no-autorizado']);
+      return false;
+    }
+  }
+
+  // Rutas de servicios globales estrictamente reservadas para el Administrador
+  const globalRoutes = [
+    'miembro',
+    'obreros',
+    'cargo',
+    'iglesia',
+    'miembroiglesia',
+    'tipocargo',
+    'usuariosistema',
+    'bitacora'
+  ];
+
+  if (globalRoutes.includes(path)) {
+    router.navigate(['/no-autorizado']);
+    return false;
   }
 
   // 3. Privilegio requerido para VER la página.

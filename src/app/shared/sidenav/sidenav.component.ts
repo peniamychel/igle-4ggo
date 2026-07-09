@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -79,6 +80,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private miembroIglesiaService = inject(MiembroIglesiaService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
   private themeService = inject(ThemeService);
+  private destroyRef = inject(DestroyRef);
   private pollingSub?: Subscription;
 
   isDarkMode = this.themeService.isDarkMode;
@@ -112,12 +114,12 @@ export class SidenavComponent implements OnInit, OnDestroy {
       icon: 'work'
     },
     { label: 'Miembros', route: '/miembro', icon: 'people' },
-    { label: 'Cambios iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
+    { label: 'Cambios Iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
     { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' },
-    { label: 'Mi Iglesia', route: '/mi-iglesia', icon: 'church', nonAdminOnly: true },
+    { label: 'Mis Miembros', route: '/mi-iglesia', icon: 'people', nonAdminOnly: true },
     { label: 'Iglesias', route: '/iglesia', icon: 'church' },
     { label: 'Eventos', route: '/eventos', icon: 'event' },
-    { label: 'Certificados', route: '/certificados', icon: 'workspace_premium' },
+    { label: 'Certificaciones', route: '/certificados', icon: 'workspace_premium' },
     { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
     { label: 'Inventario', route: '/activos', icon: 'inventory_2' },
     {
@@ -153,14 +155,23 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private hasPrivilegeForRoute(route: string | undefined): boolean {
     if (!route) return false;
 
-    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
-    if (isPastor && (route === '/cambios-iglesia' || route === '/solicitudes' || route === '/colaboradores')) {
+    const role = localStorage.getItem('role');
+    const isPastorOrEncargado = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
+    if (isPastorOrEncargado && (route === '/cambios-iglesia' || route === '/solicitudes' || route === '/colaboradores')) {
       return true;
+    }
+
+    if (route === '/configuracion') {
+      return isPastorOrEncargado;
+    }
+
+    if (route === '/activos') {
+      return role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA' || role === 'ROLE_DIACONO';
     }
 
     // Rutas siempre visibles para cualquier usuario autenticado.
     if (route === '/' || route === '/inicio' || route === '/mi-iglesia'
-        || route === '/perfil' || route === '/configuracion') {
+        || route === '/perfil') {
       return true;
     }
 
@@ -172,6 +183,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
       return false;
     }
     return this.authService.hasPrivilegio(requerido);
+  }
+
+  canViewConfig(): boolean {
+    const role = localStorage.getItem('role');
+    return role === 'ROLE_ADMIN' || role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
   }
 
   /**
@@ -186,7 +202,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
    * @param parentLabel Nombre del menú padre actual (para contexto).
    */
   private filterMenu(items: MenuItem[], isAdmin: boolean, parentLabel: string = ''): MenuItem[] {
-    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
+    const role = localStorage.getItem('role');
+    const isPastorOrEncargado = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
 
     return items
       .map(item => {
@@ -197,8 +214,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
         return item;
       })
       .filter(item => {
-        // Hide entire Iglesia section/list for pastor
-        if (isPastor && (item.label === 'Iglesias' || item.route === '/iglesia')) {
+        // Hide entire Iglesia section/list for pastor or encargado
+        if (isPastorOrEncargado && (item.label === 'Iglesias' || item.route === '/iglesia')) {
           return false;
         }
 
@@ -229,23 +246,32 @@ export class SidenavComponent implements OnInit, OnDestroy {
       return;
     }
     const isAdmin = this.authService.isLoggedRolAdmin();
-    const isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
-    let activeMenu = [...this.menuItems];
+    let activeMenu: MenuItem[] = [];
 
-    if (isPastor) {
-      activeMenu = activeMenu.reduce((acc: MenuItem[], item) => {
-        if (item.route === '/miembro') {
-          // Omitir Miembros para pastor
-        } else if (item.label === 'Obreros') {
-          // Reemplazar "Obreros" por "Colaboradores"
-          acc.push({
-            label: 'Colaboradores',
-            route: '/colaboradores',
-            icon: 'people'
-          });
-        } else {
-          acc.push(item);
+    if (isAdmin) {
+      activeMenu = this.menuItems.map(item => {
+        let newItem = { ...item };
+        if (newItem.label === 'Administración') {
+          newItem.label = 'Administrador';
         }
+        return newItem;
+      });
+    } else {
+      activeMenu = this.menuItems.reduce((acc: MenuItem[], item) => {
+        let newItem = { ...item };
+        if (newItem.route === '/miembro') {
+          // Omitir Miembros global para no-admins
+          return acc;
+        }
+        if (newItem.route === '/mi-iglesia') {
+          newItem.label = 'Miembros';
+        }
+        if (newItem.label === 'Obreros' || newItem.route === '/obreros') {
+          newItem.label = 'Colaboradores';
+          newItem.route = '/colaboradores';
+          newItem.icon = 'people';
+        }
+        acc.push(newItem);
         return acc;
       }, []);
     }
@@ -258,7 +284,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
       try {
         const expandedLabels: string[] = JSON.parse(savedState);
         this.filteredMenuItems.forEach(item => {
-          if (expandedLabels.includes(item.label)) {
+          if (expandedLabels.includes(item.label) || (item.label === 'Administrador' && expandedLabels.includes('Administración'))) {
             item.expanded = true;
           }
         });
@@ -296,7 +322,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.configureSidenavResponsive();
     this.initializeUserState();
-    this.router.events.subscribe(event => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       if (event instanceof NavigationEnd && this.isSmallScreen && this.sidenav) {
         this.sidenav.close();
       }
@@ -312,6 +338,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     // Observa cambios en el tamaño de pantalla para ajustar la visualización del sidenav
     this.breakpointObserver
       .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => this.toggleSidenav(result.matches));
   }
 
@@ -348,7 +375,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
    * en localStorage['privilegios'] por AuthService — no hace falta una llamada extra al API.
    */
   private initializeUserState() {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
       this.username = user?.username || '';
       this.isAuthenticated = !!user;
       this.loadActiveContext();

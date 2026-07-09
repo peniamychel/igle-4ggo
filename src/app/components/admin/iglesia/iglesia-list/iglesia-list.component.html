@@ -64,38 +64,34 @@
     </div>
   </div>
 
-  <!-- Filters Row -->
-  <div class="filter-panel-card">
-    <div class="filters-flex-row">
-      <!-- Search Input -->
-      <div class="search-input-field">
-        <mat-icon>search</mat-icon>
-        <input 
-          type="text" 
-          [(ngModel)]="search" 
-          (input)="applyFilters()" 
-          placeholder="Buscar por nombre, ciudad o dirección..."
-        />
-        <button class="btn-clear-search" *ngIf="search" (click)="search = ''; applyFilters()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="search" 
+        (input)="applyFilters()" 
+        placeholder="Buscar por nombre, ciudad o dirección..."
+      />
+    </div>
+    
+    <div class="select-filters">
+      <mat-form-field appearance="outline" class="filter-select">
+        <mat-select [(ngModel)]="departamento" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let depto of departamentos" [value]="depto">
+            {{ depto }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-      <!-- Dropdown Filter: Department -->
-      <div class="select-wrapper-custom">
-        <select [(ngModel)]="departamento" (change)="applyFilters()" class="custom-select-element">
-          <option *ngFor="let depto of departamentos" [value]="depto">{{ depto }}</option>
-        </select>
-      </div>
-
-      <!-- Dropdown Filter: Estado -->
-      <div class="select-wrapper-custom w-estado">
-        <select [(ngModel)]="estado" (change)="applyFilters()" class="custom-select-element">
-          <option value="all">Todos los estados</option>
-          <option value="true">Activas</option>
-          <option value="false">Inactivas</option>
-        </select>
-      </div>
+      <mat-form-field appearance="outline" class="filter-select w-estado">
+        <mat-select [(ngModel)]="estado" (selectionChange)="applyFilters()">
+          <mat-option value="all">Todos los estados</mat-option>
+          <mat-option value="true">Activas</mat-option>
+          <mat-option value="false">Inactivas</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
@@ -118,20 +114,26 @@
     <!-- Right Column: Directory List -->
     <div class="directory-card-wrapper">
       <div class="card-title-bar">
-        <h3>Directorio</h3>
+        <h3>Lista de Iglesias</h3>
       </div>
-      <div class="directory-list-scrollable">
+      <div class="directory-list-scrollable" cdkDropList (cdkDropListDropped)="drop($event)">
         <div class="no-churches-placeholder" *ngIf="filteredIglesias.length === 0">
           <mat-icon>church</mat-icon>
           <p>No se encontraron iglesias con los filtros seleccionados.</p>
         </div>
 
-        <button 
+        <div 
           *ngFor="let ig of filteredIglesias" 
           class="directory-item-card" 
           [class.selected]="seleccionada?.id === ig.id"
           (click)="seleccionarIglesia(ig)"
+          cdkDrag
         >
+          <!-- Tirador para arrastrar -->
+          <div class="drag-handle-grip" cdkDragHandle matTooltip="Arrastrar para cambiar el orden">
+            <mat-icon>drag_indicator</mat-icon>
+          </div>
+
           <div class="church-avatar" [class.inactive]="!ig.estado">
             <img *ngIf="ig.uriFoto" [src]="ig.uriFoto | imageUrl" [alt]="ig.nombre" />
             <span *ngIf="!ig.uriFoto">{{ ig.nombre.replace('Iglesia ', '').slice(0,2).toUpperCase() }}</span>
@@ -163,156 +165,20 @@
               </span>
             </div>
           </div>
-        </button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Custom Detail Dialog Overlay (Next.js design match) -->
-  <div class="details-overlay-backdrop" *ngIf="seleccionada" (click)="seleccionada = null">
-    <div class="details-dialog-card" (click)="$event.stopPropagation()">
-      
-      <!-- Photo/Header section -->
-      <div class="dialog-header-bg">
-        <img 
-          *ngIf="seleccionada.uriFoto" 
-          [src]="seleccionada.uriFoto | imageUrl" 
-          [alt]="seleccionada.nombre" 
-          class="header-photo"
-        />
-        <div class="header-gradient-blend" *ngIf="seleccionada.uriFoto"></div>
-        <div class="header-color-fallback" *ngIf="!seleccionada.uriFoto"></div>
-        
-        <div class="dialog-header-content">
-          <div class="header-action-row">
-            <div class="badge-status-wrap">
-              <mat-icon>church</mat-icon>
-              <span class="badge-status-pill" [class.active]="seleccionada.estado">
-                {{ seleccionada.estado ? 'Activa' : 'Inactiva' }}
-              </span>
-            </div>
-            <button class="btn-dialog-close" (click)="seleccionada = null">
-              <mat-icon>close</mat-icon>
+          <div class="church-actions-column">
+            <button 
+              mat-icon-button 
+              class="btn-view-details" 
+              matTooltip="Ver detalles" 
+              (click)="verDetalles(ig, $event)"
+            >
+              <mat-icon>visibility</mat-icon>
             </button>
           </div>
-          
-          <h3 class="dialog-church-title">{{ seleccionada.nombre }}</h3>
-          <p class="dialog-church-address">
-            <mat-icon>place</mat-icon>
-            <span>{{ seleccionada.direccion }}, {{ seleccionada.ciudad }}</span>
-          </p>
         </div>
       </div>
-
-      <!-- Body / Information details -->
-      <div class="dialog-body-content">
-        <!-- Grid of three stats -->
-        <div class="dialog-stats-grid">
-          <div class="stat-unit-box">
-            <mat-icon>people</mat-icon>
-            <span class="stat-num">{{ seleccionada.miembrosActivos }}</span>
-            <span class="stat-lbl">Miembros</span>
-          </div>
-          <div class="stat-unit-box">
-            <mat-icon>event</mat-icon>
-            <span class="stat-num">{{ seleccionada.eventosMes }}</span>
-            <span class="stat-lbl">Eventos/mes</span>
-          </div>
-          <div class="stat-unit-box">
-            <mat-icon>workspace_premium</mat-icon>
-            <span class="stat-num">{{ seleccionada.certificadosEmitidos }}</span>
-            <span class="stat-lbl">Certificados</span>
-          </div>
-        </div>
-
-        <!-- Meta info rows -->
-        <div class="dialog-info-list">
-          <div class="info-row-item">
-            <div class="info-icon-circle">
-              <mat-icon>place</mat-icon>
-            </div>
-            <div class="info-text-group">
-              <span class="info-row-label">Ubicación</span>
-              <span class="info-row-val">{{ seleccionada.ciudad }}, {{ seleccionada.departamento }}</span>
-            </div>
-          </div>
-
-          <div class="info-row-item">
-            <div class="info-icon-circle">
-              <mat-icon>phone</mat-icon>
-            </div>
-            <div class="info-text-group">
-              <span class="info-row-label">Teléfono</span>
-              <span class="info-row-val">{{ seleccionada.telefono || 'Sin teléfono' }}</span>
-            </div>
-          </div>
-
-          <div class="info-row-item">
-            <div class="info-icon-circle">
-              <mat-icon>mail</mat-icon>
-            </div>
-            <div class="info-text-group">
-              <span class="info-row-label">Email</span>
-              <span class="info-row-val">{{ seleccionada.email }}</span>
-            </div>
-          </div>
-
-          <div class="info-row-item">
-            <div class="info-icon-circle">
-              <mat-icon>calendar_today</mat-icon>
-            </div>
-            <div class="info-text-group">
-              <span class="info-row-label">Fundada el</span>
-              <span class="info-row-val">{{ formatDate(seleccionada.fechaFundacion) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pastores badge section -->
-        <div class="dialog-pastores-section">
-          <p class="section-uppercase-title">Pastores</p>
-          <div class="pastores-badges-flex">
-            <span class="pastor-badge-pill" *ngFor="let p of seleccionada.pastores">
-              <mat-icon>account_circle</mat-icon>
-              <span>{{ p }}</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- GPS details -->
-        <div class="dialog-gps-coords">
-          <span class="coords-title">Coordenadas geográficas</span>
-          <span class="coords-value">{{ seleccionada.latitud }}, {{ seleccionada.longitud }}</span>
-        </div>
-
-        <!-- Proportion percentage -->
-        <div class="proportion-alert-box">
-          <mat-icon>trending_up</mat-icon>
-          <p>
-            Esta iglesia representa 
-            <span class="alert-percent">{{ (seleccionada.miembrosActivos / totalMembersCount) * 100 | number:'1.0-0' }}%</span> 
-            del total de miembros ({{" "}}{{ totalMembersCount }}).
-          </p>
-        </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div class="dialog-footer-actions">
-        <button mat-button class="btn-cancel" (click)="seleccionada = null">Cerrar</button>
-        <div class="actions-group-right">
-          <button mat-flat-button class="btn-action-warning" (click)="toggleEstado(seleccionada, $event)" *appHasPrivilegio="'Escribir Iglesias'">
-            <mat-icon>{{ seleccionada.estado ? 'cancel' : 'check_circle' }}</mat-icon>
-            <span>{{ seleccionada.estado ? 'Desactivar' : 'Activar' }}</span>
-          </button>
-          <button mat-flat-button class="btn-action-primary" (click)="openEditDialog(seleccionada, $event)" *appHasPrivilegio="'Escribir Iglesias'">
-            <mat-icon>edit</mat-icon>
-            <span>Editar iglesia</span>
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
-
 </div>
 

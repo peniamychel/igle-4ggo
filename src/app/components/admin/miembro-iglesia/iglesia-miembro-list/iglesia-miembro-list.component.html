@@ -1,109 +1,105 @@
 <div class="container">
-  <!-- Cabecera pegajosa (Sticky Header) -->
-  <div class="sticky-header">
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">send</mat-icon>
-        </div>
-        <div>
-          <h2>Traspasos</h2>
-          <p class="subtitle" *ngIf="!isLoading">
-            {{totalRequests}} solicitud(es) • {{pendingCount}} pendientes • {{approvedCount}} aprobadas • {{rejectedCount}} rechazadas • {{cancelledCount}} canceladas
-          </p>
-          <p class="subtitle" *ngIf="isLoading">Cargando solicitudes...</p>
-        </div>
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">send</mat-icon>
+        <span>Traspasos</span>
+      </h2>
+      <p class="subtitle-text" *ngIf="!isLoading">
+        {{totalRequests}} solicitud(es) • {{pendingCount}} pendientes • {{approvedCount}} aprobadas • {{rejectedCount}} rechazadas • {{cancelledCount}} canceladas
+      </p>
+      <p class="subtitle-text" *ngIf="isLoading">Cargando solicitudes...</p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button class="btn-action-primary" (click)="openNuevaSolicitud()">
+        <mat-icon>add</mat-icon>
+        Nueva solicitud
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Panel de KPIs -->
+  <div class="kpis-grid-layout" *ngIf="!isLoading">
+    <!-- Tarjeta Pendientes -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-purple">
+        <mat-icon>hourglass_empty</mat-icon>
       </div>
-      <div class="header-actions">
-        <button mat-flat-button class="btn-new-solicitud" (click)="openNuevaSolicitud()">
-          <mat-icon>add</mat-icon>
-          Nueva solicitud
-        </button>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{pendingCount}}</span>
+        <span class="kpi-desc-label">Pendientes</span>
       </div>
     </div>
 
-    <!-- Panel de KPIs -->
-    <div class="kpi-grid" *ngIf="!isLoading">
-      <!-- Tarjeta Pendientes -->
-      <div class="kpi-card pending-card">
-        <div class="kpi-icon-container">
-          <mat-icon class="kpi-icon">hourglass_empty</mat-icon>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-value">{{pendingCount}}</span>
-          <span class="kpi-label">Pendientes</span>
-        </div>
+    <!-- Tarjeta Aprobadas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-teal">
+        <mat-icon>check_circle_outline</mat-icon>
       </div>
-
-      <!-- Tarjeta Aprobadas -->
-      <div class="kpi-card approved-card">
-        <div class="kpi-icon-container">
-          <mat-icon class="kpi-icon">check_circle_outline</mat-icon>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-value">{{approvedCount}}</span>
-          <span class="kpi-label">Aprobadas</span>
-        </div>
-      </div>
-
-      <!-- Tarjeta Rechazadas -->
-      <div class="kpi-card rejected-card">
-        <div class="kpi-icon-container">
-          <mat-icon class="kpi-icon">highlight_off</mat-icon>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-value">{{rejectedCount}}</span>
-          <span class="kpi-label">Rechazadas</span>
-        </div>
-      </div>
-
-      <!-- Tarjeta Canceladas -->
-      <div class="kpi-card cancelled-card">
-        <div class="kpi-icon-container">
-          <mat-icon class="kpi-icon">block</mat-icon>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-value">{{cancelledCount}}</span>
-          <span class="kpi-label">Canceladas</span>
-        </div>
-      </div>
-
-      <!-- Tarjeta Tasa Aprobación -->
-      <div class="kpi-card rate-card">
-        <div class="kpi-icon-container">
-          <mat-icon class="kpi-icon">description</mat-icon>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-value">{{approvalRate}}%</span>
-          <span class="kpi-label">Tasa de aprob.</span>
-        </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{approvedCount}}</span>
+        <span class="kpi-desc-label">Aprobadas</span>
       </div>
     </div>
 
-    <!-- Barra de Filtros y Búsqueda -->
-    <div class="filters-bar" *ngIf="!isLoading">
-      <!-- Pestañas de filtrado (Pills) -->
-      <div class="tab-pills">
-        <button class="pill-btn" [class.active]="activeTab === 'pendientes'" (click)="onTabChange('pendientes')">
-          <mat-icon class="pill-icon">hourglass_empty</mat-icon>
-          <span>Pendientes</span>
-          <span class="pill-badge" *ngIf="pendingCount > 0">{{pendingCount}}</span>
-        </button>
-        <button class="pill-btn" [class.active]="activeTab === 'historial'" (click)="onTabChange('historial')">
-          <mat-icon class="pill-icon">history</mat-icon>
-          <span>Historial</span>
-        </button>
-        <button class="pill-btn" [class.active]="activeTab === 'todas'" (click)="onTabChange('todas')">
-          <mat-icon class="pill-icon">all_inbox</mat-icon>
-          <span>Todas</span>
-        </button>
+    <!-- Tarjeta Rechazadas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-blue">
+        <mat-icon>highlight_off</mat-icon>
       </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{rejectedCount}}</span>
+        <span class="kpi-desc-label">Rechazadas</span>
+      </div>
+    </div>
 
-      <!-- Buscador -->
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" [value]="searchQuery" (keyup)="onSearchChange($event)" placeholder="Buscar miembro, CI o iglesia...">
+    <!-- Tarjeta Canceladas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-amber">
+        <mat-icon>block</mat-icon>
       </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{cancelledCount}}</span>
+        <span class="kpi-desc-label">Canceladas</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta Tasa Aprobación -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-purple">
+        <mat-icon>description</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{approvalRate}}%</span>
+        <span class="kpi-desc-label">Tasa de aprob.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Barra de Filtros y Búsqueda -->
+  <div class="filters-bar" *ngIf="!isLoading">
+    <!-- Pestañas de filtrado (Pills) -->
+    <div class="tab-pills">
+      <button class="pill-btn" [class.active]="activeTab === 'pendientes'" (click)="onTabChange('pendientes')">
+        <mat-icon class="pill-icon">hourglass_empty</mat-icon>
+        <span>Pendientes</span>
+        <span class="pill-badge" *ngIf="pendingCount > 0">{{pendingCount}}</span>
+      </button>
+      <button class="pill-btn" [class.active]="activeTab === 'historial'" (click)="onTabChange('historial')">
+        <mat-icon class="pill-icon">history</mat-icon>
+        <span>Historial</span>
+      </button>
+      <button class="pill-btn" [class.active]="activeTab === 'todas'" (click)="onTabChange('todas')">
+        <mat-icon class="pill-icon">all_inbox</mat-icon>
+        <span>Todas</span>
+      </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" [value]="searchQuery" (keyup)="onSearchChange($event)" placeholder="Buscar miembro, CI o iglesia...">
     </div>
   </div>
 

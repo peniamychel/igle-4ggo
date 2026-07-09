@@ -19,50 +19,54 @@
       </ng-template>
 
       <div class="tab-content">
-        <!-- Contenedor pegajoso para cabecera y filtros -->
-        <div class="sticky-header">
-          <!-- Cabecera de listado -->
-          <div class="header-section">
-            <div class="title-wrapper">
-              <div class="title-icon-circle">
-                <mat-icon class="header-icon">event</mat-icon>
-              </div>
-              <div>
-                <h2>Gestión de Eventos</h2>
-                <p class="subtitle">{{ dataSource.filteredData.length }} eventos registrados</p>
-              </div>
-            </div>
-            <div class="header-actions">
-              <button mat-flat-button class="btn-new-item" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
-                <mat-icon>add</mat-icon>
-                Nuevo Evento
-              </button>
-            </div>
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">event</mat-icon>
+              <span>Gestión de Eventos</span>
+            </h2>
+            <p class="subtitle-text">
+              {{ dataSource.filteredData.length }} eventos registrados
+            </p>
           </div>
-        
-          <!-- Barra de Filtros y Búsqueda -->
-          <div class="filters-bar">
-            <div class="search-box">
-              <mat-icon class="search-icon">search</mat-icon>
-              <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, ubicación o motivo..." #searchInput>
-            </div>
-            
-            <div class="select-filters">
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
-                  <mat-option value="all">Todos los tipos</mat-option>
-                  <mat-option *ngFor="let tp of tiposEvento" [value]="tp.id?.toString()">{{ tp.nombre }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-        
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
-                  <mat-option value="all">Todos los estados</mat-option>
-                  <mat-option value="active">Activo</mat-option>
-                  <mat-option value="inactive">Inactivo</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
+          <div class="header-actions">
+            <button mat-flat-button class="btn-action-primary" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
+              <mat-icon>add</mat-icon>
+              Nuevo Evento
+            </button>
+          </div>
+        </div>
+      
+        <!-- 2. Filtros y Búsqueda -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, ubicación o motivo..." #searchInput>
+          </div>
+          
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+              <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todas las iglesias</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todos los tipos</mat-option>
+                <mat-option *ngFor="let tp of tiposEvento" [value]="tp.id?.toString()">{{ tp.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+      
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="active">Activo</mat-option>
+                <mat-option value="inactive">Inactivo</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
         </div>
 
@@ -86,6 +90,14 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </mat-header-cell>
               <mat-cell *matCellDef="let item">
                 <span class="tipo-badge">{{ item.tipoEventoDto?.nombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Columna Iglesia -->
+            <ng-container matColumnDef="iglesia">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span style="font-weight: 500; color: var(--text-primary);">{{ getIglesiaNombre(item.iglesiaId) }}</span>
               </mat-cell>
             </ng-container>
 
@@ -138,6 +150,10 @@
                     <mat-icon>visibility</mat-icon>
                     <span>Ver detalle</span>
                   </button>
+                  <button mat-menu-item (click)="openParticipantesDialog(item)">
+                    <mat-icon>group</mat-icon>
+                    <span>Participantes</span>
+                  </button>
                   <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="openEditDialog(item)">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>
@@ -155,7 +171,7 @@
             </ng-container>
 
             <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openParticipantesDialog(row)" class="clickable-row"></mat-row>
 
             <!-- Hilera para cuando no hay resultados -->
             <tr class="mat-row" *matNoDataRow>
@@ -174,7 +190,7 @@
     </mat-tab>
 
     <!-- Pestaña 2: Tipos de Evento -->
-    <mat-tab>
+    <mat-tab *ngIf="isAdmin">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">category</mat-icon>
         <span>Tipos de Evento</span>

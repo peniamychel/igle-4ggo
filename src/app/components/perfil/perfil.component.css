@@ -148,20 +148,20 @@
   margin: 4px 0 0;
 }
 
-.btn-edit {
+.user-meta-right button.btn-edit {
   height: 42px;
   border-radius: 10px;
   font-weight: 600;
-  background: rgba(127, 11, 133, 0.08) !important;
-  color: var(--primary-color) !important;
+  background: rgba(127, 11, 133, 0.08);
+  color: var(--primary-color);
   border: 1px solid rgba(127, 11, 133, 0.15);
-  padding: 0 20px !important;
+  padding: 0 20px;
   transition: all 0.2s ease;
 }
 
-.btn-edit:hover {
-  background: var(--primary-color) !important;
-  color: #ffffff !important;
+.user-meta-right button.btn-edit:hover {
+  background: var(--primary-color);
+  color: #ffffff;
   transform: translateY(-2px);
 }
 

@@ -91,9 +91,23 @@ export class IglesiaEditComponent implements OnInit {
     const coords: [number, number] = [lat, lng];
     this.map = L.map('map-container').setView(coords, 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
+    });
+
+    const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      attribution: '© Google',
+      maxZoom: 20
+    });
+
+    streetLayer.addTo(this.map);
+
+    const baseMaps = {
+      "Mapa (Calles)": streetLayer,
+      "Satélite": satelliteLayer
+    };
+
+    L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(this.map);
 
     if (hasMarker) {
       this.createMarker(L, lat, lng);

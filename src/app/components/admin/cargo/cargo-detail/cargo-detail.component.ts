@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { forkJoin } from 'rxjs';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -24,7 +25,7 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 @Component({
   selector: 'app-cargo-detail',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatExpansionModule, ImageUrlPipe],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatExpansionModule, MatTooltipModule, ImageUrlPipe],
   templateUrl: './cargo-detail.component.html',
   styleUrls: ['./cargo-detail.component.css']
 })
@@ -355,16 +356,43 @@ export class CargoDetailComponent implements OnInit {
     this.showImagePreview = !this.showImagePreview;
   }
 
+  getRealTraslados(): MiembroIglesia[] {
+    return this.trasladosHistory.filter(t => 
+      !!t.iglesiaDestinoId || !!t.estadoTraspaso || !!t.motivoTraspaso || !!t.fechaTraspaso
+    );
+  }
+
+  getIglesiaActualNombre(): string {
+    const targetMiembro = this.miembro || this.data.miembroDto;
+    if (targetMiembro?.iglesiaNombre) {
+      return targetMiembro.iglesiaNombre;
+    }
+    const activeMembresia = this.trasladosHistory.find(t => t.estado);
+    if (activeMembresia && activeMembresia.iglesiaId) {
+      const ig = this.iglesias.find(i => i.id === activeMembresia.iglesiaId);
+      if (ig) return ig.nombre;
+    }
+    const activeCargo = this.cargosHistory.find(c => c.estado);
+    if (activeCargo && activeCargo.iglesiaDto) {
+      return activeCargo.iglesiaDto.nombre;
+    }
+    if (this.trasladosHistory.length > 0 && this.trasladosHistory[0].iglesiaId) {
+      const ig = this.iglesias.find(i => i.id === this.trasladosHistory[0].iglesiaId);
+      if (ig) return ig.nombre;
+    }
+    return 'Sin iglesia asignada';
+  }
+
   hasActiveCargo(): boolean {
     return this.cargosHistory.some(c => c.estado);
   }
 
   hasActiveTraslado(): boolean {
-    return this.trasladosHistory.some(t => t.estado && !t.estadoTraspaso);
+    return this.getRealTraslados().some(t => t.estado && !t.estadoTraspaso);
   }
 
   hasPendienteTraslado(): boolean {
-    return this.trasladosHistory.some(t => t.estado && t.estadoTraspaso === 'PENDIENTE');
+    return this.getRealTraslados().some(t => t.estado && t.estadoTraspaso === 'PENDIENTE');
   }
 
   hasActiveEvento(): boolean {

@@ -42,7 +42,6 @@ export class CertificadoCreateComponent implements OnInit {
       eventoId: ['', Validators.required],
       tipoCertificadoId: ['', Validators.required],
       motivoCertificado: ['', [Validators.required, Validators.maxLength(500)]],
-      codigoCertificado: ['', [Validators.required, Validators.maxLength(50)]],
     });
   }
 

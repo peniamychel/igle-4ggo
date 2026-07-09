@@ -214,3 +214,76 @@
     height: 8px;
   }
 }
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+:host-context(.dark-theme) .month-title {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .legend-panel {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .legend-label {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .legend-item {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .calendar-grid-card {
+  background-color: var(--card-bg, #16161c);
+  border-color: var(--border-color, #23232c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .weekdays-row {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .weekday-header {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .day-cell {
+  border-right-color: var(--border-color, #23232c);
+  border-bottom-color: var(--border-color, #23232c);
+  background-color: var(--card-bg, #16161c);
+}
+
+:host-context(.dark-theme) .day-cell:hover:not(.empty-cell) {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+:host-context(.dark-theme) .empty-cell {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .day-number {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .today-cell .day-number {
+  background-color: #7c4dff;
+  color: #ffffff;
+}
+
+:host-context(.dark-theme) .event-tag {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: rgba(124, 77, 255, 0.4);
+}
+
+:host-context(.dark-theme) .event-tag:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+:host-context(.dark-theme) .event-label-text {
+  color: var(--text-primary, #e3e2e6);
+}
+

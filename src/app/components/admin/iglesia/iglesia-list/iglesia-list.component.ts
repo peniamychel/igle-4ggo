@@ -21,7 +21,10 @@ import { IglesiaEditComponent } from '../iglesia-edit/iglesia-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
+import { MatSelectModule } from '@angular/material/select';
 
 import * as L from 'leaflet';
 
@@ -40,8 +43,11 @@ import * as L from 'leaflet';
     MatCardModule,
     MatTooltipModule,
     MatMenuModule,
+    MatSelectModule,
     ImageUrlPipe,
     HasPrivilegioDirective,
+    DragDropModule,
+    IglesiaDetailComponent,
   ],
   templateUrl: './iglesia-list.component.html',
   styleUrls: ['./iglesia-list.component.css']
@@ -50,6 +56,7 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
   iglesias: any[] = [];
   filteredIglesias: any[] = [];
   seleccionada: any = null;
+  detalleIglesia: any = null;
 
   // Filter models
   search = '';
@@ -107,9 +114,9 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
   loadIglesias() {
     forkJoin({
       iglesias: this.iglesiaService.getIglesias(),
-      miembros: this.miembroService.getMiembros(),
-      eventos: this.eventoService.getEventos(),
-      certificados: this.certificadoService.getCertificados()
+      miembros: this.miembroService.getMiembros().pipe(catchError(() => of({ datos: [] }))),
+      eventos: this.eventoService.getEventos().pipe(catchError(() => of({ datos: [] }))),
+      certificados: this.certificadoService.getCertificados().pipe(catchError(() => of({ datos: [] })))
     }).subscribe({
       next: (res) => {
         const allMembers = res.miembros.datos || [];
@@ -175,9 +182,23 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
       zoomControl: true
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
+    });
+
+    const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      attribution: '© Google',
+      maxZoom: 20
+    });
+
+    streetLayer.addTo(this.map);
+
+    const baseMaps = {
+      "Mapa (Calles)": streetLayer,
+      "Satélite": satelliteLayer
+    };
+
+    L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(this.map);
 
     this.markersGroup = L.featureGroup().addTo(this.map);
   }
@@ -235,6 +256,7 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
         // Event click
         marker.on('click', () => {
           this.seleccionarIglesia(iglesia);
+          this.verDetalles(iglesia);
         });
 
         this.markersGroup.addLayer(marker);
@@ -254,6 +276,45 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
     if (iglesia.latitud && iglesia.longitud && this.map) {
       this.map.setView([iglesia.latitud, iglesia.longitud], 13);
     }
+  }
+
+  verDetalles(iglesia: any, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const dialogRef = this.dialog.open(IglesiaDetailComponent, {
+      width: '750px',
+      maxWidth: '95vw',
+      data: iglesia,
+      panelClass: 'dialog-fullscreen-mobile'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadIglesias();
+        if (result.edited) {
+          this.messageSnackBar(`Iglesia '${iglesia.nombre}' Modificada`);
+        }
+        this.seleccionada = null;
+      }
+    });
+  }
+
+  drop(event: CdkDragDrop<any[]>) {
+    moveItemInArray(this.filteredIglesias, event.previousIndex, event.currentIndex);
+    const orderedIds = this.filteredIglesias.map(ig => ig.id);
+    this.iglesiaService.updateOrden(orderedIds).subscribe({
+      next: () => {
+        this.snackBar.open('Orden de iglesias guardado', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: (err) => {
+        console.error('Error al guardar el orden:', err);
+        this.snackBar.open('Error al guardar el nuevo orden', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
 
   openCreateDialog() {

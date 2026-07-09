@@ -22,6 +22,7 @@ import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 import { EventoCreateComponent } from '../evento-create/evento-create.component';
 import { EventoDetailComponent } from '../evento-detail/evento-detail.component';
 import { EventoEditComponent } from '../evento-edit/evento-edit.component';
+import { EventoParticipantesComponent } from '../evento-participantes/evento-participantes.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -29,6 +30,9 @@ import { TipoEventoListComponent } from '../../tipo-evento/tipo-evento-list/tipo
 import { ResponsableEventoListComponent } from '../../responsable-evento/responsable-evento-list/responsable-evento-list.component';
 import { ParticipacionEventoListComponent } from '../../participacion-evento/participacion-evento-list/participacion-evento-list.component';
 import { EventoCalendarioComponent } from '../evento-calendario/evento-calendario.component';
+import { IglesiaService } from '../../../../core/services/iglesia.service';
+import { AuthService } from '../../../../core/services/security/auth.service';
+import { Iglesia } from '../../../../core/models/iglesia.model';
 
 @Component({
   selector: 'app-evento-list',
@@ -54,7 +58,8 @@ import { EventoCalendarioComponent } from '../evento-calendario/evento-calendari
     TipoEventoListComponent,
     ResponsableEventoListComponent,
     ParticipacionEventoListComponent,
-    EventoCalendarioComponent
+    EventoCalendarioComponent,
+    EventoParticipantesComponent
   ],
   templateUrl: './evento-list.component.html',
   styleUrls: ['./evento-list.component.css']
@@ -63,10 +68,15 @@ export class EventoListComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'tipoEvento', 'ubicacion', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Evento>;
   tiposEvento: TipoEvento[] = [];
+  iglesias: Iglesia[] = [];
 
   selectedTipoId: string = 'all';
   selectedEstado: string = 'all';
+  selectedIglesiaId: any = 'all';
   searchText: string = '';
+
+  isAdmin = false;
+  currentChurchId: number | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -74,6 +84,8 @@ export class EventoListComponent implements OnInit {
   constructor(
     private eventoService: EventoService,
     private tipoEventoService: TipoEventoService,
+    private iglesiaService: IglesiaService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
@@ -81,6 +93,14 @@ export class EventoListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isAdmin = this.authService.isLoggedRolAdmin();
+    if (this.isAdmin) {
+      // Agregar la columna 'iglesia' después de 'tipoEvento'
+      this.displayedColumns = ['nombre', 'tipoEvento', 'iglesia', 'ubicacion', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
+      this.loadIglesias();
+    } else {
+      this.currentChurchId = this.authService.getCurrentIglesiaId();
+    }
     this.setupTableModifiers();
     this.loadInitialData();
   }
@@ -101,14 +121,34 @@ export class EventoListComponent implements OnInit {
       const matchesEstado = this.selectedEstado === 'all' || 
         (this.selectedEstado === 'active' && data.estado) ||
         (this.selectedEstado === 'inactive' && !data.estado);
+
+      let matchesIglesia = true;
+      if (this.isAdmin) {
+        matchesIglesia = this.selectedIglesiaId === 'all' || 
+          (data.iglesiaId !== undefined && data.iglesiaId === this.selectedIglesiaId);
+      } else if (this.currentChurchId) {
+        matchesIglesia = data.iglesiaId !== undefined && data.iglesiaId === this.currentChurchId;
+      }
         
-      return matchesText && matchesTipo && matchesEstado;
+      return matchesText && matchesTipo && matchesEstado && matchesIglesia;
     };
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+  }
+
+  loadIglesias() {
+    this.iglesiaService.getIglesias().subscribe(res => {
+      this.iglesias = (res.datos || []).filter(i => i.estado);
+    });
+  }
+
+  getIglesiaNombre(id?: number): string {
+    if (!id) return 'General';
+    const ig = this.iglesias.find(i => i.id === id);
+    return ig ? ig.nombre : `Iglesia #${id}`;
   }
 
   loadInitialData() {
@@ -128,8 +168,11 @@ export class EventoListComponent implements OnInit {
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
         return dateB - dateA;
       });
+      const tiposMap = new Map<number, TipoEvento>();
+      this.tiposEvento.forEach(t => { if (t.id !== undefined) tiposMap.set(t.id, t); });
+
       eventos.forEach(evento => {
-        evento.tipoEventoDto = this.tiposEvento.find(t => t.id === evento.tipoEventoId);
+        evento.tipoEventoDto = evento.tipoEventoId !== undefined ? tiposMap.get(evento.tipoEventoId) : undefined;
       });
       this.dataSource.data = eventos;
       this.applyFilters();
@@ -183,6 +226,15 @@ export class EventoListComponent implements OnInit {
   openDetailDialog(evento: Evento) {
     this.dialog.open(EventoDetailComponent, {
       width: '600px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: evento
+    });
+  }
+
+  openParticipantesDialog(evento: Evento) {
+    this.dialog.open(EventoParticipantesComponent, {
+      width: '700px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: evento

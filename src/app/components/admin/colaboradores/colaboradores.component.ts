@@ -22,6 +22,7 @@ import { CargoEditComponent } from '../cargo/cargo-edit/cargo-edit.component';
 import { CargoBajaDialogComponent } from '../cargo/cargo-baja-dialog/cargo-baja-dialog.component';
 import { DesignarColaboradorComponent } from './designar-colaborador/designar-colaborador.component';
 import { ImageUrlPipe } from '../../../shared/pipes/image-url.pipe';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-colaboradores',
@@ -204,20 +205,44 @@ export class ColaboradoresComponent implements OnInit {
 
   openDetail(cargo: Cargo) {
     this.dialog.open(CargoDetailComponent, {
-      width: '600px',
+      width: '800px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
       data: cargo
     });
   }
 
   openEdit(cargo: Cargo) {
-    const dialogRef = this.dialog.open(CargoEditComponent, {
-      width: '600px',
-      data: cargo
-    });
+    this.loading = true;
+    forkJoin({
+      tiposCargo: this.tipoCargoService.getTipoCargosParaColaboradores(),
+      miembros: this.miembroIglesiaService.getMisMiembros()
+    }).subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        const dialogRef = this.dialog.open(CargoEditComponent, {
+          width: '600px',
+          maxWidth: '95vw',
+          panelClass: 'dialog-fullscreen-mobile',
+          data: {
+            cargo,
+            iglesias: [{ id: this.currentChurchId, nombre: this.currentChurchNombre, estado: true }],
+            tiposCargo: res.tiposCargo?.datos || [],
+            miembros: res.miembros?.datos || []
+          }
+        });
 
-    dialogRef.afterClosed().subscribe(res => {
-      if (res) {
-        this.loadColaboradores();
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            this.loadColaboradores();
+            this.snackBar.open('Cargo modificado exitosamente.', 'Cerrar', { duration: 3000 });
+          }
+        });
+      },
+      error: (err: any) => {
+        console.error('[Colaboradores] Error loading edit dependencies:', err);
+        this.loading = false;
+        this.snackBar.open('Error al cargar datos para la edición.', 'Cerrar', { duration: 3000 });
       }
     });
   }
@@ -225,12 +250,42 @@ export class ColaboradoresComponent implements OnInit {
   openDarBaja(cargo: Cargo) {
     const dialogRef = this.dialog.open(CargoBajaDialogComponent, {
       width: '450px',
-      data: cargo
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { cargo }
     });
 
-    dialogRef.afterClosed().subscribe(res => {
-      if (res) {
-        this.loadColaboradores();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && cargo.id) {
+        const fechaString = result.fechaFin instanceof Date
+          ? result.fechaFin.toISOString().split('T')[0]
+          : new Date(result.fechaFin).toISOString().split('T')[0];
+
+        this.loading = true;
+        this.cargoService.toggleEstado(cargo.id, fechaString).subscribe({
+          next: () => {
+            if (result.file) {
+              this.cargoService.uploadActaDeslindacion(cargo.id!, result.file).subscribe({
+                next: () => {
+                  this.snackBar.open('Colaborador dado de baja exitosamente.', 'Cerrar', { duration: 3000 });
+                  this.loadColaboradores();
+                },
+                error: () => {
+                  this.snackBar.open('Baja registrada, pero hubo un error al subir el acta.', 'Cerrar', { duration: 3000 });
+                  this.loadColaboradores();
+                }
+              });
+            } else {
+              this.snackBar.open('Colaborador dado de baja exitosamente.', 'Cerrar', { duration: 3000 });
+              this.loadColaboradores();
+            }
+          },
+          error: (err) => {
+            console.error('[Colaboradores] Error al dar de baja:', err);
+            this.loading = false;
+            this.snackBar.open('Error al dar de baja al colaborador.', 'Cerrar', { duration: 3000 });
+          }
+        });
       }
     });
   }

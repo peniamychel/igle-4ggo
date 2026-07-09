@@ -8,50 +8,58 @@
       </ng-template>
 
       <div class="tab-content">
-        <!-- Contenedor pegajoso para cabecera y filtros -->
-        <div class="sticky-header">
-          <!-- Cabecera de listado -->
-          <div class="header-section">
-            <div class="title-wrapper">
-              <div class="title-icon-circle">
-                <mat-icon class="header-icon">badge</mat-icon>
-              </div>
-              <div>
-                <h2>Gestión de Certificados</h2>
-                <p class="subtitle">{{ dataSource.filteredData.length }} certificados registrados</p>
-              </div>
-            </div>
-            <div class="header-actions">
-              <button mat-flat-button class="btn-new-item" matTooltip="Crear un nuevo certificado" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Certificados'">
-                <mat-icon>add</mat-icon>
-                Nuevo Certificado
-              </button>
-            </div>
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">badge</mat-icon>
+              <span>Gestión de Certificados</span>
+            </h2>
+            <p class="subtitle-text">
+              {{ dataSource.filteredData.length }} certificados registrados
+            </p>
           </div>
-        
-          <!-- Barra de Filtros y Búsqueda -->
-          <div class="filters-bar">
-            <div class="search-box">
-              <mat-icon class="search-icon">search</mat-icon>
-              <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por código, motivo, evento..." #searchInput>
-            </div>
-            
-            <div class="select-filters">
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
-                  <mat-option value="all">Todos los tipos</mat-option>
-                  <mat-option *ngFor="let tc of tiposCertificado" [value]="tc.id?.toString()">{{ tc.nombre }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-        
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
-                  <mat-option value="all">Todos los estados</mat-option>
-                  <mat-option value="active">Activo</mat-option>
-                  <mat-option value="inactive">Inactivo</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
+          <div class="header-actions">
+            <button mat-stroked-button class="btn-action-secondary" matTooltip="Verificar validez de un certificado por QR o código" (click)="openVerifyDialog()">
+              <mat-icon>qr_code_scanner</mat-icon>
+              Verificar Certificado
+            </button>
+            <button mat-flat-button class="btn-action-primary" matTooltip="Crear un nuevo certificado" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Certificados'">
+              <mat-icon>add</mat-icon>
+              Nuevo Certificado
+            </button>
+          </div>
+        </div>
+      
+        <!-- 2. Filtros y Búsqueda -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por código, motivo, evento..." #searchInput>
+          </div>
+          
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+              <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todas las iglesias</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todos los tipos</mat-option>
+                <mat-option *ngFor="let tc of tiposCertificado" [value]="tc.id?.toString()">{{ tc.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+      
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="active">Activo</mat-option>
+                <mat-option value="inactive">Inactivo</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
         </div>
 
@@ -59,19 +67,20 @@
         <div class="table-container">
           <mat-table [dataSource]="dataSource" matSort>
             
-            <!-- Columna Código -->
-            <ng-container matColumnDef="codigo">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span class="codigo-text">{{ item.codigoCertificado }}</span>
-              </mat-cell>
-            </ng-container>
 
             <!-- Columna Evento -->
             <ng-container matColumnDef="evento">
               <mat-header-cell *matHeaderCellDef mat-sort-header> Evento </mat-header-cell>
               <mat-cell *matCellDef="let item">
                 <span class="evento-name-label">{{ item.eventoDto?.nombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Columna Iglesia -->
+            <ng-container matColumnDef="iglesia">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span style="font-weight: 500; color: var(--text-primary);">{{ getIglesiaNombre(item.eventoDto?.iglesiaId) }}</span>
               </mat-cell>
             </ng-container>
 
@@ -113,6 +122,10 @@
                     <mat-icon>visibility</mat-icon>
                     <span>Ver detalle</span>
                   </button>
+                  <button mat-menu-item (click)="openPrintDialog(item)">
+                    <mat-icon>print</mat-icon>
+                    <span>Imprimir Certificados</span>
+                  </button>
                   <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Certificados'">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>
@@ -134,7 +147,7 @@
             </ng-container>
 
             <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openPrintDialog(row)" class="clickable-row"></mat-row>
 
             <!-- Hilera para cuando no hay resultados -->
             <tr class="mat-row" *matNoDataRow>
@@ -152,8 +165,8 @@
       </div>
     </mat-tab>
 
-    <!-- Pestaña 2: Tipos de Certificado -->
-    <mat-tab>
+    <!-- Pestaña 2: Tipos de Certificado (Solo Administrador) -->
+    <mat-tab *ngIf="isAdmin">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">badge</mat-icon>
         <span>Tipos de Certificado</span>

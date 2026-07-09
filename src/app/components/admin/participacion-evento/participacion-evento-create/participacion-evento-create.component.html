@@ -49,7 +49,7 @@
         <mat-select formControlName="certificadoId">
           <mat-option [value]="null">Sin certificado</mat-option>
           <mat-option *ngFor="let cert of filteredCertificados" [value]="cert.id">
-            {{ cert.codigoCertificado }} - {{ cert.motivoCertificado }}
+            {{ cert.tipoCertificadoDto?.nombre || 'Certificado' }} - {{ cert.motivoCertificado }}
           </mat-option>
         </mat-select>
       </mat-form-field>

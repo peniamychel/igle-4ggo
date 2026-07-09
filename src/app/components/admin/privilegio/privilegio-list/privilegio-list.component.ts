@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -15,9 +16,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { forkJoin } from 'rxjs';
 import { PrivilegioService } from '../../../../core/services/privilegio.service';
+import { ServicioService } from '../../../../core/services/servicio.service';
 import { PrivilegioDto, PrivilegioResponse } from '../../../../core/models/interfaces/privilegio.interface';
+import { ServicioDto, AccionDto } from '../../../../core/models/interfaces/servicio.interface';
 import { PrivilegioCreateComponent } from '../privilegio-create/privilegio-create.component';
 import { PrivilegioDetailComponent } from '../privilegio-detail/privilegio-detail.component';
 import { PrivilegioEditComponent } from '../privilegio-edit/privilegio-edit.component';
@@ -31,6 +35,7 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -46,6 +51,7 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatButtonToggleModule,
     MatDividerModule,
     MatMenuModule,
+    MatCheckboxModule,
     HasPrivilegioDirective
   ],
   templateUrl: './privilegio-list.component.html',
@@ -60,6 +66,10 @@ export class PrivilegioListComponent implements OnInit {
   privilegiosPorRol: PrivilegioResponse[] = [];
   todosPrivilegios: PrivilegioDto[] = [];
   privilegiosPorRolMap: Record<number, number[]> = {};
+
+  currentTab: 'categorized' | 'matrix' = 'categorized';
+  todosServicios: ServicioDto[] = [];
+  accionesPorRolMap: Record<number, Set<string>> = {};
 
   privilegeGroups = [
     {
@@ -105,6 +115,7 @@ export class PrivilegioListComponent implements OnInit {
 
   constructor(
     private privilegioService: PrivilegioService,
+    private servicioService: ServicioService,
     private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
@@ -115,6 +126,7 @@ export class PrivilegioListComponent implements OnInit {
   ngOnInit() {
     this.loadPrivilegios();
     this.loadRoles();
+    this.loadServicios();
   }
 
   ngAfterViewInit() {
@@ -143,6 +155,11 @@ export class PrivilegioListComponent implements OnInit {
         if (role.id) {
           this.privilegioService.getPrivilegiosByRolCargo(role.id).subscribe(data => {
             this.privilegiosPorRolMap[role.id!] = data.map(p => p.id).filter((id): id is number => id !== undefined);
+          });
+
+          this.servicioService.getAccionesByRolCargo(role.id).subscribe(acciones => {
+            const authCodes = new Set(acciones.map(a => a.authorityCode || ''));
+            this.accionesPorRolMap[role.id!] = authCodes;
           });
         }
       });
@@ -346,6 +363,50 @@ export class PrivilegioListComponent implements OnInit {
         this.loadPrivilegiosPorRol();
         this.messageSnackBar('Categoría de privilegios actualizada');
       });
+    });
+  }
+
+  loadServicios() {
+    this.servicioService.getAll().subscribe(data => {
+      this.todosServicios = data;
+    });
+  }
+
+  hasServiceAccess(rolCargoId: number, serviceCodigo: string): boolean {
+    const roleActions = this.accionesPorRolMap[rolCargoId];
+    if (!roleActions) return false;
+
+    const service = this.todosServicios.find(s => s.codigo === serviceCodigo);
+    if (!service || !service.acciones || service.acciones.length === 0) return false;
+
+    return service.acciones.every(a => roleActions.has(a.authorityCode || ''));
+  }
+
+  toggleServiceAccess(event: any, rolCargoId: number, serviceId: number) {
+    const checked = event.checked;
+    const service = this.todosServicios.find(s => s.id === serviceId);
+    if (!service || !service.acciones || service.acciones.length === 0) return;
+
+    const obs = service.acciones.map(a => {
+      if (checked) {
+        return this.servicioService.addAccionToRolCargo(rolCargoId, a.id!);
+      } else {
+        return this.servicioService.removeAccionFromRolCargo(rolCargoId, a.id!);
+      }
+    });
+
+    forkJoin(obs).subscribe({
+      next: () => {
+        this.snackBar.open(`Servicio ${service.nombre} ${checked ? 'asignado' : 'removido'} exitosamente.`, 'Cerrar', {
+          duration: 3000
+        });
+        this.loadRoles();
+      },
+      error: () => {
+        this.snackBar.open(`Error al actualizar el servicio.`, 'Cerrar', {
+          duration: 3000
+        });
+      }
     });
   }
 }

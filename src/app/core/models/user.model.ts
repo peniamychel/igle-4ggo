@@ -1,4 +1,5 @@
-import { PrivilegioDto } from './interfaces/privilegio.interface';
+import { PermisoDto, PrivilegioDto } from './interfaces/permiso.interface';
+import { AccionDto } from './interfaces/servicio.interface';
 
 export interface User {
   id?: number;
@@ -12,6 +13,8 @@ export interface User {
   roles: Role[];
   miembroId?: number;
   iglesiaNombre?: string;
+  acciones?: AccionDto[];
+  permisos?: PermisoDto[];
   privilegios?: PrivilegioDto[];
 }
 
@@ -43,7 +46,6 @@ export interface CreateUserDto {
   password: string;
   roles?: string[];
   miembroId?: number;
-  privilegioIds?: number[];
 }
 
 export interface UpdateUserDto {
@@ -53,7 +55,6 @@ export interface UpdateUserDto {
   name: string;
   apellidos: string;
   miembroId?: number;
-  privilegioIds?: number[];
   estado?: boolean;
 }
 

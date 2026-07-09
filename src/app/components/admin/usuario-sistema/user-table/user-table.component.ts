@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { MatTableModule, MatTable, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -11,8 +12,15 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
-import { User } from '../../../../core/models/user.model';
+import { User, UserResponse } from '../../../../core/models/user.model';
 import { CreateUserDialogComponent } from '../create-user-dialog/create-user-dialog.component';
 import { EditUserDialogComponent } from '../edit-user-dialog/edit-user-dialog.component';
 import { ViewUserDialogComponent } from '../view-user-dialog/view-user-dialog.component';
@@ -20,8 +28,8 @@ import { RolesPipe } from '../../../../core/pipes/roles.pipe';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { UserService } from '../../../../core/services/user.service';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
-import { PrivilegioService } from '../../../../core/services/privilegio.service';
-import { PrivilegioDto } from '../../../../core/models/interfaces/privilegio.interface';
+import { ServicioService } from '../../../../core/services/servicio.service';
+import { ServicioDto, AccionDto } from '../../../../core/models/interfaces/servicio.interface';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 
@@ -39,88 +47,58 @@ import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
     MatIconModule,
     MatDialogModule,
     MatSnackBarModule,
-    FormsModule,
-    RolesPipe,
     MatCardModule,
     MatTooltipModule,
+    MatTabsModule,
+    MatSlideToggleModule,
+    MatExpansionModule,
+    MatChipsModule,
+    MatMenuModule,
+    MatButtonToggleModule,
+    MatCheckboxModule,
+    FormsModule,
+    RolesPipe,
     ImageUrlPipe
   ],
   templateUrl: './user-table.component.html',
   styleUrls: ['./user-table.component.css']
 })
 export class UserTableComponent implements OnInit, AfterViewInit {
-  allColumns: string[] = ['name', 'roles', 'iglesia', 'lastLogin', 'privilegios', 'estado', 'actions'];
-  displayedColumns: string[] = [...this.allColumns];
-
-  matrixColumns = [
-    { label: 'Usuarios', privilege: 'Ver Usuarios', icon: 'switch_account' },
-    { label: 'Miembros', privilege: 'Ver Miembros', icon: 'people' },
-    { label: 'Iglesias', privilege: 'Ver Iglesias', icon: 'church' },
-    { label: 'Eventos', privilege: 'Ver Eventos', icon: 'event' },
-    { label: 'Certificados', privilege: 'Ver Certificados', icon: 'workspace_premium' },
-    { label: 'Privilegios', privilege: 'Ver Privilegios', icon: 'vpn_key' },
-    { label: 'Finanzas', privilege: 'Ver Ofrendas', icon: 'monetization_on' },
-    { label: 'Bitácora', privilege: 'Ver Bitácora', icon: 'history' }
-  ];
+  displayedColumns: string[] = ['name', 'roles', 'iglesia', 'accionesCount', 'estado', 'actions'];
   dataSource: MatTableDataSource<User>;
   pagedData: User[] = [];
   pageSize = 15;
   pageSizeOptions = [5, 10, 15, 25, 100];
 
-  // Matrix and roles properties
+  // Matriz de Servicios & Acciones
+  currentTab: 'categorized' | 'matrix' = 'categorized';
+  servicios: ServicioDto[] = [];
   rolesDisponibles: TipoCargo[] = [];
-  todosPrivilegios: PrivilegioDto[] = [];
-  privilegiosPorRolMap: Record<number, number[]> = {};
-  selectedMatrixRole = 'ADMIN';
+  selectedRol: TipoCargo | null = null;
+  accionesPorRolMap: Record<number, number[]> = {};
 
-  rolesInfo: any[] = [];
+  // Métricas / KPIs
+  totalUsers = 0;
+  activeUsers = 0;
+  totalRoles = 0;
+  totalAcciones = 0;
 
-  /**
-   * Matriz de módulos × privilegios.
-   * Modelo de 2 niveles: cada entidad expone "Ver" (consulta) y "Escribir"
-   * (crear/editar/eliminar/estado/actas/fotos/traspasos/plantilla).
-   * Los módulos de solo lectura conservan un único privilegio "Ver X".
-   *
-   * Los `privilegeName` deben coincidir EXACTAMENTE con `privilegio.nombre`
-   * en la BD (ver api-iglesia/database/migracion-privilegios.sql).
-   */
-  matrixModules = [
-    // --- Entidades operativas (lectura + escritura) ---
-    { name: 'Miembros',         privilegeName: 'Ver Miembros',            icon: 'people' },
-    { name: 'Miembros',         privilegeName: 'Escribir Miembros',       icon: 'edit' },
-    { name: 'Iglesias',         privilegeName: 'Ver Iglesias',            icon: 'church' },
-    { name: 'Iglesias',         privilegeName: 'Escribir Iglesias',       icon: 'edit' },
-    { name: 'Membresías',       privilegeName: 'Ver MiembroIglesia',      icon: 'recent_actors' },
-    { name: 'Membresías',       privilegeName: 'Escribir MiembroIglesia', icon: 'edit' },
-    { name: 'Cargos',           privilegeName: 'Ver Cargos',              icon: 'work' },
-    { name: 'Cargos',           privilegeName: 'Escribir Cargos',         icon: 'edit' },
-    { name: 'Eventos',          privilegeName: 'Ver Eventos',             icon: 'event' },
-    { name: 'Eventos',          privilegeName: 'Escribir Eventos',        icon: 'edit' },
-    { name: 'Certificados',     privilegeName: 'Ver Certificados',        icon: 'workspace_premium' },
-    { name: 'Certificados',     privilegeName: 'Escribir Certificados',   icon: 'edit' },
-    { name: 'Usuarios',         privilegeName: 'Ver Usuarios',            icon: 'switch_account' },
-    { name: 'Usuarios',         privilegeName: 'Escribir Usuarios',       icon: 'edit' },
-    { name: 'Privilegios',      privilegeName: 'Ver Privilegios',         icon: 'vpn_key' },
-    { name: 'Privilegios',      privilegeName: 'Escribir Privilegios',    icon: 'edit' },
-    // --- Módulos de solo lectura (sin operaciones de escritura) ---
-    { name: 'Dashboard',        privilegeName: 'Ver Dashboard',           icon: 'dashboard' },
-    { name: 'Reportes',         privilegeName: 'Ver Reportes',            icon: 'bar_chart' },
-    { name: 'Bitácora',         privilegeName: 'Ver Bitácora',            icon: 'history' },
-    { name: 'Ofrendas',         privilegeName: 'Ver Ofrendas',            icon: 'monetization_on' },
-    { name: 'Ayuda',            privilegeName: 'Ver Ayuda',               icon: 'help' },
+  private avatarColors = [
+    '#7c4dff', '#651fff', '#6200ea', '#e91e63',
+    '#2196f3', '#00bcd4', '#009688', '#4caf50',
+    '#ff9800', '#ff5722', '#795548', '#607d8b'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort; // Using MatSort as in original
+  @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatSort) set matSort(ms: MatSort) {
     this.sort = ms;
     this.dataSource.sort = this.sort;
   }
-  @ViewChild(MatTable) table!: MatTable<User>;
 
   constructor(
     private userService: UserService,
-    private privilegioService: PrivilegioService,
+    private servicioService: ServicioService,
     private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
@@ -131,9 +109,8 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.loadUsers();
     this.loadPageSize();
-    this.loadPrivilegesData();
+    this.loadServiciosYRolesData();
 
-    // Configurar el ordenamiento personalizado
     this.dataSource.sortingDataAccessor = (item: User, property: string) => {
       switch (property) {
         case 'name':
@@ -145,39 +122,61 @@ export class UserTableComponent implements OnInit, AfterViewInit {
       }
     };
 
-    // Configurar el filtrado personalizado
     this.dataSource.filterPredicate = (data: User, filter: string) => {
-      const searchStr = filter.toLowerCase();
-      return data.username.toLowerCase().includes(searchStr) ||
-        data.email.toLowerCase().includes(searchStr) ||
-        (data.name?.toLowerCase() || '').includes(searchStr) ||
-        (data.apellidos?.toLowerCase() || '').includes(searchStr) ||
-        data.roles.map(role => (role.nombreRol || role.name || role.nombre || '').toLowerCase()).join(' ').includes(searchStr);
+      const accumulator = (currentTerm: string, key: string) => {
+        return currentTerm + (data as any)[key];
+      };
+      const dataStr = Object.keys(data).reduce(accumulator, '').toLowerCase();
+      const transformedFilter = filter.trim().toLowerCase();
+      return dataStr.indexOf(transformedFilter) !== -1;
     };
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort;
+  }
+
+  loadPageSize(): void {
+    const savedSize = localStorage.getItem('userTablePageSize');
+    if (savedSize) {
+      const parsed = parseInt(savedSize, 10);
+      if (this.pageSizeOptions.includes(parsed)) {
+        this.pageSize = parsed;
+      }
     }
+  }
+
+  savePageSize(newSize: number): void {
+    this.pageSize = newSize;
+    localStorage.setItem('userTablePageSize', newSize.toString());
+  }
+
+  onPageChanged(): void {
     this.updatePagedData();
-    this.paginator.page.subscribe(() => this.updatePagedData());
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
+  }
+
+  updatePagedData(): void {
+    if (this.paginator) {
+      const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
+      const endIndex = startIndex + this.paginator.pageSize;
+      this.pagedData = this.dataSource.filteredData.slice(startIndex, endIndex);
+    } else {
+      this.pagedData = this.dataSource.filteredData.slice(0, this.pageSize);
+    }
   }
 
   loadUsers(): void {
     this.userService.getAllUsers().subscribe({
-      next: (response) => {
-        const data = [...response.datos];
-        data.sort((a, b) => (b.id || 0) - (a.id || 0));
-        this.dataSource.data = data;
+      next: (res: UserResponse) => {
+        const users: User[] = res.datos || [];
+        this.dataSource.data = users;
+        this.totalUsers = users.length;
+        this.activeUsers = users.filter((u: User) => u.estado).length;
         this.updatePagedData();
       },
-      error: (error) => {
-        this.snackBar.open('Error al cargar usuarios', 'Cerrar', {
+      error: () => {
+        this.snackBar.open('Error al cargar la lista de usuarios', 'Cerrar', {
           duration: 3000,
           panelClass: ['error-snackbar']
         });
@@ -185,207 +184,157 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getRoleDetails(roleKey: string, friendlyName: string) {
-    const defaultDetails: Record<string, any> = {
-      'ADMIN': {
-        nombre: 'Administrador',
-        desc: 'Administra usuarios y roles del sistema',
-        longDesc: 'Acceso total al sistema, gestión de usuarios y configuración',
-        colorClass: 'purple-theme',
-        iconName: 'security'
-      },
-      'ENCARGADO_IGLESIA': {
-        nombre: 'Encargado Iglesia',
-        desc: 'Gestiona miembros e inventario',
-        longDesc: 'Gestión de miembros, iglesias, cargos, eventos e inventario',
-        colorClass: 'green-theme',
-        iconName: 'church'
-      },
-      'ENCARGADO_EVENTO': {
-        nombre: 'Encargado Evento',
-        desc: 'Gestiona eventos y certificados',
-        longDesc: 'Gestión de eventos, certificados y participación',
-        colorClass: 'orange-theme',
-        iconName: 'event'
-      },
-      'TESORERO': {
-        nombre: 'Tesorero',
-        desc: 'Gestiona ofrendas y finanzas',
-        longDesc: 'Gestión financiera: ofrendas, ingresos y egresos',
-        colorClass: 'blue-theme',
-        iconName: 'monetization_on'
-      }
-    };
+  loadServiciosYRolesData(): void {
+    // 1. Cargar catálogo de Servicios y Acciones
+    this.servicioService.getAll().subscribe({
+      next: (servicios) => {
+        this.servicios = servicios;
+        let countAcciones = 0;
+        servicios.forEach(s => countAcciones += (s.acciones?.length || 0));
+        this.totalAcciones = countAcciones;
 
-    if (defaultDetails[roleKey]) {
-      return defaultDetails[roleKey];
-    }
-
-    const colors = ['cyan-theme', 'red-theme', 'yellow-theme', 'pink-theme'];
-    const icons = ['people', 'workspace_premium', 'work', 'settings'];
-    const hash = roleKey.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
-    return {
-      nombre: friendlyName,
-      desc: `Cargo de tipo ${roleKey.toLowerCase().replace('_', ' ')}`,
-      longDesc: `Permisos y privilegios asignados al cargo de ${friendlyName}`,
-      colorClass: colors[hash % colors.length],
-      iconName: icons[hash % icons.length]
-    };
-  }
-
-  loadPrivilegesData() {
-    this.privilegioService.getAll().subscribe({
-      next: (privs) => {
-        this.todosPrivilegios = privs;
+        // 2. Cargar Roles/Cargos de la Iglesia
         this.tipoCargoService.getTipoCargos().subscribe({
           next: (res) => {
             const cargos = res.datos || [];
             this.rolesDisponibles = cargos;
-            
-            this.rolesInfo = cargos.map(role => {
-              const details = this.getRoleDetails(role.nombreRol || '', role.nombre);
-              return {
-                key: role.nombreRol,
-                nombre: details.nombre,
-                desc: details.desc,
-                longDesc: details.longDesc,
-                colorClass: details.colorClass,
-                iconName: details.iconName
-              };
-            });
+            this.totalRoles = cargos.length;
+            if (cargos.length > 0) {
+              this.selectRol(cargos[0]);
+            }
 
+            // 3. Cargar Mapa de Acciones asignadas a cada Rol
             cargos.forEach(role => {
               if (role.id) {
-                this.privilegioService.getPrivilegiosByRolCargo(role.id).subscribe({
-                  next: (rolPrivs) => {
-                    this.privilegiosPorRolMap[role.id!] = rolPrivs.map(p => p.id);
+                this.servicioService.getAccionesByRolCargo(role.id).subscribe({
+                  next: (rolAcciones) => {
+                    this.accionesPorRolMap[role.id!] = rolAcciones
+                      .map(a => a.id)
+                      .filter((id): id is number => id !== undefined);
                   }
                 });
               }
             });
-            
-            if (cargos.length > 0 && (!this.selectedMatrixRole || !cargos.some(r => r.nombreRol === this.selectedMatrixRole))) {
-              this.selectedMatrixRole = cargos[0].nombreRol || 'ADMIN';
-            }
           }
         });
       }
     });
   }
 
-  getUsersCountByRole(roleName: string): number {
-    if (!this.dataSource.data) return 0;
-    return this.dataSource.data.filter(user => 
-      user.roles && user.roles.some(r => (r.nombreRol || r.name || r.nombre) === roleName)
-    ).length;
+  selectRol(rol: TipoCargo): void {
+    this.selectedRol = rol;
   }
 
-  getActiveModulesCount(roleKey: string): number {
-    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
-    if (!role || !role.id) return 0;
-    const assignedIds = this.privilegiosPorRolMap[role.id] || [];
-    return this.matrixModules.filter(mod => {
-      const priv = this.todosPrivilegios.find(p => p.nombre === mod.privilegeName);
-      return priv && priv.id && assignedIds.includes(priv.id);
-    }).length;
+  isAccionAsignada(rolId: number | undefined, accionId: number | undefined): boolean {
+    if (!rolId || !accionId) return false;
+    const asignadas = this.accionesPorRolMap[rolId] || [];
+    return asignadas.includes(accionId);
   }
 
-  hasPrivilege(roleKey: string, privilegeName: string): boolean {
-    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
-    if (!role || !role.id) return false;
-    const assignedIds = this.privilegiosPorRolMap[role.id] || [];
-    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
-    return !!(priv && priv.id && assignedIds.includes(priv.id));
-  }
+  toggleAccionForRol(rol: TipoCargo, accion: AccionDto): void {
+    if (!rol.id || !accion.id) return;
+    const rolId = rol.id;
+    const accionId = accion.id;
+    const asignadas = this.accionesPorRolMap[rolId] || [];
+    const estaAsignada = asignadas.includes(accionId);
 
-  togglePrivilege(roleKey: string, privilegeName: string, event: Event) {
-    event.stopPropagation();
-    const role = this.rolesDisponibles.find(r => r.nombreRol === roleKey);
-    if (!role || !role.id) return;
-    const rolCargoId = role.id;
-    
-    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
-    if (!priv || !priv.id) return;
-    
-    const assignedIds = this.privilegiosPorRolMap[rolCargoId] || [];
-    const hasIt = assignedIds.includes(priv.id);
-    
-    if (hasIt) {
-      this.privilegioService.removePrivilegioFromRolCargo(rolCargoId, priv.id).subscribe({
+    if (estaAsignada) {
+      this.servicioService.removeAccionFromRolCargo(rolId, accionId).subscribe({
         next: () => {
-          this.privilegiosPorRolMap[rolCargoId] = assignedIds.filter(id => id !== priv.id);
-          this.snackBar.open(`Privilegio '${privilegeName}' removido del rol ${role.nombre}`, 'Cerrar', {
+          this.accionesPorRolMap[rolId] = asignadas.filter(id => id !== accionId);
+          this.snackBar.open(`Acción '${accion.nombre}' revocada de '${rol.nombre}'`, 'Cerrar', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
         },
         error: () => {
-          this.snackBar.open('Error al remover el privilegio', 'Cerrar', {
-            duration: 3000,
-            panelClass: ['error-snackbar']
-          });
+          this.snackBar.open('Error al revocar la acción', 'Cerrar', { duration: 3000 });
         }
       });
     } else {
-      const privId = priv.id;
-      this.privilegioService.addPrivilegioToRolCargo(rolCargoId, privId).subscribe({
+      this.servicioService.addAccionToRolCargo(rolId, accionId).subscribe({
         next: () => {
-          this.privilegiosPorRolMap[rolCargoId] = [...assignedIds, privId];
-          this.snackBar.open(`Privilegio '${privilegeName}' asignado al rol ${role.nombre}`, 'Cerrar', {
+          this.accionesPorRolMap[rolId] = [...asignadas, accionId];
+          this.snackBar.open(`Acción '${accion.nombre}' asignada a '${rol.nombre}'`, 'Cerrar', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
         },
         error: () => {
-          this.snackBar.open('Error al asignar el privilegio', 'Cerrar', {
-            duration: 3000,
-            panelClass: ['error-snackbar']
-          });
+          this.snackBar.open('Error al asignar la acción', 'Cerrar', { duration: 3000 });
         }
       });
     }
   }
 
-  selectMatrixRole(roleKey: string) {
-    this.selectedMatrixRole = roleKey;
+  isServicioCompletoAsignado(rolId: number | undefined, servicio: ServicioDto): boolean {
+    if (!rolId || !servicio.acciones || servicio.acciones.length === 0) return false;
+    const asignadas = this.accionesPorRolMap[rolId] || [];
+    return servicio.acciones.every(a => a.id && asignadas.includes(a.id));
   }
 
-  get totalUsers(): number {
-    return this.dataSource.data.length;
+  isServicioParcialAsignado(rolId: number | undefined, servicio: ServicioDto): boolean {
+    if (!rolId || !servicio.acciones || servicio.acciones.length === 0) return false;
+    const asignadas = this.accionesPorRolMap[rolId] || [];
+    const cuantas = servicio.acciones.filter(a => a.id && asignadas.includes(a.id)).length;
+    return cuantas > 0 && cuantas < servicio.acciones.length;
   }
-  
-  get activeUsers(): number {
-    return this.dataSource.data.filter(u => u.estado).length;
+
+  toggleServicioCompletoForRol(rol: TipoCargo, servicio: ServicioDto): void {
+    if (!rol.id || !servicio.acciones || servicio.acciones.length === 0) return;
+    const rolId = rol.id;
+    const estaCompleto = this.isServicioCompletoAsignado(rolId, servicio);
+    const accionIdsServicio = servicio.acciones.map(a => a.id).filter((id): id is number => id !== undefined);
+
+    if (estaCompleto) {
+      forkJoin(accionIdsServicio.map(accionId => this.servicioService.removeAccionFromRolCargo(rolId, accionId))).subscribe({
+        next: () => {
+          const asignadas = this.accionesPorRolMap[rolId] || [];
+          this.accionesPorRolMap[rolId] = asignadas.filter(id => !accionIdsServicio.includes(id));
+          this.snackBar.open(`Servicio '${servicio.nombre}' revocado de '${rol.nombre}'`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        },
+        error: () => {
+          this.snackBar.open('Error al modificar permisos del servicio', 'Cerrar', { duration: 3000 });
+        }
+      });
+    } else {
+      const asignadasActuales = this.accionesPorRolMap[rolId] || [];
+      const faltantes = accionIdsServicio.filter(id => !asignadasActuales.includes(id));
+
+      if (faltantes.length === 0) return;
+
+      forkJoin(faltantes.map(accionId => this.servicioService.addAccionToRolCargo(rolId, accionId))).subscribe({
+        next: () => {
+          this.accionesPorRolMap[rolId] = [...(this.accionesPorRolMap[rolId] || []), ...faltantes];
+          this.snackBar.open(`Servicio '${servicio.nombre}' activado completamente para '${rol.nombre}'`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        },
+        error: () => {
+          this.snackBar.open('Error al activar el servicio', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
   }
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
-
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
     this.updatePagedData();
   }
 
-  onPageChanged(): void {
-    this.updatePagedData();
-  }
-
-  private updatePagedData(): void {
-    const filtered = this.dataSource.filteredData;
-    const pageIndex = this.paginator?.pageIndex || 0;
-    const size = this.paginator?.pageSize || this.pageSize;
-    const start = pageIndex * size;
-    this.pagedData = filtered.slice(start, start + size);
-  }
-
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(CreateUserDialogComponent, {
-      width: '900px',
+      width: '960px',
       maxWidth: '95vw',
-      panelClass: 'dialog-fullscreen-mobile'
+      disableClose: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -397,10 +346,10 @@ export class UserTableComponent implements OnInit, AfterViewInit {
 
   openEditDialog(user: User): void {
     const dialogRef = this.dialog.open(EditUserDialogComponent, {
-      width: '900px',
+      width: '960px',
       maxWidth: '95vw',
       data: user,
-      panelClass: 'dialog-fullscreen-mobile'
+      disableClose: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -412,28 +361,24 @@ export class UserTableComponent implements OnInit, AfterViewInit {
 
   openViewDialog(user: User): void {
     this.dialog.open(ViewUserDialogComponent, {
-      width: '900px',
-      maxWidth: '95vw',
-      data: user,
-      panelClass: 'dialog-fullscreen-mobile'
+      width: '650px',
+      data: user
     });
   }
 
   deleteUser(user: User): void {
+    if (!user.id) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Eliminar Usuario',
-        message: `¿Estás seguro de que deseas eliminar al usuario <strong>${user.name || ''} ${user.apellidos || ''} (${user.username})</strong>?<br><br>Esta acción eliminará permanentemente la cuenta de usuario y su foto de perfil.`,
-        confirmText: 'Eliminar',
-        cancelText: 'Cancelar',
-        type: 'danger'
+        title: 'Confirmar Eliminación',
+        message: `¿Está seguro de eliminar al usuario '${user.name || user.username}'?`
       }
     });
 
-    dialogRef.afterClosed().subscribe(confirm => {
-      if (confirm && user.id) {
-        this.userService.deleteUser(user.id).subscribe({
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.deleteUser(user.id!).subscribe({
           next: () => {
             this.snackBar.open('Usuario eliminado exitosamente', 'Cerrar', {
               duration: 3000,
@@ -441,9 +386,8 @@ export class UserTableComponent implements OnInit, AfterViewInit {
             });
             this.loadUsers();
           },
-          error: (error) => {
-            console.error('Error al eliminar usuario:', error);
-            this.snackBar.open('Error al eliminar el usuario', 'Cerrar', {
+          error: () => {
+            this.snackBar.open('Error al eliminar usuario', 'Cerrar', {
               duration: 3000,
               panelClass: ['error-snackbar']
             });
@@ -463,15 +407,14 @@ export class UserTableComponent implements OnInit, AfterViewInit {
       name: user.name || '',
       apellidos: user.apellidos || '',
       miembroId: user.miembroId,
-      estado: nextEstado,
-      privilegioIds: user.privilegios ? user.privilegios.map(p => p.id!).filter(id => id !== undefined) : []
+      estado: nextEstado
     };
     this.userService.updateUser(updateDto).subscribe({
       next: (updatedUser) => {
         user.estado = updatedUser.estado;
         this.dataSource.data = [...this.dataSource.data];
         this.updatePagedData();
-        this.snackBar.open(`Estado del usuario actualizado a ${updatedUser.estado ? 'Activo' : 'Inactivo'}`, 'Cerrar', {
+        this.snackBar.open(`Usuario ${updatedUser.estado ? 'Activado' : 'Desactivado'} correctamente`, 'Cerrar', {
           duration: 3000,
           panelClass: ['success-snackbar']
         });
@@ -485,77 +428,9 @@ export class UserTableComponent implements OnInit, AfterViewInit {
     });
   }
 
-  userHasPrivilege(user: User, privilegeName: string): boolean {
-    if (!user.privilegios) return false;
-    return user.privilegios.some(p => p.nombre === privilegeName);
-  }
-
-  toggleUserPrivilege(user: User, privilegeName: string) {
-    if (!user.id) return;
-    
-    const priv = this.todosPrivilegios.find(p => p.nombre === privilegeName);
-    if (!priv || !priv.id) {
-      this.snackBar.open(`El privilegio '${privilegeName}' no está registrado en el sistema`, 'Cerrar', { duration: 3000 });
-      return;
-    }
-    
-    const userPrivs = user.privilegios || [];
-    const hasIt = userPrivs.some(p => p.id === priv.id);
-    
-    let newPrivIds: number[] = [];
-    if (hasIt) {
-      newPrivIds = userPrivs.filter(p => p.id !== priv.id).map(p => p.id!).filter(id => id !== undefined);
-    } else {
-      newPrivIds = [...userPrivs.map(p => p.id!).filter(id => id !== undefined), priv.id];
-    }
-    
-    const updateDto = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name || '',
-      apellidos: user.apellidos || '',
-      miembroId: user.miembroId,
-      privilegioIds: newPrivIds,
-      estado: user.estado
-    };
-    
-    this.userService.updateUser(updateDto).subscribe({
-      next: (updatedUser) => {
-        const idx = this.dataSource.data.findIndex(u => u.id === user.id);
-        if (idx > -1) {
-          this.dataSource.data[idx] = updatedUser;
-          this.dataSource.data = [...this.dataSource.data];
-          this.updatePagedData();
-        }
-        this.snackBar.open(`Privilegio '${privilegeName}' actualizado para @${user.username}`, 'Cerrar', {
-          duration: 2500,
-          panelClass: ['success-snackbar']
-        });
-      },
-      error: () => {
-        this.snackBar.open('Error al actualizar privilegio del usuario', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      }
-    });
-  }
-
-  savePageSize(pageSize: number): void {
-    localStorage.setItem('userTablePageSize', pageSize.toString());
-  }
-
-  private loadPageSize(): void {
-    const savedPageSize = localStorage.getItem('userTablePageSize');
-    if (savedPageSize) {
-      this.pageSize = parseInt(savedPageSize, 10);
-    }
-  }
-
   getInitials(name: string): string {
-    if (!name) return '?';
-    const parts = name.split(' ').filter(p => p.length > 0);
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
@@ -563,25 +438,113 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   }
 
   getAvatarColor(name: string): string {
-    const colors = [
-      '#7c4dff', '#00bfa5', '#ff6d00', '#2979ff',
-      '#d500f9', '#00c853', '#ff3d00', '#651fff',
-      '#1de9b6', '#f50057', '#304ffe', '#00b0ff'
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
+    if (!name) return this.avatarColors[0];
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return this.avatarColors[hash % this.avatarColors.length];
   }
 
   getRoleDisplayName(roleKey: string): string {
-    switch (roleKey) {
-      case 'ADMIN': return 'Administrador';
-      case 'ENCARGADO_IGLESIA': return 'Encargado Iglesia';
-      case 'ENCARGADO_EVENTO': return 'Encargado Evento';
-      case 'TESORERO': return 'Tesorero';
-      default: return roleKey;
+    const rolesMap: Record<string, string> = {
+      'ADMIN': 'Administrador Global',
+      'PASTOR': 'Pastor Responsable',
+      'ENCARGADO_IGLESIA': 'Encargado de Iglesia',
+      'ENCARGADO_EVENTO': 'Encargado de Evento',
+      'TESORERO': 'Tesorero',
+      'SECRETARIO': 'Secretario'
+    };
+    return rolesMap[roleKey.toUpperCase()] || roleKey;
+  }
+
+  hasServiceAccess(rolId: number, servicio: ServicioDto): boolean {
+    return this.isServicioCompletoAsignado(rolId, servicio);
+  }
+
+  toggleServiceAccess(event: any, rol: TipoCargo, servicio: ServicioDto): void {
+    if (!rol.id || !servicio.acciones || servicio.acciones.length === 0) return;
+    const checked = event.checked;
+    const rolId = rol.id;
+    const actionIdsServicio = servicio.acciones.map(a => a.id).filter((id): id is number => id !== undefined);
+
+    const obs = actionIdsServicio.map(accionId => {
+      const asignadas = this.accionesPorRolMap[rolId] || [];
+      const estaAsignada = asignadas.includes(accionId);
+      if (checked && !estaAsignada) {
+        return this.servicioService.addAccionToRolCargo(rolId, accionId);
+      } else if (!checked && estaAsignada) {
+        return this.servicioService.removeAccionFromRolCargo(rolId, accionId);
+      }
+      return null;
+    }).filter(o => o !== null);
+
+    if (obs.length === 0) return;
+
+    forkJoin(obs).subscribe({
+      next: () => {
+        if (checked) {
+          const asignadas = this.accionesPorRolMap[rolId] || [];
+          this.accionesPorRolMap[rolId] = [...new Set([...asignadas, ...actionIdsServicio])];
+        } else {
+          const asignadas = this.accionesPorRolMap[rolId] || [];
+          this.accionesPorRolMap[rolId] = asignadas.filter(id => !actionIdsServicio.includes(id));
+        }
+        this.snackBar.open(`Servicio '${servicio.nombre}' ${checked ? 'asignado' : 'revocado'} exitosamente.`, 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: () => {
+        this.snackBar.open('Error al modificar permisos del servicio', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  getServiceDisplayName(codigo: string): string {
+    switch (codigo) {
+      case 'MIEMBROS':
+        return 'Miembros (Global) / Miembros (Local)';
+      case 'OBREROS':
+        return 'Obreros (Global) / Colaboradores (Local)';
+      case 'IGLESIAS':
+        return 'Iglesias (Global) / Traspasos (Local)';
+      case 'EVENTOS':
+        return 'Eventos (Global) / Eventos (Local)';
+      case 'CERTIFICADOS':
+        return 'Certificaciones (Global) / Certificaciones (Local)';
+      case 'OFRENDAS':
+        return 'Ofrendas (Global) / Ofrendas (Local)';
+      case 'USUARIOS':
+        return 'Administrador (Global)';
+      case 'DASHBOARD':
+        return 'Inicio (Global) / Inicio (Local)';
+      case 'BITACORA':
+        return 'Configuración (Global) / Configuración (Local)';
+      default:
+        return codigo;
+    }
+  }
+
+  getServiceDescription(codigo: string): string {
+    switch (codigo) {
+      case 'DASHBOARD':
+        return 'Panel de Control - Módulo principal con métricas y estadísticas (Global o Local)';
+      case 'MIEMBROS':
+        return 'Gestión de todos los miembros a nivel global o local según el rol asignado';
+      case 'IGLESIAS':
+        return 'Listado global de iglesias o gestión de traspasos y cambios de iglesia locales';
+      case 'OBREROS':
+        return 'Gestión de obreros del país de forma global o colaboradores locales de una iglesia';
+      case 'EVENTOS':
+        return 'Lista y control de eventos de todas las iglesias o gestión local de eventos';
+      case 'CERTIFICADOS':
+        return 'Visualización y generación de certificados de todas las iglesias o de forma local';
+      case 'OFRENDAS':
+        return 'Ver y auditar todas las ofrendas por iglesia o registro local de diezmos/ofrendas';
+      case 'USUARIOS':
+        return 'Gestión administrativa de usuarios del sistema, roles, servicios y acciones';
+      case 'BITACORA':
+        return 'Configuración del sistema, lista de bitácoras de auditoría y configuración de usuario';
+      default:
+        return '';
     }
   }
 }

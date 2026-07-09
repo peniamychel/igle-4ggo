@@ -102,14 +102,14 @@ export const routes: Routes = [
       {
         path: 'mi-iglesia',
         component: MiIglesiaComponent,
-        title: 'Mi Iglesia',
-        canActivate: [authGuard]
+        title: 'Mis Miembros',
+        canActivate: [privilegioGuard]
       },
       {
         path: 'colaboradores',
         component: ColaboradoresComponent,
         title: 'Colaboradores',
-        canActivate: [authGuard]
+        canActivate: [privilegioGuard]
       },
       {
         path: 'eventos',
@@ -163,7 +163,7 @@ export const routes: Routes = [
         path: 'activos',
         component: ActivoListComponent,
         title: 'Inventario',
-        canActivate: [authGuard]
+        canActivate: [privilegioGuard]
       },
       {
         path: 'perfil',

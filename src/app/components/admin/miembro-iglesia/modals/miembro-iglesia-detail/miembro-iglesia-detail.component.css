@@ -7,6 +7,17 @@
   margin: 0;
 }
 
+.close-btn {
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+  margin-left: auto;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
 .header-icon-circle {
   width: 48px;
   height: 48px;
@@ -185,7 +196,7 @@
   display: block;
 }
 
-mat-expansion-panel {
+:host ::ng-deep mat-expansion-panel {
   margin-bottom: 12px;
   border-radius: 12px !important;
   border: 1px solid var(--border-color);
@@ -194,12 +205,12 @@ mat-expansion-panel {
   transition: all 0.2s ease;
 }
 
-mat-expansion-panel-header {
-  height: 54px !important;
-  padding: 0 16px !important;
+:host ::ng-deep mat-expansion-panel-header {
+  height: 54px;
+  padding: 0 16px;
 }
 
-mat-panel-title {
+:host ::ng-deep mat-panel-title {
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -214,7 +225,7 @@ mat-panel-title {
   color: var(--text-secondary);
 }
 
-mat-panel-description {
+:host ::ng-deep mat-panel-description {
   justify-content: flex-end;
   align-items: center;
 }
@@ -253,16 +264,16 @@ mat-panel-description {
 }
 
 /* Bordes de estado */
-.panel-actual {
-  border-left: 4px solid #2e7d32 !important;
+:host ::ng-deep .panel-actual {
+  border-left: 4px solid #2e7d32;
 }
 
-.panel-pendiente {
-  border-left: 4px solid #e65100 !important;
+:host ::ng-deep .panel-pendiente {
+  border-left: 4px solid #e65100;
 }
 
-.panel-anterior {
-  border-left: 4px solid var(--text-secondary) !important;
+:host ::ng-deep .panel-anterior {
+  border-left: 4px solid var(--text-secondary);
 }
 
 /* Asegurar esquinas redondeadas internas con el borde lateral */
@@ -408,39 +419,22 @@ mat-panel-description {
   justify-content: flex-end;
 }
 
-.btn-print {
-  height: 38px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  padding: 0 20px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  background-color: #FFD54F !important;
-  color: #1a1b2f !important;
-  border: none !important;
-  transition: background-color 0.2s ease !important;
+:host ::ng-deep .btn-print {
+  height: 38px;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #FFD54F;
+  color: #1a1b2f;
+  border: none;
+  transition: background-color 0.2s ease;
 }
 
-.btn-print:hover {
-  background-color: #FFC107 !important;
-}
-
-.btn-close {
-  height: 38px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  border: 1px solid var(--border-color) !important;
-  color: var(--text-primary) !important;
-  background: transparent !important;
-  padding: 0 24px !important;
-  transition: all 0.2s ease !important;
-}
-
-.btn-close:hover {
-  background-color: rgba(127, 11, 133, 0.05) !important;
-  border-color: var(--primary-color) !important;
-  color: var(--primary-color) !important;
+:host ::ng-deep .btn-print:hover {
+  background-color: #FFC107;
 }
 
 /* Responsividad */
@@ -459,4 +453,67 @@ mat-panel-description {
   .transfer-item.full-width {
     grid-column: span 1;
   }
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+:host-context(.dark-theme) .header-icon-circle {
+  background: linear-gradient(135deg, rgba(229, 107, 247, 0.12) 0%, rgba(229, 107, 247, 0.04) 100%);
+  border-color: rgba(229, 107, 247, 0.2);
+  color: #e56bf7;
+}
+
+:host-context(.dark-theme) .profile-avatar {
+  background: linear-gradient(135deg, #e56bf7 0%, #b031b5 100%);
+  box-shadow: 0 4px 10px rgba(229, 107, 247, 0.2);
+}
+
+:host-context(.dark-theme) .photo-container {
+  border-color: var(--card-bg, #16161c);
+}
+
+:host-context(.dark-theme) .status-badge.traspasado {
+  background-color: rgba(229, 107, 247, 0.15);
+  color: #e56bf7;
+}
+
+:host-context(.dark-theme) .status-badge.actual {
+  background-color: rgba(46, 125, 50, 0.15);
+}
+
+:host-context(.dark-theme) .status-badge.pendiente {
+  background-color: rgba(230, 81, 0, 0.15);
+}
+
+:host-context(.dark-theme) .status-badge.rechazado {
+  background-color: rgba(198, 40, 40, 0.15);
+}
+
+:host-context(.dark-theme) ::ng-deep .panel-actual {
+  border-left-color: #2e7d32;
+}
+
+:host-context(.dark-theme) ::ng-deep .panel-pendiente {
+  border-left-color: #e65100;
+}
+
+:host-context(.dark-theme) ::ng-deep .panel-anterior {
+  border-left-color: var(--text-secondary);
+}
+
+:host-context(.dark-theme) .state-badge.pendiente {
+  background-color: rgba(230, 81, 0, 0.15);
+}
+
+:host-context(.dark-theme) .state-badge.aceptado {
+  background-color: rgba(46, 125, 50, 0.15);
+}
+
+:host-context(.dark-theme) .state-badge.rechazado {
+  background-color: rgba(198, 40, 40, 0.15);
+}
+
+:host-context(.dark-theme) .document-link {
+  color: #e56bf7;
 }

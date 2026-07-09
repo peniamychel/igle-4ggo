@@ -26,10 +26,10 @@
 }
 
 /* ── Rows ── */
-.table-container tr.mat-row:hover,
-.table-container .mat-row:hover,
+.table-container tr.mat-mdc-row:hover,
+.table-container .mat-mdc-row:hover,
 .table-container mat-row:hover {
-  background: rgba(var(--primary-rgb), 0.05) !important;
+  background: rgba(var(--primary-rgb), 0.05);
 }
 
 .table-container .clickable-row {
@@ -46,19 +46,22 @@
 }
 
 /* ── Actions Column ── */
-.table-container .mat-column-acciones {
-  flex: 0 0 80px !important;
-  width: 80px !important;
-  min-width: 80px !important;
-  max-width: 80px !important;
-  justify-content: center !important;
+.table-container mat-header-cell.mat-column-acciones,
+.table-container mat-cell.mat-column-acciones,
+.table-container .mat-mdc-header-cell.mat-column-acciones,
+.table-container .mat-mdc-cell.mat-column-acciones {
+  flex: 0 0 80px;
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  justify-content: center;
   text-align: center;
 }
 
 .table-container .acciones-cell {
-  display: flex !important;
-  justify-content: center !important;
-  gap: 2px !important;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
 }
 
 /* ── Paginator ── */
@@ -70,9 +73,9 @@
 }
 
 /* ── No Data ── */
-.table-container .no-data-cell {
+.table-container td.mat-mdc-cell.no-data-cell {
   text-align: center;
-  padding: 48px 16px !important;
+  padding: 48px 16px;
 }
 
 .table-container .no-data {

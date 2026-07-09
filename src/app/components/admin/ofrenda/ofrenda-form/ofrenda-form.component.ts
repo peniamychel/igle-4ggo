@@ -55,7 +55,7 @@ export class OfrendaFormComponent implements OnInit {
     private iglesiaService: IglesiaService,
     private authService: AuthService,
     private dialogRef: MatDialogRef<OfrendaFormComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { mode: 'create' | 'edit'; ofrenda?: Ofrenda }
+    @Inject(MAT_DIALOG_DATA) public data: { mode: 'create' | 'edit'; ofrenda?: Ofrenda; forcedType?: 'INGRESO' | 'EGRESO' }
   ) {
     this.isEditMode = data.mode === 'edit';
   }
@@ -73,18 +73,22 @@ export class OfrendaFormComponent implements OnInit {
   initForm() {
     const ofrenda = this.data.ofrenda;
     
-    let fecha = '';
+    let fecha: Date;
     if (ofrenda?.fechaRecaudacion) {
       const d = new Date(ofrenda.fechaRecaudacion);
-      fecha = d.toISOString().substring(0, 10);
+      // Forzar fecha local basada en los componentes UTC almacenados para evitar desfases
+      fecha = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
     } else {
-      fecha = new Date().toISOString().substring(0, 10);
+      fecha = new Date();
     }
 
     this.ofrendaForm = this.fb.group({
       id: [ofrenda?.id || null],
       iglesiaId: [ofrenda?.iglesiaId || null, this.isAdmin ? [Validators.required] : []],
-      tipoMovimiento: [ofrenda?.tipoMovimiento || 'INGRESO', [Validators.required]],
+      tipoMovimiento: [
+        { value: ofrenda?.tipoMovimiento || this.data.forcedType || 'INGRESO', disabled: !!this.data.forcedType },
+        [Validators.required]
+      ],
       monto: [ofrenda?.monto || '', [Validators.required, Validators.min(0.01)]],
       fechaRecaudacion: [fecha, [Validators.required]],
       conceptoDetalle: [ofrenda?.conceptoDetalle || '', [Validators.maxLength(500)]]
@@ -102,11 +106,25 @@ export class OfrendaFormComponent implements OnInit {
   onSubmit() {
     if (this.ofrendaForm.invalid) return;
 
-    const formVal = this.ofrendaForm.value;
+    const formVal = this.ofrendaForm.getRawValue();
+    const rawDate = formVal.fechaRecaudacion;
+    let localDateStr = '';
+    
+    if (rawDate instanceof Date) {
+      const year = rawDate.getFullYear();
+      const month = String(rawDate.getMonth() + 1).padStart(2, '0');
+      const day = String(rawDate.getDate()).padStart(2, '0');
+      localDateStr = `${year}-${month}-${day}`;
+    } else if (rawDate) {
+      localDateStr = rawDate.toString().substring(0, 10);
+    } else {
+      const now = new Date();
+      localDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
     
     const ofrendaPayload: Ofrenda = {
       ...formVal,
-      fechaRecaudacion: new Date(formVal.fechaRecaudacion + 'T00:00:00').toISOString()
+      fechaRecaudacion: new Date(localDateStr + 'T00:00:00').toISOString()
     };
 
     if (this.isEditMode) {

@@ -10,6 +10,7 @@ export interface Iglesia {
   uriFoto?: string;
   latitud?: number;
   longitud?: number;
+  orden?: number;
 }
 
 export interface IglesiasResponse {

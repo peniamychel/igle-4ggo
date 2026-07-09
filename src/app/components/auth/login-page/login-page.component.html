@@ -91,7 +91,7 @@
       <div *ngIf="requiresSelection" class="selection-container">
         <h3 class="selection-title">Selecciona una Congregación</h3>
         <p class="selection-subtitle">Tienes cargos asignados en múltiples iglesias. Elige una para iniciar sesión:</p>
-        
+
         <div class="church-list">
           <button type="button" *ngFor="let igl of iglesias" class="church-option-button" (click)="onSelectIglesia(igl.iglesiaId)" [disabled]="loading">
             <mat-icon class="church-icon">church</mat-icon>

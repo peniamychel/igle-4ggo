@@ -1,36 +1,65 @@
+/* ========================================
+   Solicitud List — Skill: igle_list_layout
+   ======================================== */
+
+/* 1. Contenedor principal (Flexbox) */
 .container {
   padding: 24px;
-  height: auto;
   display: flex;
   flex-direction: column;
-  background: var(--card-bg, #ffffff);
-  border: 1px solid var(--border-color, #e0e0e0);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin: 20px;
-  transition: all 0.25s ease;
+  gap: 24px;
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
+.container.dialog-mode {
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  padding: 10px;
+  min-height: auto;
+}
+
+/* 2. Header */
 .header-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.header-section h2 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-primary, #1e293b);
-  margin: 0 0 4px 0;
-}
-
-.subtitle {
-  font-size: 0.95rem;
-  color: var(--text-secondary, #64748b);
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
 }
 
+.icon-primary {
+  color: var(--primary-color, #7c4dff);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.header-section .close-btn {
+  color: var(--text-secondary, #64748b);
+  margin-top: -4px;
+}
+
+/* Loading Shade */
 .loading-shade {
   display: flex;
   align-items: center;
@@ -40,6 +69,7 @@
   color: var(--text-secondary, #64748b);
 }
 
+/* No Requests */
 .no-requests {
   display: flex;
   flex-direction: column;
@@ -56,7 +86,7 @@
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #005cbb;
+  color: var(--primary-color, #7c4dff);
   margin-bottom: 16px;
 }
 
@@ -66,10 +96,13 @@
   margin: 0;
 }
 
+/* 3. Tabla */
 .table-container {
-  border-radius: 12px;
-  overflow: hidden;
   background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 mat-table {
@@ -131,50 +164,9 @@ mat-table {
   gap: 8px;
 }
 
-.btn-action {
-  border-radius: 20px;
-  padding: 0 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-accept {
-  background-color: #00875a !important;
-  color: #ffffff !important;
-}
-
-.btn-accept:hover {
-  background-color: #006644 !important;
-}
-
-.btn-reject {
-  background-color: #de350b !important;
-  color: #ffffff !important;
-}
-
-.btn-reject:hover {
-  background-color: #bf2600 !important;
-}
-
 .text-muted {
   color: var(--text-muted, #94a3b8);
   font-style: italic;
-}
-
-.container.dialog-mode {
-  margin: 0;
-  border: none;
-  box-shadow: none;
-  padding: 10px;
-}
-
-.header-section .close-btn {
-  color: var(--text-secondary, #64748b);
-  margin-top: -4px;
 }
 
 /* Custom Column Widths */
@@ -212,7 +204,7 @@ mat-table {
   justify-content: flex-end;
 }
 
-/* Responsive toggle */
+/* Responsive Viewports */
 .desktop-view {
   display: block;
 }
@@ -300,3 +292,42 @@ mat-table {
   border-top: 1px solid var(--border-color, #f1f5f9);
   padding-top: 12px;
 }
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+:host-context(.dark-theme) .no-requests {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .mat-header-cell {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:host-context(.dark-theme) .mat-row:hover {
+  background-color: rgba(229, 107, 247, 0.05);
+}
+
+:host-context(.dark-theme) .doc-link {
+  color: #e56bf7;
+}
+
+:host-context(.dark-theme) .doc-link:hover {
+  color: #f19efc;
+}
+
+:host-context(.dark-theme) .mobile-card .member-ci {
+  background: rgba(255, 255, 255, 0.06);
+}
+

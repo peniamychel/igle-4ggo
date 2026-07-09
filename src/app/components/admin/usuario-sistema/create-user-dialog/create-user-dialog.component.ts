@@ -4,19 +4,33 @@ import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { UserService } from '../../../../core/services/user.service';
-import { MiembroService } from '../../../../core/services/miembro.service';
-import { CargoService } from '../../../../core/services/cargo.service';
-import { PrivilegioService } from '../../../../core/services/privilegio.service';
-import { PrivilegioDto } from '../../../../core/models/interfaces/privilegio.interface';
-import { Miembro } from '../../../../core/models/miembro.model';
-import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { forkJoin } from 'rxjs';
+import { UserService } from '../../../../core/services/user.service';
+import { CargoService } from '../../../../core/services/cargo.service';
+import { MiembroService } from '../../../../core/services/miembro.service';
+import { ServicioService } from '../../../../core/services/servicio.service';
+import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
+import { ServicioDto } from '../../../../core/models/interfaces/servicio.interface';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+
+export interface MiembroCargoOption {
+  id: number;
+  nombreCompleto: string;
+  nombre: string;
+  apellido: string;
+  ci?: number | string;
+  cargoNombre?: string;
+  rolCargoId?: number;
+  nombreRol?: string;
+}
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -27,9 +41,11 @@ import { forkJoin } from 'rxjs';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatIconModule,
     MatSelectModule,
+    MatCheckboxModule,
+    MatExpansionModule,
+    MatTooltipModule,
     FormsModule,
     ReactiveFormsModule,
     MatSnackBarModule,
@@ -41,159 +57,210 @@ import { forkJoin } from 'rxjs';
 export class CreateUserDialogComponent implements OnInit {
   userForm: FormGroup;
   hidePassword = true;
-  miembros: Miembro[] = [];
-  todosPrivilegios: PrivilegioDto[] = [];
-  selectedPrivilegioIds: Set<number> = new Set<number>();
-  assignedMemberIds: number[] = [];
+  miembrosCargoOptions: MiembroCargoOption[] = [];
 
-  modules = [
-    { key: 'Usuarios', name: 'Usuarios', viewPrivilege: 'Ver Usuarios', writePrivilege: 'Escribir Usuarios', icon: 'switch_account', desc: 'Gestionar acceso al sistema' },
-    { key: 'Miembros', name: 'Miembros', viewPrivilege: 'Ver Miembros', writePrivilege: 'Escribir Miembros', icon: 'people', desc: 'Gestionar feligreses y registros' },
-    { key: 'Iglesias', name: 'Iglesias', viewPrivilege: 'Ver Iglesias', writePrivilege: 'Escribir Iglesias', icon: 'church', desc: 'Administrar templos y anexos' },
-    { key: 'MiembroIglesia', name: 'Membresías', viewPrivilege: 'Ver MiembroIglesia', writePrivilege: 'Escribir MiembroIglesia', icon: 'recent_actors', desc: 'Asignaciones y traslados' },
-    { key: 'Cargos', name: 'Cargos y Roles', viewPrivilege: 'Ver Cargos', writePrivilege: 'Escribir Cargos', icon: 'work', desc: 'Asignación de cargos' },
-    { key: 'Eventos', name: 'Eventos', viewPrivilege: 'Ver Eventos', writePrivilege: 'Escribir Eventos', icon: 'event', desc: 'Planificación de actividades' },
-    { key: 'Certificados', name: 'Certificados', viewPrivilege: 'Ver Certificados', writePrivilege: 'Escribir Certificados', icon: 'workspace_premium', desc: 'Emisión de constancias' },
-    { key: 'Privilegios', name: 'Privilegios', viewPrivilege: 'Ver Privilegios', writePrivilege: 'Escribir Privilegios', icon: 'vpn_key', desc: 'Políticas y permisos' }
-  ];
+  // Servicios & Acciones
+  servicios: ServicioDto[] = [];
+  rolesDisponibles: TipoCargo[] = [];
+  selectedRolBaseKey: string = '';
+  selectedRolId: number | null = null;
+  selectedAccionIds: Set<number> = new Set<number>();
 
   constructor(
     private dialogRef: MatDialogRef<CreateUserDialogComponent>,
     private fb: FormBuilder,
     private userService: UserService,
-    private miembroService: MiembroService,
     private cargoService: CargoService,
-    private privilegioService: PrivilegioService,
+    private miembroService: MiembroService,
+    private servicioService: ServicioService,
+    private tipoCargoService: TipoCargoService,
     private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
-      miembroId: ['', Validators.required],
+      miembroId: ['', [Validators.required]],
       username: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      name: [{ value: '', disabled: true }, Validators.required],
-      apellidos: [{ value: '', disabled: true }, Validators.required],
+      name: ['', Validators.required],
+      apellidos: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(4)]]
     });
   }
 
   ngOnInit(): void {
-    this.loadMiembros();
-    this.loadPrivileges();
-    
+    this.loadData();
+
     this.userForm.get('miembroId')?.valueChanges.subscribe(miembroId => {
-      const selectedMiembro = this.miembros.find(m => m.id === miembroId);
-      if (selectedMiembro) {
+      if (!miembroId) return;
+
+      const selected = this.miembrosCargoOptions.find(m => m.id === miembroId);
+      if (selected) {
         this.userForm.patchValue({
-          name: selectedMiembro.nombre,
-          apellidos: selectedMiembro.apellido
+          name: selected.nombre,
+          apellidos: selected.apellido
         });
 
-        // Validar si el miembro ya tiene una cuenta asignada
-        if (this.assignedMemberIds.includes(Number(miembroId))) {
-          this.userForm.get('miembroId')?.setErrors({ yaTieneUsuario: true });
-        } else {
-          // Limpiar error de yaTieneUsuario si no hay duplicación
-          const control = this.userForm.get('miembroId');
-          if (control?.errors && control.errors['yaTieneUsuario']) {
-            const errors = { ...control.errors };
-            delete errors['yaTieneUsuario'];
-            control.setErrors(Object.keys(errors).length ? errors : null);
+        if (selected.rolCargoId) {
+          const matchingRol = this.rolesDisponibles.find(r => r.id === selected.rolCargoId);
+          if (matchingRol) {
+            this.selectRol(matchingRol);
+          }
+        } else if (selected.nombreRol) {
+          const matchingRol = this.rolesDisponibles.find(
+            r => (r.nombreRol || r.nombre || '').toUpperCase() === selected.nombreRol?.toUpperCase()
+          );
+          if (matchingRol) {
+            this.selectRol(matchingRol);
           }
         }
-      } else {
-        this.userForm.patchValue({
-          name: '',
-          apellidos: ''
+      }
+    });
+  }
+
+  loadData(): void {
+    forkJoin({
+      servicios: this.servicioService.getAll(),
+      roles: this.tipoCargoService.getTipoCargos(),
+      cargos: this.cargoService.getCargos(),
+      miembros: this.miembroService.getMiembros(),
+      users: this.userService.getAllUsers()
+    }).subscribe({
+      next: ({ servicios, roles, cargos, miembros, users }) => {
+        this.servicios = servicios;
+        this.rolesDisponibles = (roles.datos || []).filter(r => r.estado !== false);
+
+        // IDs de miembros que YA poseen usuario
+        const assignedMemberIds = new Set<number>(
+          (users.datos || [])
+            .map(u => Number(u.miembroId))
+            .filter(id => id !== null && id !== undefined && !isNaN(id))
+        );
+
+        // Mapa de miembros indexado por ID
+        const miembrosMap = new Map<number, any>();
+        (miembros.datos || []).forEach(m => {
+          if (m.id) miembrosMap.set(m.id, m);
         });
-      }
-    });
-  }
 
-  loadPrivileges(): void {
-    this.privilegioService.getAll().subscribe({
-      next: (privs) => {
-        this.todosPrivilegios = privs;
-      },
-      error: (err) => {
-        console.error('Error al cargar privilegios:', err);
-      }
-    });
-  }
+        // Filtrar miembros con cargo activo que AÚN NO tienen usuario
+        const mapMiembrosOpciones = new Map<number, MiembroCargoOption>();
+        (cargos.datos || []).forEach((c: any) => {
+          const mId = c.idMiembro || c.miembro?.id || c.miembroDto?.id;
+          if (mId && c.estado !== false) {
+            if (!assignedMemberIds.has(mId)) {
+              if (!mapMiembrosOpciones.has(mId)) {
+                const miembroInfo = c.miembro || c.miembroDto || miembrosMap.get(mId);
+                const nombre = miembroInfo?.nombre || '';
+                const apellido = miembroInfo?.apellido || '';
+                const ci = miembroInfo?.ci;
+                const cargoNombre = c.rolCargo?.nombre || c.tipoCargoDto?.nombre || c.tipoCargoDto?.nombreRol || c.detalle || 'Cargo Asignado';
+                const rolCargoId = c.rolCargoId || c.rolCargo?.id || c.tipoCargoDto?.id;
+                const nombreRol = c.rolCargo?.nombre || c.tipoCargoDto?.nombreRol || c.tipoCargoDto?.nombre;
 
-  getPrivilegeIdByName(name: string): number | undefined {
-    return this.todosPrivilegios.find(p => p.nombre === name)?.id;
-  }
+                mapMiembrosOpciones.set(mId, {
+                  id: mId,
+                  nombre: nombre,
+                  apellido: apellido,
+                  nombreCompleto: (nombre || apellido) ? `${nombre} ${apellido}`.trim() : `Miembro #${mId}`,
+                  ci: ci,
+                  cargoNombre: cargoNombre,
+                  rolCargoId: rolCargoId,
+                  nombreRol: nombreRol
+                });
+              }
+            }
+          }
+        });
 
-  isPrivilegeSelected(name: string): boolean {
-    const id = this.getPrivilegeIdByName(name);
-    return id ? this.selectedPrivilegioIds.has(id) : false;
-  }
+        this.miembrosCargoOptions = Array.from(mapMiembrosOpciones.values());
 
-  togglePrivilegeSelection(name: string): void {
-    const id = this.getPrivilegeIdByName(name);
-    if (!id) return;
-    if (this.selectedPrivilegioIds.has(id)) {
-      this.selectedPrivilegioIds.delete(id);
-      if (name.startsWith('Ver ')) {
-        const writeName = name.replace('Ver ', 'Escribir ');
-        const writeId = this.getPrivilegeIdByName(writeName);
-        if (writeId) {
-          this.selectedPrivilegioIds.delete(writeId);
+        // Si existen miembros con cargo elegibles, seleccionar automáticamente el primero de la lista
+        if (this.miembrosCargoOptions.length > 0) {
+          this.userForm.patchValue({ miembroId: this.miembrosCargoOptions[0].id });
         }
       }
+    });
+  }
+
+  selectRol(rol: TipoCargo): void {
+    this.selectedRolBaseKey = rol.nombreRol || rol.nombre || 'ROL';
+    this.selectedRolId = rol.id || null;
+
+    if (rol.id) {
+      this.servicioService.getAccionesByRolCargo(rol.id).subscribe({
+        next: (acciones) => {
+          if (acciones && acciones.length > 0) {
+            this.selectedAccionIds = new Set(acciones.map(a => a.id).filter((id): id is number => id !== undefined));
+          } else if ((rol.nombreRol || rol.nombre || '').toUpperCase().includes('ADMIN')) {
+            this.selectAllAcciones();
+          } else {
+            this.selectedAccionIds.clear();
+          }
+        }
+      });
     } else {
-      this.selectedPrivilegioIds.add(id);
-      if (name.startsWith('Escribir ')) {
-        const viewName = name.replace('Escribir ', 'Ver ');
-        const viewId = this.getPrivilegeIdByName(viewName);
-        if (viewId) {
-          this.selectedPrivilegioIds.add(viewId);
-        }
-      }
+      this.selectedAccionIds.clear();
     }
   }
 
-  loadMiembros(): void {
-    forkJoin({
-      miembros: this.miembroService.getMiembros(),
-      cargos: this.cargoService.getCargos(),
-      usuarios: this.userService.getAllUsers()
-    }).subscribe({
-      next: (result) => {
-        const activeMembers = result.miembros.datos.filter(m => m.estado);
-        this.assignedMemberIds = result.usuarios.datos
-          .map(u => Number(u.miembroId))
-          .filter(id => id !== null && id !== undefined && !isNaN(id));
-        
-        const membersWithCargoIds = result.cargos.datos
-          .filter(c => c.estado)
-          .map(c => Number(c.idMiembro));
+  isRolActive(rol: TipoCargo): boolean {
+    if (this.selectedRolId !== null && this.selectedRolId !== undefined) {
+      return rol.id === this.selectedRolId;
+    }
+    if (this.selectedRolBaseKey) {
+      const name = (rol.nombreRol || rol.nombre || '').toUpperCase();
+      return name.includes(this.selectedRolBaseKey.toUpperCase());
+    }
+    return false;
+  }
 
-        // Mostrar todos los miembros que tengan algún cargo
-        this.miembros = activeMembers.filter(m =>
-          membersWithCargoIds.includes(Number(m.id))
-        );
-      },
-      error: (error) => {
-        console.error('Error al cargar datos:', error);
-        this.snackBar.open('Error al cargar el listado de miembros, cargos o usuarios', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      }
+  getRoleIcon(nombreRol: string = ''): string {
+    const key = nombreRol.toUpperCase();
+    if (key.includes('ADMIN')) return 'admin_panel_settings';
+    if (key.includes('PASTOR')) return 'auto_awesome';
+    if (key.includes('IGLESIA') || key.includes('ENCARGADO')) return 'church';
+    if (key.includes('TESORERO') || key.includes('FINANZA')) return 'account_balance';
+    if (key.includes('SECRETARIO')) return 'description';
+    if (key.includes('JOVEN') || key.includes('LIDER')) return 'groups';
+    return 'badge';
+  }
+
+  selectAllAcciones(): void {
+    const allIds = new Set<number>();
+    this.servicios.forEach(s => {
+      s.acciones?.forEach(a => {
+        if (a.id) allIds.add(a.id);
+      });
     });
+    this.selectedAccionIds = allIds;
+  }
+
+  isAccionSelected(accionId: number | undefined): boolean {
+    if (!accionId) return false;
+    return this.selectedAccionIds.has(accionId);
+  }
+
+  hasServiceAccessForRole(servicio: ServicioDto): boolean {
+    if (!servicio.acciones) return false;
+    return servicio.acciones.some(a => this.isAccionSelected(a.id));
+  }
+
+  toggleAccion(accionId: number | undefined): void {
+    if (!accionId) return;
+    if (this.selectedAccionIds.has(accionId)) {
+      this.selectedAccionIds.delete(accionId);
+    } else {
+      this.selectedAccionIds.add(accionId);
+    }
   }
 
   onSubmit(): void {
     if (this.userForm.valid) {
-      const userData = {
-        ...this.userForm.getRawValue(),
-        privilegioIds: Array.from(this.selectedPrivilegioIds)
-      };
+      const userData = this.userForm.getRawValue();
+      userData.roles = [this.selectedRolBaseKey];
 
       this.userService.createUser(userData).subscribe({
-        next: (response) => {
-          this.snackBar.open('Usuario creado exitosamente', 'Cerrar', {
+        next: () => {
+          this.snackBar.open('Usuario creado exitosamente con sus permisos de servicio', 'Cerrar', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });

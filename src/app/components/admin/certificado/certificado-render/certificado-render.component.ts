@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ParticipacionEvento } from '../../../../core/models/participacion-evento.model';
 import { PlantillaCertificado } from '../../../../core/models/plantilla-certificado.model';
 import { PlantillaCertificadoService } from '../../../../core/services/plantilla-certificado.service';
+import { ParticipacionEventoService } from '../../../../core/services/participacion-evento.service';
 import { environment } from '../../../../../environments/environment';
 import { QRCodeModule } from 'angularx-qrcode';
 import html2canvas from 'html2canvas';
@@ -34,6 +35,7 @@ export interface DragElement {
 export class CertificadoRenderComponent implements OnInit {
 
   private plantillaService = inject(PlantillaCertificadoService);
+  private participacionService = inject(ParticipacionEventoService);
 
   plantilla?: PlantillaCertificado;
   elements: DragElement[] = [];
@@ -70,7 +72,7 @@ export class CertificadoRenderComponent implements OnInit {
     }
     
     // Generate QR Code using the unique code of the participation if available, else fallback to generic certificate code
-    const uniqueCode = this.data.participacion?.codigoUnico || certDto?.codigoCertificado;
+    const uniqueCode = this.data.participacion?.codigoUnico || '';
     this.qrData = `${environment.apiUrl}/verificar-certificado/${uniqueCode}`;
   }
 
@@ -101,11 +103,26 @@ export class CertificadoRenderComponent implements OnInit {
             return el;
           });
           
+          // Inyectar el código de verificación por defecto si no existe en plantillas anteriores
+          const hasCodigo = this.elements.some(el => el.id === 'codigo_verificacion');
+          if (!hasCodigo) {
+            this.elements.push({
+              id: 'codigo_verificacion',
+              type: 'text',
+              label: '[Código de Verificación]',
+              x: 100,
+              y: 300,
+              fontSize: 12,
+              color: '#666666'
+            });
+          }
+          
           // Map values
           this.elements.forEach(el => {
             if (el.id === 'nombre_miembro') el.value = this.getMiembroNombre(this.data.participacion.miembroDto);
-            if (el.id === 'nombre_evento') el.value = this.data.participacion.eventoDto?.nombre || '';
+            if (el.id === 'nombre_evento') el.value = this.data.participacion.eventoDto?.nombre || this.data.participacion.certificadoDto?.eventoDto?.nombre || '';
             if (el.id === 'fecha') el.value = new Date(this.data.participacion.fecha).toLocaleDateString();
+            if (el.id === 'codigo_verificacion') el.value = this.data.participacion.codigoUnico || '';
           });
         }
         if (config.orientacion) this.orientacion = config.orientacion;
@@ -135,8 +152,23 @@ export class CertificadoRenderComponent implements OnInit {
       const height = pdf.internal.pageSize.getHeight();
       
       pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      pdf.save(`Certificado_${this.data.participacion.certificadoDto?.codigoCertificado}.pdf`);
-      this.dialogRef.close(true);
+      pdf.save(`Certificado_${this.data.participacion.miembroDto?.nombre || 'Miembro'}_${this.data.participacion.miembroDto?.apellido || 'Apellido'}.pdf`);
+      
+      const certId = this.data.participacion.certificadoDto?.id || this.data.participacion.certificadoId;
+      if (this.data.participacion.id && certId) {
+        this.participacionService.toggleEntregadoConCertificado(this.data.participacion.id, certId).subscribe({
+          next: () => {
+            console.log('Certificado marcado como entregado con referencia exitosamente.');
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            console.error('Error al actualizar el estado de entrega:', err);
+            this.dialogRef.close(true);
+          }
+        });
+      } else {
+        this.dialogRef.close(true);
+      }
     }
   }
 

@@ -7,7 +7,7 @@ export interface Certificado {
   tipoCertificadoId: number;
   plantillaCertificadoId?: number;
   motivoCertificado: string;
-  codigoCertificado: string;
+  codigoCertificado?: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

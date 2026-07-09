@@ -36,6 +36,25 @@
   padding: 20px;
   background: var(--bg-content);
   transition: background-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.main-content-area {
+  flex: 1 0 auto;
+}
+
+.app-footer {
+  flex-shrink: 0;
+  padding: 16px 0;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #697386);
+  font-weight: 500;
+  border-top: 1px solid var(--border-color, #e3e8ee);
+  margin-top: 32px;
 }
 
 mat-toolbar {

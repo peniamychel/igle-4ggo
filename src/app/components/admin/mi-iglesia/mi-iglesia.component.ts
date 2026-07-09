@@ -348,4 +348,8 @@ export class MiIglesiaComponent implements OnInit {
       placeholder.style.display = 'flex';
     }
   }
+
+  hasPrivilegio(priv: string): boolean {
+    return this.authService.hasPrivilegio(priv);
+  }
 }

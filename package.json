@@ -24,6 +24,7 @@
     "angular-google-charts": "^16.0.1",
     "angularx-qrcode": "^18.0.2",
     "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^3.8.4",
     "material-icons": "^1.13.14",

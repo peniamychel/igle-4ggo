@@ -1,23 +1,67 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Editar Activo' : 'Registrar Nuevo Activo' }}</h2>
+<form [formGroup]="activoForm" (ngSubmit)="onSubmit()" class="dialog-form-container">
+  
+  <div class="dialog-header">
+    <div class="header-title">
+      <div class="header-icon-circle">
+        <mat-icon class="header-icon">inventory_2</mat-icon>
+      </div>
+      <div>
+        <h2 mat-dialog-title style="margin: 0; padding: 0; border: none; font-size: 1.25rem;">
+          {{ isEditMode ? 'Editar Activo' : 'Registrar Nuevo Activo' }}
+        </h2>
+        <p class="header-subtitle" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">
+          {{ isEditMode ? 'Modificar datos del bien del templo' : 'Registrar un nuevo bien en el inventario' }}
+        </p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 
-<form [formGroup]="activoForm" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
+  <mat-dialog-content class="dialog-content">
     
-    <!-- Nombre -->
+    <!-- Imagen del Activo (Circular Avatar matching Miembro) -->
+    <div class="photo-section">
+      <div class="photo-container" (click)="fileInput.click()">
+        <img *ngIf="previewUrl" [src]="previewUrl | imageUrl" alt="Foto del activo" class="profile-photo">
+        <div class="no-photo" *ngIf="!previewUrl">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <div class="photo-overlay">
+          <mat-icon>photo_camera</mat-icon>
+          <span>{{ previewUrl ? 'Cambiar foto' : 'Subir Foto' }}</span>
+        </div>
+      </div>
+      <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none">
+      <button *ngIf="previewUrl" mat-icon-button type="button" class="remove-photo-btn"
+              (click)="deleteFoto(); $event.stopPropagation()" matTooltip="Quitar foto">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Nombre del Activo -->
     <mat-form-field appearance="outline">
       <mat-label>Nombre del Activo / Bien</mat-label>
       <input matInput formControlName="nombre" placeholder="Ej. Equipo de sonido Yamaha, Sillas de plástico">
       <mat-error *ngIf="activoForm.get('nombre')?.hasError('required')">El nombre es requerido</mat-error>
     </mat-form-field>
 
-    <!-- Descripcion -->
+    <!-- Código Único -->
     <mat-form-field appearance="outline">
-      <mat-label>Descripción</mat-label>
-      <textarea matInput formControlName="descripcion" rows="3" placeholder="Detalles sobre el estado, marca o características..."></textarea>
+      <mat-label>Código Único del Activo</mat-label>
+      <input matInput formControlName="codigo" placeholder="Ej. ACT-00123">
+      <mat-error *ngIf="activoForm.get('codigo')?.hasError('required')">El código es requerido</mat-error>
     </mat-form-field>
 
-    <div class="form-row">
-      <!-- Cantidad -->
+    <!-- Descripción -->
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="descripcion" rows="2" placeholder="Detalles sobre el estado, marca o características..."></textarea>
+    </mat-form-field>
+
+    <!-- Cantidad y Estado Conservacion -->
+    <div class="row">
       <mat-form-field appearance="outline">
         <mat-label>Cantidad</mat-label>
         <input matInput type="number" formControlName="cantidad">
@@ -25,7 +69,6 @@
         <mat-error *ngIf="activoForm.get('cantidad')?.hasError('min')">Mínimo 1</mat-error>
       </mat-form-field>
 
-      <!-- Estado Conservacion -->
       <mat-form-field appearance="outline">
         <mat-label>Estado de Conservación</mat-label>
         <mat-select formControlName="estadoConservacion">
@@ -36,36 +79,39 @@
       </mat-form-field>
     </div>
 
-    <div class="form-row">
-      <!-- Valor Estimado -->
+    <!-- Valor Estimado y Fecha Adquisicion -->
+    <div class="row">
       <mat-form-field appearance="outline">
         <mat-label>Valor Estimado (Bs.)</mat-label>
         <input matInput type="number" formControlName="valorEstimado">
         <mat-error *ngIf="activoForm.get('valorEstimado')?.hasError('min')">Mínimo 0</mat-error>
       </mat-form-field>
 
-      <!-- Fecha Adquisicion -->
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Adquisición</mat-label>
-        <input matInput type="date" formControlName="fechaAdquisicion">
+        <input matInput [matDatepicker]="picker" formControlName="fechaAdquisicion" placeholder="Ej. 01/01/2026">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
     </div>
 
     <!-- Iglesia (Visible solo para ADMIN) -->
-    <mat-form-field appearance="outline" *ngIf="isAdmin">
-      <mat-label>Iglesia Sede</mat-label>
-      <mat-select formControlName="iglesiaId">
-        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="activoForm.get('iglesiaId')?.hasError('required')">Debe seleccionar una iglesia</mat-error>
-    </mat-form-field>
+    <div class="row" *ngIf="isAdmin">
+      <mat-form-field appearance="outline">
+        <mat-label>Iglesia Sede</mat-label>
+        <mat-select formControlName="iglesiaId">
+          <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="activoForm.get('iglesiaId')?.hasError('required')">Debe seleccionar una iglesia</mat-error>
+      </mat-form-field>
+    </div>
 
   </mat-dialog-content>
 
-  <div class="form-actions">
-    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="activoForm.invalid">
-      {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="activoForm.invalid" class="btn-save">
+      <mat-icon>save</mat-icon> {{ isEditMode ? 'Actualizar' : 'Guardar' }}
     </button>
-  </div>
+  </mat-dialog-actions>
 </form>

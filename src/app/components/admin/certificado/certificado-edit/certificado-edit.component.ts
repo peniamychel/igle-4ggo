@@ -44,7 +44,6 @@ export class CertificadoEditComponent implements OnInit {
       eventoId: ['', Validators.required],
       tipoCertificadoId: ['', Validators.required],
       motivoCertificado: ['', [Validators.required, Validators.maxLength(500)]],
-      codigoCertificado: ['', [Validators.required, Validators.maxLength(50)]],
     });
     this.certificado = data.certificado;
   }
@@ -57,7 +56,6 @@ export class CertificadoEditComponent implements OnInit {
         eventoId: this.certificado.eventoId,
         tipoCertificadoId: this.certificado.tipoCertificadoId,
         motivoCertificado: this.certificado.motivoCertificado,
-        codigoCertificado: this.certificado.codigoCertificado,
       });
     }
   }

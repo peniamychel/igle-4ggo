@@ -1,24 +1,29 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { UserService } from '../../../../core/services/user.service';
+import { CargoService } from '../../../../core/services/cargo.service';
 import { MiembroService } from '../../../../core/services/miembro.service';
-import { PrivilegioService } from '../../../../core/services/privilegio.service';
-import { PrivilegioDto } from '../../../../core/models/interfaces/privilegio.interface';
-import { Miembro } from '../../../../core/models/miembro.model';
+import { ServicioService } from '../../../../core/services/servicio.service';
+import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
+import { ServicioDto } from '../../../../core/models/interfaces/servicio.interface';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { User } from '../../../../core/models/user.model';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
-import { forkJoin, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { MiembroCargoOption } from '../create-user-dialog/create-user-dialog.component';
 
 @Component({
   selector: 'app-edit-user-dialog',
@@ -29,10 +34,12 @@ import { switchMap } from 'rxjs/operators';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatIconModule,
     MatSlideToggleModule,
     MatSelectModule,
+    MatCheckboxModule,
+    MatExpansionModule,
+    MatTooltipModule,
     FormsModule,
     ReactiveFormsModule,
     MatSnackBarModule,
@@ -46,186 +53,230 @@ export class EditUserDialogComponent implements OnInit {
   passwordForm: FormGroup;
   hideNewPassword = true;
   changePassword = false;
-  miembros: Miembro[] = [];
-  todosPrivilegios: PrivilegioDto[] = [];
-  selectedPrivilegioIds: Set<number> = new Set<number>();
+  miembrosCargoOptions: MiembroCargoOption[] = [];
 
-  modules = [
-    { key: 'Usuarios', name: 'Usuarios', viewPrivilege: 'Ver Usuarios', writePrivilege: 'Escribir Usuarios', icon: 'switch_account', desc: 'Gestionar acceso al sistema' },
-    { key: 'Miembros', name: 'Miembros', viewPrivilege: 'Ver Miembros', writePrivilege: 'Escribir Miembros', icon: 'people', desc: 'Gestionar feligreses y registros' },
-    { key: 'Iglesias', name: 'Iglesias', viewPrivilege: 'Ver Iglesias', writePrivilege: 'Escribir Iglesias', icon: 'church', desc: 'Administrar templos y anexos' },
-    { key: 'MiembroIglesia', name: 'Membresías', viewPrivilege: 'Ver MiembroIglesia', writePrivilege: 'Escribir MiembroIglesia', icon: 'recent_actors', desc: 'Asignaciones y traslados' },
-    { key: 'Cargos', name: 'Cargos y Roles', viewPrivilege: 'Ver Cargos', writePrivilege: 'Escribir Cargos', icon: 'work', desc: 'Asignación de cargos' },
-    { key: 'Eventos', name: 'Eventos', viewPrivilege: 'Ver Eventos', writePrivilege: 'Escribir Eventos', icon: 'event', desc: 'Planificación de actividades' },
-    { key: 'Certificados', name: 'Certificados', viewPrivilege: 'Ver Certificados', writePrivilege: 'Escribir Certificados', icon: 'workspace_premium', desc: 'Emisión de constancias' },
-    { key: 'Privilegios', name: 'Privilegios', viewPrivilege: 'Ver Privilegios', writePrivilege: 'Escribir Privilegios', icon: 'vpn_key', desc: 'Políticas y permisos' }
-  ];
-
-  get hasChanges(): boolean {
-    const basicDetailsChanged =
-      this.userForm.value.username !== this.data.username ||
-      this.userForm.value.email !== this.data.email ||
-      this.userForm.value.miembroId !== this.data.miembroId;
-
-    const passwordChanged = this.changePassword && this.passwordForm.valid;
-
-    const originalIds = new Set(this.data.privilegios?.map(p => p.id).filter(id => id !== undefined) || []);
-    let privilegesChanged = originalIds.size !== this.selectedPrivilegioIds.size;
-    if (!privilegesChanged) {
-      for (const id of this.selectedPrivilegioIds) {
-        if (!originalIds.has(id)) {
-          privilegesChanged = true;
-          break;
-        }
-      }
-    }
-
-    return basicDetailsChanged || passwordChanged || privilegesChanged;
-  }
+  // Servicios & Acciones
+  servicios: ServicioDto[] = [];
+  rolesDisponibles: TipoCargo[] = [];
+  selectedRolBaseKey: string = '';
+  selectedRolId: number | null = null;
+  selectedAccionIds: Set<number> = new Set<number>();
 
   constructor(
     private dialogRef: MatDialogRef<EditUserDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: User,
     private fb: FormBuilder,
     private userService: UserService,
+    private cargoService: CargoService,
     private miembroService: MiembroService,
-    private privilegioService: PrivilegioService,
+    private servicioService: ServicioService,
+    private tipoCargoService: TipoCargoService,
     private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
-      miembroId: [data.miembroId || '', Validators.required],
+      miembroId: [data.miembroId || ''],
       username: [data.username, [Validators.required]],
       email: [data.email, [Validators.required, Validators.email]],
-      name: [{ value: data.name || '', disabled: true }, Validators.required],
-      apellidos: [{ value: data.apellidos || '', disabled: true }, Validators.required]
+      name: [data.name || '', Validators.required],
+      apellidos: [data.apellidos || '', Validators.required]
     });
 
     this.passwordForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    if (data.privilegios) {
-      data.privilegios.forEach(p => {
-        if (p.id) this.selectedPrivilegioIds.add(p.id);
-      });
+    if (data.acciones) {
+      this.selectedAccionIds = new Set(data.acciones.map(a => a.id).filter((id): id is number => id !== undefined));
     }
   }
 
   ngOnInit(): void {
-    this.loadMiembros();
-    this.loadPrivileges();
+    this.loadData();
+
     this.userForm.get('miembroId')?.valueChanges.subscribe(miembroId => {
-      const selectedMiembro = this.miembros.find(m => m.id === miembroId);
-      if (selectedMiembro) {
+      if (!miembroId) return;
+      const selected = this.miembrosCargoOptions.find(m => m.id === miembroId);
+      if (selected) {
         this.userForm.patchValue({
-          name: selectedMiembro.nombre,
-          apellidos: selectedMiembro.apellido
+          name: selected.nombre,
+          apellidos: selected.apellido
         });
-      } else {
-        this.userForm.patchValue({
-          name: '',
-          apellidos: ''
-        });
-      }
-    });
-  }
 
-  loadPrivileges(): void {
-    this.privilegioService.getAll().subscribe({
-      next: (privs) => {
-        this.todosPrivilegios = privs;
-      },
-      error: (err) => {
-        console.error('Error al cargar privilegios:', err);
-      }
-    });
-  }
-
-  getPrivilegeIdByName(name: string): number | undefined {
-    return this.todosPrivilegios.find(p => p.nombre === name)?.id;
-  }
-
-  isPrivilegeSelected(name: string): boolean {
-    const id = this.getPrivilegeIdByName(name);
-    return id ? this.selectedPrivilegioIds.has(id) : false;
-  }
-
-  togglePrivilegeSelection(name: string): void {
-    const id = this.getPrivilegeIdByName(name);
-    if (!id) return;
-    if (this.selectedPrivilegioIds.has(id)) {
-      this.selectedPrivilegioIds.delete(id);
-      if (name.startsWith('Ver ')) {
-        const writeName = name.replace('Ver ', 'Escribir ');
-        const writeId = this.getPrivilegeIdByName(writeName);
-        if (writeId) {
-          this.selectedPrivilegioIds.delete(writeId);
+        if (selected.rolCargoId) {
+          const matchingRol = this.rolesDisponibles.find(r => r.id === selected.rolCargoId);
+          if (matchingRol) {
+            this.selectRol(matchingRol);
+          }
+        } else if (selected.nombreRol) {
+          const matchingRol = this.rolesDisponibles.find(
+            r => (r.nombreRol || r.nombre || '').toUpperCase() === selected.nombreRol?.toUpperCase()
+          );
+          if (matchingRol) {
+            this.selectRol(matchingRol);
+          }
         }
       }
+    });
+  }
+
+  loadData(): void {
+    forkJoin({
+      servicios: this.servicioService.getAll(),
+      roles: this.tipoCargoService.getTipoCargos(),
+      cargos: this.cargoService.getCargos(),
+      miembros: this.miembroService.getMiembros(),
+      users: this.userService.getAllUsers()
+    }).subscribe({
+      next: ({ servicios, roles, cargos, miembros, users }) => {
+        this.servicios = servicios;
+        this.rolesDisponibles = (roles.datos || []).filter(r => r.estado !== false);
+
+        if (this.data.roles && this.data.roles.length > 0) {
+          const firstRoleName = (this.data.roles[0].nombreRol || this.data.roles[0].name || this.data.roles[0].nombre || '').toUpperCase();
+          const match = this.rolesDisponibles.find(r => (r.nombreRol || r.nombre || '').toUpperCase() === firstRoleName);
+          if (match) {
+            this.selectRol(match);
+          }
+        }
+
+        if (!this.data.acciones || this.data.acciones.length === 0) {
+          this.selectAllAcciones();
+        }
+
+        const currentMiembroId = Number(this.data.miembroId);
+        const assignedMemberIds = new Set<number>(
+          (users.datos || [])
+            .map(u => Number(u.miembroId))
+            .filter(id => id !== null && id !== undefined && !isNaN(id) && id !== currentMiembroId)
+        );
+
+        // Mapa de miembros indexado por ID
+        const miembrosMap = new Map<number, any>();
+        (miembros.datos || []).forEach(m => {
+          if (m.id) miembrosMap.set(m.id, m);
+        });
+
+        const mapMiembrosOpciones = new Map<number, MiembroCargoOption>();
+        (cargos.datos || []).forEach((c: any) => {
+          const mId = c.idMiembro || c.miembro?.id || c.miembroDto?.id;
+          if (mId && c.estado !== false) {
+            if (!assignedMemberIds.has(mId) || mId === currentMiembroId) {
+              if (!mapMiembrosOpciones.has(mId)) {
+                const miembroInfo = c.miembro || c.miembroDto || miembrosMap.get(mId);
+                const nombre = miembroInfo?.nombre || '';
+                const apellido = miembroInfo?.apellido || '';
+                const ci = miembroInfo?.ci;
+                const cargoNombre = c.rolCargo?.nombre || c.tipoCargoDto?.nombre || c.tipoCargoDto?.nombreRol || c.detalle || 'Cargo Asignado';
+                const rolCargoId = c.rolCargoId || c.rolCargo?.id || c.tipoCargoDto?.id;
+                const nombreRol = c.rolCargo?.nombre || c.tipoCargoDto?.nombreRol || c.tipoCargoDto?.nombre;
+
+                mapMiembrosOpciones.set(mId, {
+                  id: mId,
+                  nombre: nombre,
+                  apellido: apellido,
+                  nombreCompleto: (nombre || apellido) ? `${nombre} ${apellido}`.trim() : `Miembro #${mId}`,
+                  ci: ci,
+                  cargoNombre: cargoNombre,
+                  rolCargoId: rolCargoId,
+                  nombreRol: nombreRol
+                });
+              }
+            }
+          }
+        });
+
+        this.miembrosCargoOptions = Array.from(mapMiembrosOpciones.values());
+      }
+    });
+  }
+
+  selectRol(rol: TipoCargo): void {
+    this.selectedRolBaseKey = rol.nombreRol || rol.nombre || 'ROL';
+    this.selectedRolId = rol.id || null;
+
+    if (rol.id) {
+      this.servicioService.getAccionesByRolCargo(rol.id).subscribe({
+        next: (acciones) => {
+          if (acciones && acciones.length > 0) {
+            this.selectedAccionIds = new Set(acciones.map(a => a.id).filter((id): id is number => id !== undefined));
+          } else if ((rol.nombreRol || rol.nombre || '').toUpperCase().includes('ADMIN')) {
+            this.selectAllAcciones();
+          } else {
+            this.selectedAccionIds.clear();
+          }
+        }
+      });
     } else {
-      this.selectedPrivilegioIds.add(id);
-      if (name.startsWith('Escribir ')) {
-        const viewName = name.replace('Escribir ', 'Ver ');
-        const viewId = this.getPrivilegeIdByName(viewName);
-        if (viewId) {
-          this.selectedPrivilegioIds.add(viewId);
-        }
-      }
+      this.selectedAccionIds.clear();
     }
   }
 
-  loadMiembros(): void {
-    this.miembroService.getMiembros().subscribe({
-      next: (response) => {
-        this.miembros = response.datos.filter(m => m.estado);
-      },
-      error: (error) => {
-        console.error('Error al cargar miembros:', error);
-        this.snackBar.open('Error al cargar miembros', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      }
+  isRolActive(rol: TipoCargo): boolean {
+    if (this.selectedRolId !== null && this.selectedRolId !== undefined) {
+      return rol.id === this.selectedRolId;
+    }
+    if (this.selectedRolBaseKey) {
+      const name = (rol.nombreRol || rol.nombre || '').toUpperCase();
+      return name.includes(this.selectedRolBaseKey.toUpperCase());
+    }
+    return false;
+  }
+
+  getRoleIcon(nombreRol: string = ''): string {
+    const key = nombreRol.toUpperCase();
+    if (key.includes('ADMIN')) return 'admin_panel_settings';
+    if (key.includes('PASTOR')) return 'auto_awesome';
+    if (key.includes('IGLESIA') || key.includes('ENCARGADO')) return 'church';
+    if (key.includes('TESORERO') || key.includes('FINANZA')) return 'account_balance';
+    if (key.includes('SECRETARIO')) return 'description';
+    if (key.includes('JOVEN') || key.includes('LIDER')) return 'groups';
+    return 'badge';
+  }
+
+  selectAllAcciones(): void {
+    const allIds = new Set<number>();
+    this.servicios.forEach(s => {
+      s.acciones?.forEach(a => {
+        if (a.id) allIds.add(a.id);
+      });
     });
+    this.selectedAccionIds = allIds;
+  }
+
+  isAccionSelected(accionId: number | undefined): boolean {
+    if (!accionId) return false;
+    return this.selectedAccionIds.has(accionId);
+  }
+
+  hasServiceAccessForRole(servicio: ServicioDto): boolean {
+    if (!servicio.acciones) return false;
+    return servicio.acciones.some(a => this.isAccionSelected(a.id));
+  }
+
+  toggleAccion(accionId: number | undefined): void {
+    if (!accionId) return;
+    if (this.selectedAccionIds.has(accionId)) {
+      this.selectedAccionIds.delete(accionId);
+    } else {
+      this.selectedAccionIds.add(accionId);
+    }
   }
 
   onSubmit(): void {
     if (this.userForm.valid && (!this.changePassword || this.passwordForm.valid)) {
-      const basicDetailsChanged =
-        this.userForm.value.username !== this.data.username ||
-        this.userForm.value.email !== this.data.email ||
-        this.userForm.value.miembroId !== this.data.miembroId;
+      const formRaw = this.userForm.getRawValue();
+      const updateUserData = {
+        id: this.data.id!,
+        username: formRaw.username,
+        email: formRaw.email,
+        name: formRaw.name,
+        apellidos: formRaw.apellidos,
+        miembroId: formRaw.miembroId ? formRaw.miembroId : null
+      };
 
-      const originalIds = new Set(this.data.privilegios?.map(p => p.id).filter(id => id !== undefined) || []);
-      let privilegesChanged = originalIds.size !== this.selectedPrivilegioIds.size;
-      if (!privilegesChanged) {
-        for (const id of this.selectedPrivilegioIds) {
-          if (!originalIds.has(id)) {
-            privilegesChanged = true;
-            break;
-          }
-        }
-      }
+      let obs$ = this.userService.updateUser(updateUserData);
 
-      const passwordChanged = this.changePassword && this.passwordForm.valid;
-
-      let obs$ = of<any>(null);
-
-      if (basicDetailsChanged || privilegesChanged) {
-        const formRaw = this.userForm.getRawValue();
-        const updateUserData = {
-          id: this.data.id!,
-          username: formRaw.username,
-          email: formRaw.email,
-          name: formRaw.name,
-          apellidos: formRaw.apellidos,
-          miembroId: formRaw.miembroId,
-          privilegioIds: Array.from(this.selectedPrivilegioIds)
-        };
-        obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
-      }
-
-      if (passwordChanged) {
+      if (this.changePassword && this.passwordForm.valid) {
         obs$ = obs$.pipe(switchMap(() => this.userService.resetPassword({
           id: this.data.id!,
           newPassword: this.passwordForm.value.newPassword

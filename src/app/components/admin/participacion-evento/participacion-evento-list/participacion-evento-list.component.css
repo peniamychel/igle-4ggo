@@ -94,6 +94,22 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.custom-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  width: 200px;
+}
+
+::ng-deep .filter-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }
 
 .search-box {

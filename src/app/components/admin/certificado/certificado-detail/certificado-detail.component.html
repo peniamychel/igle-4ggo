@@ -3,7 +3,7 @@
     <mat-icon class="header-icon">workspace_premium</mat-icon>
     <div>
       <h2 mat-dialog-title>Detalle del Certificado</h2>
-      <p class="header-subtitle">{{ data.codigoCertificado }}</p>
+      <p class="header-subtitle">{{ data.tipoCertificadoDto?.nombre }}</p>
     </div>
   </div>
   <button mat-icon-button mat-dialog-close class="close-btn">
@@ -13,10 +13,6 @@
 
 <mat-dialog-content class="dialog-content">
   <div class="summary-card">
-    <div class="summary-item">
-      <span class="label">Codigo</span>
-      <span class="val">{{ data.codigoCertificado }}</span>
-    </div>
     <div class="summary-item">
       <span class="label">Evento</span>
       <span class="val">{{ data.eventoDto?.nombre || 'N/A' }}</span>

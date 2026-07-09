@@ -2,10 +2,10 @@
 .dialog-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   padding: 24px 24px 16px 24px;
   border-bottom: 1px solid var(--border-color);
-  margin: 0 !important;
+  margin: 0;
 }
 
 .header-title-container {
@@ -63,7 +63,7 @@
   min-width: 750px;
   max-width: 100%;
   max-height: 65vh;
-  padding: 0 24px 24px 24px !important;
+  padding: 8px 24px 24px 24px !important;
   box-sizing: border-box;
 }
 
@@ -200,8 +200,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .info-grid {
@@ -258,7 +263,7 @@
   display: block;
 }
 
-mat-expansion-panel {
+:host ::ng-deep mat-expansion-panel {
   margin-bottom: 12px;
   border-radius: 12px !important;
   border: 1px solid var(--border-color);
@@ -267,12 +272,12 @@ mat-expansion-panel {
   transition: all 0.2s ease;
 }
 
-mat-expansion-panel-header {
-  height: 54px !important;
-  padding: 0 16px !important;
+:host ::ng-deep mat-expansion-panel-header {
+  height: 54px;
+  padding: 0 16px;
 }
 
-mat-panel-title {
+:host ::ng-deep mat-panel-title {
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -312,16 +317,19 @@ mat-panel-title {
 }
 
 /* Bordes de estado */
-.panel-actual {
-  border-left: 4px solid #2e7d32 !important;
+:host ::ng-deep .panel-actual,
+:host ::ng-deep .history-item-card.panel-actual {
+  border-left: 4px solid #2e7d32;
 }
 
-.panel-pendiente {
-  border-left: 4px solid #e65100 !important;
+:host ::ng-deep .panel-pendiente,
+:host ::ng-deep .history-item-card.panel-pendiente {
+  border-left: 4px solid #e65100;
 }
 
-.panel-anterior {
-  border-left: 4px solid var(--text-secondary) !important;
+:host ::ng-deep .panel-anterior,
+:host ::ng-deep .history-item-card.panel-anterior {
+  border-left: 4px solid var(--text-secondary);
 }
 
 /* Asegurar esquinas redondeadas internas con el borde lateral */
@@ -460,21 +468,21 @@ mat-panel-title {
   flex-wrap: wrap;
 }
 
-.doc-btn {
-  border-radius: 8px !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  padding: 4px 12px !important;
-  height: 36px !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-color) !important;
-  text-decoration: none !important;
+.doc-buttons-row a.doc-btn {
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  height: 36px;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  text-decoration: none;
 }
 
-.doc-btn:hover {
-  background-color: rgba(var(--primary-rgb, 127, 11, 133), 0.04) !important;
-  border-color: var(--primary-color) !important;
-  color: var(--primary-color) !important;
+.doc-buttons-row a.doc-btn:hover {
+  background-color: rgba(var(--primary-rgb, 127, 11, 133), 0.04);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 /* Dialog Actions */
@@ -482,28 +490,26 @@ mat-panel-title {
   padding: 16px 24px 20px;
   border-top: 1px solid var(--border-color);
   margin: 0;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.btn-close {
+:host ::ng-deep .btn-pdf-download {
   height: 38px;
   border-radius: 8px;
   font-weight: 600;
-  padding: 0 24px;
-}
-
-.btn-pdf-download {
-  height: 38px;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #ef4444 !important;
-  border-color: #ef4444 !important;
+  color: #ef4444;
+  border-color: #ef4444;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btn-pdf-download:hover {
-  background-color: rgba(239, 68, 68, 0.05) !important;
-  border-color: #dc3545 !important;
-  color: #dc3545 !important;
+:host ::ng-deep .btn-pdf-download:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: #dc3545;
+  color: #dc3545;
 }
 
 /* Empty States */

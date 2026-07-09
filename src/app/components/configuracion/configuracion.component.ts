@@ -39,14 +39,22 @@ export class ConfiguracionComponent implements OnInit {
   selectedTabIndex = 2; // Pestaña de Bitácora activa por defecto
 
   isPastor = false;
+  canViewBitacora = false;
   iglesiaPastor: any = null;
   loadingIglesia = false;
 
   ngOnInit() {
-    this.isPastor = localStorage.getItem('role') === 'ROLE_PASTOR';
+    const role = localStorage.getItem('role');
+    this.isPastor = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
+    this.canViewBitacora = role === 'ROLE_ADMIN' || role === 'ROLE_PASTOR';
+    
     if (this.isPastor) {
-      this.selectedTabIndex = 0; // Default to first tab for pastor
+      this.selectedTabIndex = 0; // Default to 'Mi Iglesia'
       this.loadPastorChurch();
+    } else if (this.canViewBitacora) {
+      this.selectedTabIndex = 2; // Default to 'Bitácora' for Admin (since Mi Iglesia is hidden)
+    } else {
+      this.selectedTabIndex = 0; // Default to 'General' for Tesorero/other roles
     }
   }
 

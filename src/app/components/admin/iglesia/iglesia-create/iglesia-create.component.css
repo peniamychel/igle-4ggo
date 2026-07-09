@@ -50,43 +50,103 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   font-weight: 500;
 }
 
-/* FOTO SECTION */
-.foto-section {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+/* FOTO BANNER */
+.foto-banner-wrapper {
+  margin: 0 -24px;
   margin-bottom: 8px;
 }
-.foto-preview-wrapper { position: relative; flex-shrink: 0; }
-.foto-preview {
-  width: 90px; height: 90px; border-radius: 12px;
-  object-fit: cover; border: 2px solid var(--border-color, #e0e0e0); display: block;
+
+.foto-banner-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(124,77,255,0.12) 100%);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
 }
-.foto-placeholder {
-  width: 90px; height: 90px; border-radius: 12px;
-  background: rgba(99,102,241,0.08); border: 2px dashed rgba(99,102,241,0.3);
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; color: #6366f1; font-size: 11px; gap: 4px;
+
+.foto-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
-.delete-foto-btn {
-  position: absolute; top: -10px; right: -10px;
-  background: #f44336 !important; color: white !important;
-  width: 28px !important; height: 28px !important; line-height: 28px !important;
+
+.foto-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #6366f1;
 }
-.delete-foto-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
-.foto-actions { display: flex; flex-direction: column; gap: 8px; }
+
+.foto-banner-placeholder mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  opacity: 0.6;
+}
+
+.foto-banner-placeholder span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.foto-banner-placeholder small {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.foto-banner-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foto-banner-wrapper .foto-hint {
+  display: block;
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 500;
+  padding: 4px 24px 0;
+}
+
 .upload-label {
-  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-  padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.4);
-  color: #6366f1; font-size: 13px; font-weight: 500;
-  transition: all 0.2s ease; background: rgba(99,102,241,0.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.7);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
 }
-.upload-label:hover { background: rgba(99,102,241,0.12); }
+.upload-label:hover { background: rgba(0, 0, 0, 0.62); }
 .upload-label mat-icon { font-size: 18px; width: 18px; height: 18px; }
-.foto-hint { font-size: 11px; color: #4caf50; font-weight: 500; }
+
+.foto-banner-overlay .delete-foto-btn {
+  background: rgba(244,67,54,0.85) !important;
+  color: white !important;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  backdrop-filter: blur(4px);
+}
+.delete-foto-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
 .btn-spinner { display: inline-block; margin-right: 6px; }
+
 
 /* MAPA DE UBICACION */
 .ubicacion-header {
@@ -141,7 +201,7 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
 
 .clear-map-btn {
   position: absolute;
-  top: 8px;
+  top: 80px;
   right: 8px;
   background-color: white !important;
   color: #d32f2f !important;

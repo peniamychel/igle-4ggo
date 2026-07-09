@@ -1,46 +1,49 @@
 <div class="container">
-  <!-- Contenedor pegajoso para cabecera y filtros -->
-  <div class="sticky-header">
-    <!-- Cabecera de listado -->
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">church</mat-icon>
-        </div>
-        <div>
-          <h2>Mi Iglesia: {{ selectedIglesia?.nombre || 'Cargando...' }}</h2>
-          <p class="subtitle">{{ miembrosCount }} miembros registrados</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button mat-stroked-button class="btn-pdf" matTooltip="Exportar Lista en PDF" (click)="generatePDF()">
-          <mat-icon>picture_as_pdf</mat-icon>
-          PDF
-        </button>
-        <button mat-stroked-button class="btn-excel" matTooltip="Exportar Lista en Excel" (click)="exportToExcel()">
-          <mat-icon>grid_on</mat-icon>
-          Excel
-        </button>
-        <button mat-flat-button class="btn-new-item" matTooltip="Registrar un nuevo miembro" (click)="addNewMiembro()" *appHasPrivilegio="'Escribir MiembroIglesia'">
-          <mat-icon>add</mat-icon>
-          Nuevo Miembro
-        </button>
-      </div>
+
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">people</mat-icon>
+        <span>Miembros Iglesia: {{ selectedIglesia?.nombre || 'Cargando...' }}</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ miembrosCount }} miembros registrados
+      </p>
     </div>
-  
-    <!-- Barra de Filtros y Búsqueda -->
-    <div class="filters-bar">
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por nombre, apellido, CI..." #searchInput>
-      </div>
+    <div class="header-actions">
+      <button mat-stroked-button class="btn-pdf" matTooltip="Exportar Lista en PDF" (click)="generatePDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        PDF
+      </button>
+      <button mat-stroked-button class="btn-excel" matTooltip="Exportar Lista en Excel" (click)="exportToExcel()">
+        <mat-icon>grid_on</mat-icon>
+        Excel
+      </button>
+      <button mat-flat-button
+              [class.btn-action-primary]="hasPrivilegio('Escribir MiembroIglesia')"
+              [class.btn-action-disabled]="!hasPrivilegio('Escribir MiembroIglesia')"
+              [disabled]="!hasPrivilegio('Escribir MiembroIglesia')"
+              [matTooltip]="hasPrivilegio('Escribir MiembroIglesia') ? 'Registrar un nuevo miembro' : 'Acceso denegado: No cuenta con privilegios'"
+              (click)="addNewMiembro()">
+        <mat-icon>add</mat-icon>
+        Nuevo Miembro
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por nombre, apellido, CI..." #searchInput>
     </div>
   </div>
 
   <!-- Contenedor de la Tabla -->
   <div class="table-container">
     <mat-table [dataSource]="dataSource" matSort>
-      
+
       <!-- Columna Miembro (Avatar + Datos personales + Cargo) -->
       <ng-container matColumnDef="miembro">
         <mat-header-cell *matHeaderCellDef mat-sort-header> Miembro </mat-header-cell>

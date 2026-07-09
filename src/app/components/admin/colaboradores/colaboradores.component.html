@@ -1,54 +1,52 @@
 <div class="container">
-  <!-- Contenedor pegajoso para cabecera y filtros -->
-  <div class="sticky-header">
-    <!-- Cabecera de listado -->
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">work</mat-icon>
-        </div>
-        <div>
-          <h2>Colaboradores</h2>
-          <p class="subtitle">{{ dataSource.filteredData.length }} colaboradores registrados en {{ currentChurchNombre }}</p>
-        </div>
+
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">work</mat-icon>
+        <span>Colaboradores</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ dataSource.filteredData.length }} colaboradores registrados en {{ currentChurchNombre }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button class="btn-action-primary" (click)="designarColaborador()">
+        <mat-icon>add</mat-icon>
+        Designar Colaborador
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. KPIs -->
+  <div class="kpis-grid-layout">
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-blue">
+        <mat-icon>people</mat-icon>
       </div>
-      <div class="header-actions">
-        <button mat-flat-button class="btn-new-member" (click)="designarColaborador()">
-          <mat-icon>add</mat-icon>
-          Designar Colaborador
-        </button>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ totalColaboradores }}</span>
+        <span class="kpi-desc-label">Total Colaboradores</span>
       </div>
     </div>
-  
-    <!-- Barra de Filtros y Búsqueda -->
-    <div class="filters-bar">
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar colaborador por nombre, rol/cargo..." #input>
+
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-teal">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ activosColaboradores }}</span>
+        <span class="kpi-desc-label">Colaboradores Activos</span>
       </div>
     </div>
   </div>
 
-  <!-- Tarjetas de Métricas (KPIs) -->
-  <div class="metrics-grid">
-    <div class="metric-card card-total">
-      <div class="icon-wrapper">
-        <mat-icon>people</mat-icon>
-      </div>
-      <div class="metric-info">
-        <span class="value">{{ totalColaboradores }}</span>
-        <span class="label">Total Colaboradores</span>
-      </div>
-    </div>
-
-    <div class="metric-card card-activos">
-      <div class="icon-wrapper">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-      <div class="metric-info">
-        <span class="value">{{ activosColaboradores }}</span>
-        <span class="label">Colaboradores Activos</span>
-      </div>
+  <!-- 3. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar colaborador por nombre, rol/cargo..." #input>
     </div>
   </div>
 
@@ -66,8 +64,8 @@
                    [src]="item.miembroDto.uriFoto | imageUrl"
                    [alt]="item.miembroDto.nombre"
                    (error)="onImageError($event)">
-              <div class="miembro-avatar-fallback" style="display: none;">
-                <mat-icon>person</mat-icon>
+              <div class="miembro-avatar-fallback" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
+                {{ item.miembroDto?.nombre?.charAt(0) || '?' }}
               </div>
             </div>
             <div class="miembro-meta">
@@ -116,7 +114,7 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
         <mat-cell *matCellDef="let item">
-          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones de colaborador" class="action-btn">
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones de colaborador" class="action-btn" (click)="$event.stopPropagation()">
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu" class="modern-action-menu">
@@ -138,7 +136,7 @@
 
       <!-- Fila de cabecera y contenido -->
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetail(row)" class="clickable-row"></mat-row>
     </mat-table>
 
     <!-- Paginador -->

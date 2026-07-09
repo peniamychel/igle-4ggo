@@ -14,28 +14,29 @@
 <form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 
-    <!-- FOTO -->
-    <div class="foto-section">
-      <div class="foto-preview-wrapper">
-        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de la iglesia" class="foto-preview">
-        <div *ngIf="!previewUrl" class="foto-placeholder">
+    <!-- FOTO BANNER -->
+    <div class="foto-banner-wrapper">
+      <div class="foto-banner-container">
+        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de la iglesia" class="foto-banner-img">
+        <div *ngIf="!previewUrl" class="foto-banner-placeholder">
           <mat-icon>church</mat-icon>
-          <span>Sin imagen</span>
+          <span>Sin imagen de portada</span>
+          <small>Sube una foto panorámica de la iglesia</small>
         </div>
-        <button mat-icon-button type="button" class="delete-foto-btn"
-                *ngIf="previewUrl" matTooltip="Quitar imagen"
-                (click)="clearFile()">
-          <mat-icon>close</mat-icon>
-        </button>
+        <div class="foto-banner-overlay">
+          <label class="upload-label" for="fotoInputCreate">
+            <mat-icon>upload</mat-icon>
+            {{ previewUrl ? 'Cambiar imagen' : 'Subir imagen (opcional)' }}
+          </label>
+          <input id="fotoInputCreate" type="file" accept="image/*" hidden (change)="onFileSelected($event)">
+          <button mat-icon-button type="button" class="delete-foto-btn"
+                  *ngIf="previewUrl" matTooltip="Quitar imagen"
+                  (click)="clearFile()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
       </div>
-      <div class="foto-actions">
-        <label class="upload-label" for="fotoInputCreate">
-          <mat-icon>upload</mat-icon>
-          {{ previewUrl ? 'Cambiar imagen' : 'Subir imagen (opcional)' }}
-        </label>
-        <input id="fotoInputCreate" type="file" accept="image/*" hidden (change)="onFileSelected($event)">
-        <span class="foto-hint" *ngIf="selectedFile">✓ {{ selectedFile.name }}</span>
-      </div>
+      <span class="foto-hint" *ngIf="selectedFile">✓ {{ selectedFile.name }}</span>
     </div>
 
     <mat-form-field appearance="outline">

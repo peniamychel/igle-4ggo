@@ -11,6 +11,8 @@ export interface ParticipacionEvento {
   entregadoPorId?: number;
   codigoUnico?: string;
   estado?: boolean;
+  entregado?: boolean;
+  fechaEntrega?: string;
   createdAt?: string;
   updatedAt?: string;
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Miembro, MiembroResponse, MiembroDetail } from '../models/miembro.model';
+import { Miembro, MiembroResponse, MiembroDetail, MiembroPaginatedResponse } from '../models/miembro.model';
 import {environment} from '../../../environments/environment';
 
 @Injectable({
@@ -14,6 +14,26 @@ export class MiembroService {
 
   getMiembros(): Observable<MiembroResponse> {
     return this.http.get<MiembroResponse>(`${this.apiUrl}/findall`);
+  }
+
+  getMiembrosPaged(
+    page: number = 0, 
+    size: number = 10, 
+    searchText: string = '', 
+    estado?: boolean, 
+    iglesiaNombre: string = 'all'
+  ): Observable<MiembroPaginatedResponse> {
+    let url = `${this.apiUrl}/findall/paged?page=${page}&size=${size}`;
+    if (searchText) {
+      url += `&searchText=${encodeURIComponent(searchText)}`;
+    }
+    if (estado !== undefined) {
+      url += `&estado=${estado}`;
+    }
+    if (iglesiaNombre && iglesiaNombre !== 'all') {
+      url += `&iglesiaNombre=${encodeURIComponent(iglesiaNombre)}`;
+    }
+    return this.http.get<MiembroPaginatedResponse>(url);
   }
 
   getMiembrosSinIglesia(): Observable<MiembroResponse> {

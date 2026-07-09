@@ -33,6 +33,14 @@ export class ParticipacionEventoService {
     return this.http.put<boolean>(`${this.apiUrl}/estado/${id}`, {});
   }
 
+  toggleEntregado(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/entregado/${id}`, {});
+  }
+
+  toggleEntregadoConCertificado(id: number, certificadoId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/entregado/${id}/${certificadoId}`, {});
+  }
+
   deleteParticipacion(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }

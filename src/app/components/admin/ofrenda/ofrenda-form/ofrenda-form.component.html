@@ -22,7 +22,9 @@
     <!-- Fecha Recaudacion -->
     <mat-form-field appearance="outline">
       <mat-label>Fecha de Recaudación / Pago</mat-label>
-      <input matInput type="date" formControlName="fechaRecaudacion">
+      <input matInput [matDatepicker]="picker" formControlName="fechaRecaudacion">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
       <mat-error *ngIf="ofrendaForm.get('fechaRecaudacion')?.hasError('required')">La fecha es obligatoria.</mat-error>
     </mat-form-field>
 

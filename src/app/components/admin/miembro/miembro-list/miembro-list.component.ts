@@ -10,14 +10,14 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { MiembroCreateComponent } from '../miembro-create/miembro-create.component';
 import { MiembroDetailComponent } from '../miembro-detail/miembro-detail.component';
 import { MiembroFormEditarComponent } from '../miembro-edit/miembro-edit.component';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+import { MatFormField } from '@angular/material/form-field';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -39,15 +39,13 @@ import autoTable from 'jspdf-autotable';
     MatDialogModule,
     MatCardModule,
     MatFormField,
-    MatInput,
-    MatLabel,
-    MatSuffix,
     MatPaginator,
     MatSort,
     MatSortHeader,
     MatTooltipModule,
     MatSelectModule,
     MatMenuModule,
+    MatDividerModule,
     ImageUrlPipe,
     HasPrivilegioDirective
   ],
@@ -61,9 +59,15 @@ export class MiembroListComponent implements OnInit {
   // Columnas actualizadas segun el mockup
   displayedColumns: string[] = ['miembro', 'contacto', 'iglesia', 'bautismo', 'estado', 'acciones'];
 
+  isAdmin = false;
   selectedIglesiaId: string = 'all';
   selectedEstado: string = 'all';
   searchText: string = '';
+
+  // Server-side pagination parameters
+  totalElements = 0;
+  pageSize = 10;
+  pageIndex = 0;
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -77,63 +81,33 @@ export class MiembroListComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.setupTableModifiers();
+    this.isAdmin = this.authService.isLoggedRolAdmin();
     this.loadMiembros();
-    this.loadIglesias();
-  }
-
-  private setupTableModifiers() {
-    // Custom filter predicate supporting search query, church name, and status
-    this.miembros.filterPredicate = (data: Miembro, filter: string) => {
-      const textQuery = this.searchText.trim().toLowerCase();
-      
-      const matchesText = !textQuery || (
-        (data.nombre || '') + ' ' +
-        (data.apellido || '') + ' ' +
-        (data.ci || '') + ' ' +
-        (data.celular || '') + ' ' +
-        (data.direccion || '')
-      ).toLowerCase().includes(textQuery);
-      
-      const matchesIglesia = this.selectedIglesiaId === 'all' || 
-        data.iglesiaNombre === this.selectedIglesiaId;
-      
-      const matchesEstado = this.selectedEstado === 'all' || 
-        (this.selectedEstado === 'active' && data.estado) ||
-        (this.selectedEstado === 'inactive' && !data.estado);
-        
-      return matchesText && matchesIglesia && matchesEstado;
-    };
-
-    // Custom sorting accessor supporting nested attributes
-    this.miembros.sortingDataAccessor = (item: Miembro, property: string) => {
-      switch (property) {
-        case 'miembro':
-          return (item.nombre || '').toLowerCase() + ' ' + (item.apellido || '').toLowerCase();
-        case 'contacto':
-          return item.celular || '';
-        case 'iglesia':
-          return (item.iglesiaNombre || '').toLowerCase();
-        case 'bautismo':
-          return item.fechaConvercion ? new Date(item.fechaConvercion).getTime() : 0;
-        case 'estado':
-          return item.estado ? 'activo' : 'inactivo';
-        default:
-          return (item as any)[property];
-      }
-    };
+    if (this.isAdmin) {
+      this.loadIglesias();
+    }
   }
 
   loadMiembros() {
-    this.miembroService.getMiembros().subscribe(response => {
-      const data = [...response.datos];
-      data.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      this.miembros.data = data;
-      this.applyFilters();
+    const estadoBool = this.selectedEstado === 'active' ? true : (this.selectedEstado === 'inactive' ? false : undefined);
+    
+    this.miembroService.getMiembrosPaged(
+      this.pageIndex, 
+      this.pageSize, 
+      this.searchText, 
+      estadoBool, 
+      this.selectedIglesiaId
+    ).subscribe({
+      next: (response) => {
+        if (response && response.datos) {
+          this.miembros.data = response.datos.content || [];
+          this.totalElements = response.datos.totalElements || 0;
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar miembros:', err);
+        this.messageSnackBar('Error al cargar la lista de miembros', 'error');
+      }
     });
   }
 
@@ -144,22 +118,24 @@ export class MiembroListComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    this.miembros.paginator = this.paginator;
     this.miembros.sort = this.sort;
   }
 
   applyFilters() {
-    // Force MatTableDataSource filter trigger
-    this.miembros.filter = '' + Math.random();
-    if (this.miembros.paginator) {
-      this.miembros.paginator.firstPage();
-    }
+    this.pageIndex = 0;
+    this.loadMiembros();
   }
 
   onSearchChange(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.searchText = filterValue;
     this.applyFilters();
+  }
+
+  onPageChange(event: any) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadMiembros();
   }
 
   formatDate(date: Date | null | undefined): string {

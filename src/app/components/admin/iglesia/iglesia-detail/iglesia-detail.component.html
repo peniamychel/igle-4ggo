@@ -1,17 +1,17 @@
-<div class="dialog-header">
-  <div class="header-title">
+<h2 mat-dialog-title class="dialog-header">
+  <div class="header-title-container">
     <div class="header-icon-circle">
       <mat-icon class="header-icon">church</mat-icon>
     </div>
-    <div>
-      <h2 mat-dialog-title>Ficha de la Iglesia</h2>
-      <p class="header-subtitle">{{ data.nombre }}</p>
+    <div class="header-text">
+      <h2>Ficha de la Iglesia</h2>
+      <p class="subtitle">{{ data.nombre }}</p>
     </div>
   </div>
-  <button mat-icon-button mat-dialog-close class="close-btn">
+  <button mat-icon-button (click)="closeDialog()" class="close-btn" type="button">
     <mat-icon>close</mat-icon>
   </button>
-</div>
+</h2>
 
 <mat-dialog-content class="dialog-content">
   <div class="loading-spinner-wrapper" *ngIf="loadingHistory">
@@ -19,29 +19,31 @@
   </div>
 
   <div *ngIf="!loadingHistory">
-    <!-- Profile Summary Banner -->
-    <div class="profile-banner-card">
-      <div class="photo-section" *ngIf="data.uriFoto">
-        <div class="photo-container">
-          <img [src]="data.uriFoto | imageUrl" [alt]="data.nombre" class="profile-photo">
+    <!-- Profile Summary Card -->
+    <div class="member-profile-card">
+      <div class="profile-main">
+        <div class="photo-section" *ngIf="data.uriFoto">
+          <div class="photo-container">
+            <img [src]="data.uriFoto | imageUrl" [alt]="data.nombre" class="profile-photo">
+          </div>
         </div>
-      </div>
-      <div class="photo-section" *ngIf="!data.uriFoto">
-        <div class="photo-placeholder">
-          <mat-icon style="font-size: 2.5rem; width: 40px; height: 40px;">church</mat-icon>
+        <div class="photo-section" *ngIf="!data.uriFoto">
+          <div class="photo-placeholder">
+            <mat-icon style="font-size: 2.5rem; width: 40px; height: 40px;">church</mat-icon>
+          </div>
         </div>
-      </div>
 
-      <div class="profile-summary-info">
-        <h3>{{ data.nombre }}</h3>
-        <div class="badges-row">
-          <span class="member-badge-ci" *ngIf="data.telefono">
-            <mat-icon class="badge-icon">phone</mat-icon>
-            {{ data.telefono }}
-          </span>
-          <span class="estado-pill" [ngClass]="data.estado ? 'activo' : 'inactivo'">
-            {{ data.estado ? 'Activa' : 'Inactiva' }}
-          </span>
+        <div class="profile-details">
+          <h3>{{ data.nombre }}</h3>
+          <div class="badges-row" style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+            <span class="member-badge-ci" *ngIf="data.telefono" style="font-size: 0.75rem; background: var(--bg-content); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; color: var(--text-secondary);">
+              <mat-icon style="font-size: 14px; width: 14px; height: 14px; color: var(--primary-color);">phone</mat-icon>
+              {{ data.telefono }}
+            </span>
+            <span class="estado-pill" [ngClass]="data.estado ? 'activo' : 'inactivo'">
+              {{ data.estado ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -241,6 +243,28 @@
   </div>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-flat-button color="primary" class="btn-close" mat-dialog-close>Cerrar</button>
+<mat-dialog-actions class="dialog-actions">
+  <!-- Left group: destructive / state actions -->
+  <div class="action-group-left">
+    <button mat-stroked-button class="btn-action-danger" (click)="deleteIglesia()" *appHasPrivilegio="'Escribir Iglesias'">
+      <mat-icon>delete</mat-icon>
+      <span>Eliminar</span>
+    </button>
+    <button mat-stroked-button class="btn-action-warning" (click)="toggleEstado()" *appHasPrivilegio="'Escribir Iglesias'">
+      <mat-icon>{{ data.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+      <span>{{ data.estado ? 'Desactivar' : 'Activar' }}</span>
+    </button>
+  </div>
+  
+  <!-- Right group: safe / view actions -->
+  <div class="action-group-right">
+    <button mat-stroked-button class="btn-action-primary" (click)="openEditDialog()" *appHasPrivilegio="'Escribir Iglesias'">
+      <mat-icon>edit</mat-icon>
+      <span>Editar iglesia</span>
+    </button>
+    <button mat-stroked-button class="btn-action-print" (click)="generatePDF()">
+      <mat-icon>picture_as_pdf</mat-icon>
+      <span>Imprimir PDF</span>
+    </button>
+  </div>
 </mat-dialog-actions>

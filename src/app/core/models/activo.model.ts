@@ -8,6 +8,8 @@ export interface Activo {
   fechaAdquisicion?: Date | string;
   iglesiaId: number;
   iglesiaNombre?: string;
+  codigo?: string;
+  uriFoto?: string;
 }
 
 export interface ActivoResponse {

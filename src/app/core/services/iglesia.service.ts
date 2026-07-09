@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Iglesia, IglesiaResponse, IglesiaDetail, IglesiasResponse } from '../models/iglesia.model';
+import { Iglesia, IglesiaDetail } from '../models/iglesia.model';
 import { ApiResponse } from '../models/interfaces/api.response';
 
 
@@ -67,9 +67,9 @@ export class IglesiaService {
    * @param id id de la iglesia
    * @returns true si se cambio el estado
    */
-  toggleEstado(id: number): Observable<boolean> {
+  toggleEstado(id: number): Observable<any> {
     const url = `${this.apiUrl}/estado/${id}`;
-    return this.http.put<boolean>(url, {});
+    return this.http.put<any>(url, {});
   }
 
   /**
@@ -99,6 +99,15 @@ export class IglesiaService {
 
   deleteFoto(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}/foto`);
+  }
+
+  updateOrden(ids: number[]): Observable<ApiResponse<void>> {
+    const url = `${this.apiUrl}/update-orden`;
+    return this.http.put<ApiResponse<void>>(url, ids);
+  }
+
+  deleteIglesia(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/delete/${id}`);
   }
 
 }

@@ -1,129 +1,301 @@
 <div class="container">
   
+  <!-- 1. Header -->
   <div class="header-section">
-    <div class="title-wrapper">
-      <div class="title-icon-circle">
-        <mat-icon class="header-icon">inventory_2</mat-icon>
-      </div>
-      <div>
-        <h2>Inventario de Activos y Bienes</h2>
-        <p class="subtitle">{{ dataSource.filteredData.length }} bienes registrados</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button mat-flat-button color="primary" class="btn-new-asset" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Nuevo Activo
-      </button>
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">inventory_2</mat-icon>
+        <span>Inventario de Activos y Bienes</span>
+      </h2>
+      <p class="subtitle-text">
+        Gestión y control del inventario oficial de la iglesia
+      </p>
     </div>
   </div>
 
-  <!-- Barra de Filtros y Búsqueda -->
-  <div class="filters-bar">
-    <div class="search-box">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre o descripción..." #searchInput>
-    </div>
+  <mat-tab-group>
     
-    <div class="select-filters" *ngIf="isAdmin">
-      <mat-form-field appearance="outline" class="filter-select">
-        <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
-          <mat-option value="all">Todas las iglesias</mat-option>
-          <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-  </div>
-
-  <div class="table-container">
-    <mat-table [dataSource]="dataSource" matSort>
-      
-      <!-- Nombre -->
-      <ng-container matColumnDef="nombre">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <div class="asset-info-cell">
-            <span class="asset-name">{{ row.nombre }}</span>
+    <!-- PANEL 1: REGISTRO DE BIENES -->
+    <mat-tab label="Registro de Bienes">
+      <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 16px;">
+        
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, descripción o código..." #searchInput>
           </div>
-        </mat-cell>
-      </ng-container>
+          
+          <div class="select-filters">
+            <!-- Iglesia (Visible solo para ADMIN) -->
+            <div *ngIf="isAdmin" class="filter-select">
+              <mat-form-field appearance="outline">
+                <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                  <mat-option value="all">Todas las iglesias</mat-option>
+                  <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
 
-      <!-- Descripcion -->
-      <ng-container matColumnDef="descripcion">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span class="asset-desc">{{ row.descripcion || 'Sin descripción' }}</span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Cantidad -->
-      <ng-container matColumnDef="cantidad">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Cantidad </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span class="asset-qty">{{ row.cantidad }} uds.</span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Estado Conservacion -->
-      <ng-container matColumnDef="estadoConservacion">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
-            {{ row.estadoConservacion }}
-          </span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Valor Estimado -->
-      <ng-container matColumnDef="valorEstimado">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span class="asset-val">{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Fecha Adquisicion -->
-      <ng-container matColumnDef="fechaAdquisicion">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Adquisición </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span>{{ formatDate(row.fechaAdquisicion) }}</span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Iglesia -->
-      <ng-container matColumnDef="iglesiaNombre">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <span>{{ row.iglesiaNombre || 'N/A' }}</span>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Acciones -->
-      <ng-container matColumnDef="acciones">
-        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="acciones-cell">
-          <button mat-icon-button color="primary" (click)="openEditDialog(row)" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="deleteActivo(row)" matTooltip="Eliminar">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-cell>
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell no-data-cell" colspan="8">
-          <div class="no-results">
-            <mat-icon>search_off</mat-icon>
-            <span>No se encontraron activos que coincidan con la búsqueda.</span>
+            <!-- Botón de Registro (Oculto para ADMIN) -->
+            <button mat-flat-button class="btn-action-primary" (click)="openCreateDialog()" *ngIf="!isAdmin">
+              <mat-icon>add</mat-icon>
+              Nuevo Activo
+            </button>
           </div>
-        </td>
-      </tr>
-    </mat-table>
+        </div>
 
-    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de activos"></mat-paginator>
-  </div>
+        <div class="table-container">
+          <mat-table [dataSource]="dataSource" matSort #mainSort="matSort">
+            
+            <!-- Foto -->
+            <ng-container matColumnDef="foto">
+              <mat-header-cell *matHeaderCellDef> Imagen </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <div class="thumbnail-container">
+                  <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" class="thumbnail-img" alt="Foto bien">
+                  <div *ngIf="!row.uriFoto" class="thumbnail-fallback">
+                    <mat-icon style="font-size: 20px; width: 20px; height: 20px;">inventory_2</mat-icon>
+                  </div>
+                </div>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Código Único -->
+            <ng-container matColumnDef="codigo">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="code-badge">{{ row.codigo || 'S/C' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-name">{{ row.nombre }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Descripcion -->
+            <ng-container matColumnDef="descripcion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-desc">{{ row.descripcion || 'Sin descripción' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Cantidad -->
+            <ng-container matColumnDef="cantidad">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Cantidad </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-qty">{{ row.cantidad }} uds.</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Estado Conservacion -->
+            <ng-container matColumnDef="estadoConservacion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+                  {{ row.estadoConservacion }}
+                </span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Valor Estimado -->
+            <ng-container matColumnDef="valorEstimado">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-val">{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Fecha Adquisicion -->
+            <ng-container matColumnDef="fechaAdquisicion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Registro </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Iglesia -->
+            <ng-container matColumnDef="iglesiaNombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.iglesiaNombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+              <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="acciones-cell">
+                <button mat-icon-button color="accent" (click)="printLabel(row)" matTooltip="Imprimir Código Único">
+                  <mat-icon>print</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" (click)="openEditDialog(row)" matTooltip="Editar" *ngIf="!isAdmin">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteActivo(row)" matTooltip="Eliminar" *ngIf="!isAdmin">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell no-data-cell" colspan="10">
+                <div class="no-results">
+                  <mat-icon>search_off</mat-icon>
+                  <span>No se encontraron activos que coincidan con la búsqueda.</span>
+                </div>
+              </td>
+            </tr>
+          </mat-table>
+
+          <mat-paginator #mainPaginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de activos"></mat-paginator>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- PANEL 2: INFORMES DE INVENTARIO -->
+    <mat-tab label="Informes de Inventario">
+      <div class="reports-panel">
+        
+        <div class="reports-filter-card">
+          <div class="reports-filters">
+            
+            <!-- Iglesia (Solo ADMIN puede cambiarlo) -->
+            <mat-form-field appearance="outline" style="width: 250px; margin-bottom: 0;" *ngIf="isAdmin">
+              <mat-label>Filtrar por Sede</mat-label>
+              <mat-select [(value)]="reportSelectedIglesiaId" (selectionChange)="generarInforme()" [disabled]="!isAdmin">
+                <mat-option value="all">Todas las iglesias</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Estado de Conservación -->
+            <mat-form-field appearance="outline" style="width: 220px; margin-bottom: 0;">
+              <mat-label>Estado de Conservación</mat-label>
+              <mat-select [(value)]="reportEstadoConservacion" (selectionChange)="generarInforme()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="BUENO">Bueno</mat-option>
+                <mat-option value="REGULAR">Regular</mat-option>
+                <mat-option value="MALO">Malo</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Texto de búsqueda -->
+            <mat-form-field appearance="outline" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+              <mat-label>Buscar en reporte</mat-label>
+              <input matInput [(ngModel)]="reportSearchText" (keyup)="generarInforme()" placeholder="Buscar por nombre, código o descripción...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+          </div>
+
+          <div class="reports-actions-row">
+            <button mat-raised-button class="btn-pdf" (click)="descargarPDF()" [disabled]="reportDataSource.data.length === 0">
+              <mat-icon>picture_as_pdf</mat-icon> Descargar PDF
+            </button>
+            <button mat-raised-button class="btn-excel" (click)="descargarExcel()" [disabled]="reportDataSource.data.length === 0">
+              <mat-icon>grid_on</mat-icon> Descargar Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla Previa del Reporte -->
+        <div class="table-container">
+          <mat-table [dataSource]="reportDataSource" matSort #reportSort="matSort">
+            
+            <!-- Código -->
+            <ng-container matColumnDef="codigo">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="code-badge">{{ row.codigo || 'S/C' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-name">{{ row.nombre }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Descripcion -->
+            <ng-container matColumnDef="descripcion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.descripcion || 'Sin descripción' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Cantidad -->
+            <ng-container matColumnDef="cantidad">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Cant. </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.cantidad }} uds.</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Estado Conservacion -->
+            <ng-container matColumnDef="estadoConservacion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+                  {{ row.estadoConservacion }}
+                </span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Valor Estimado -->
+            <ng-container matColumnDef="valorEstimado">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Fecha Adquisicion -->
+            <ng-container matColumnDef="fechaAdquisicion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Adquisición </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Iglesia -->
+            <ng-container matColumnDef="iglesiaNombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.iglesiaNombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="reportDisplayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: reportDisplayedColumns;"></mat-row>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell no-data-cell" colspan="8">
+                <div class="no-results">
+                  <mat-icon>info</mat-icon>
+                  <span>No hay datos de inventario para mostrar con los filtros seleccionados.</span>
+                </div>
+              </td>
+            </tr>
+          </mat-table>
+
+          <mat-paginator #reportPaginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de reportes"></mat-paginator>
+        </div>
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
 </div>
+

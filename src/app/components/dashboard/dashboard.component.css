@@ -159,6 +159,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .chart-card-header {
@@ -184,10 +187,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Ngx-charts deep elements adjustments */
 ::ng-deep .ngx-charts {
+  max-width: 100% !important;
+  overflow: hidden !important;
+
   text {
     fill: #697386 !important;
     font-weight: 500;
@@ -196,6 +206,10 @@
   .gridline-path {
     stroke: #f1f3f7 !important;
   }
+}
+
+::ng-deep .ngx-charts svg {
+  max-width: 100% !important;
 }
 
 /* Area Chart Wrapper Specific Styling */
@@ -258,8 +272,12 @@
 /* Bottom widgets: Recent activity & Upcoming events */
 .bottom-widgets-row {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
+}
+
+.bottom-widgets-row.has-events {
+  grid-template-columns: 1.6fr 1fr;
 }
 
 .bottom-widget-card {
@@ -650,7 +668,16 @@
   font-weight: 500;
 }
 
-/* Responsive grid adjustments */
+/* Calendar section (embedded in dashboard) */
+.calendar-dashboard-section {
+  background: #ffffff;
+  border: 1px solid #e3e8ee;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+/* Responsive grid and mobile layout adjustments */
 @media (max-width: 1200px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -661,20 +688,404 @@
 }
 
 @media (max-width: 900px) {
-  .bottom-widgets-row {
+  .bottom-widgets-row,
+  .bottom-widgets-row.has-events {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .dashboard-header-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions mat-form-field {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  .welcome-title {
+    font-size: 1.6rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .kpi-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .kpi-value {
+    font-size: 1.8rem;
+  }
+
+  .kpi-icon-container {
+    width: 36px;
+    height: 36px;
+  }
+
+  .kpi-icon-container mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .chart-card-wrapper {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .donut-chart-flex {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .donut-chart-container {
+    width: 100%;
+    max-width: 220px;
+  }
+
+  .donut-legend-container {
+    width: 100%;
+  }
+
+  .calendar-dashboard-section {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .bottom-widget-card {
+    padding: 16px;
+    border-radius: 14px;
+    max-height: none;
+  }
+
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .activity-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #f1f3f7;
+    padding-top: 8px;
+  }
+
+  .activity-actions button {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;
   }
-  .dashboard-container {
-    padding: 16px;
-  }
+
   .welcome-title {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
+  }
+
+  .legend-item {
+    grid-template-columns: 12px 1fr auto auto;
+    gap: 6px;
+    font-size: 0.78rem;
   }
 }
 
+/* ========================================
+   CERT STATS BOXES
+   ======================================== */
+.cert-stats-box {
+  text-align: center;
+  padding: 20px 30px;
+  background: rgba(124, 77, 255, 0.06);
+  border-radius: 16px;
+  border: 1px solid rgba(124, 77, 255, 0.12);
+  flex: 1;
+}
+
+.cert-stats-box.delivered-box {
+  background: rgba(0, 191, 165, 0.06);
+  border-color: rgba(0, 191, 165, 0.12);
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   (using :host-context because .dark-theme is on <html>, outside this component)
+   ======================================== */
+
+:host-context(.dark-theme) .dashboard-container {
+  background-color: var(--bg-app, #0c0c0f);
+}
+
+:host-context(.dark-theme) .welcome-title {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .welcome-subtitle {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .kpi-card {
+  background: var(--card-bg, #16161c);
+  border: 1px solid var(--card-border, #23232c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .kpi-card:hover {
+  border-color: rgba(229, 107, 247, 0.4);
+  box-shadow: 0 10px 24px rgba(229, 107, 247, 0.08);
+}
+
+:host-context(.dark-theme) .kpi-label {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .kpi-value {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .kpi-subtext {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .trend-compare {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .kpi-icon-container.purple-theme {
+  background-color: rgba(124, 77, 255, 0.15);
+  color: #a78bfa;
+}
+
+:host-context(.dark-theme) .chart-card-wrapper {
+  background: var(--card-bg, #16161c);
+  border: 1px solid var(--card-border, #23232c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .chart-title {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .chart-subtitle {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .cert-stats-box {
+  background: rgba(124, 77, 255, 0.12);
+  border-color: rgba(124, 77, 255, 0.2);
+}
+
+:host-context(.dark-theme) .cert-stats-box.delivered-box {
+  background: rgba(0, 191, 165, 0.12);
+  border-color: rgba(0, 191, 165, 0.2);
+}
+
+:host-context(.dark-theme) .calendar-dashboard-section {
+  background: var(--card-bg, #16161c);
+  border-color: var(--card-border, #23232c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .bottom-widget-card {
+  background: var(--card-bg, #16161c);
+  border: 1px solid var(--card-border, #23232c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host-context(.dark-theme) .widget-title {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .tabs-container {
+  border-bottom-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .tab-button {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .tab-button:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .tab-button.active {
+  color: #e56bf7;
+  background-color: rgba(229, 107, 247, 0.1);
+}
+
+:host-context(.dark-theme) .activity-item {
+  border-color: var(--border-color, #23232c);
+  background: var(--card-bg, #16161c);
+}
+
+:host-context(.dark-theme) .activity-item:hover {
+  border-color: rgba(229, 107, 247, 0.4);
+}
+
+:host-context(.dark-theme) .member-name {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .member-ci {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .route-church {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .route-church.dest {
+  color: #e56bf7;
+}
+
+:host-context(.dark-theme) .activity-route mat-icon {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .activity-reason {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .certificado-details {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .cert-event {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .status-badge.pending {
+  background-color: rgba(124, 77, 255, 0.15);
+}
+
+:host-context(.dark-theme) .status-badge.delivered {
+  background-color: rgba(0, 191, 165, 0.15);
+}
+
+:host-context(.dark-theme) .activity-date {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .no-activity-placeholder {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .no-activity-placeholder mat-icon {
+  color: var(--border-color, #3a3a4a);
+}
+
+:host-context(.dark-theme) .btn-reject {
+  background-color: transparent;
+  color: var(--text-secondary, #90a4ae);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .btn-reject:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary, #e3e2e6);
+  border-color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .event-row-card {
+  border: 1px solid var(--card-border, #23232c);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+:host-context(.dark-theme) .event-row-card:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(229, 107, 247, 0.3);
+}
+
+:host-context(.dark-theme) .event-date-card {
+  background: linear-gradient(135deg, #7c4dff 0%, #6200ea 100%);
+  border-color: rgba(124, 77, 255, 0.3);
+}
+
+:host-context(.dark-theme) .day-number {
+  color: #ffffff;
+}
+
+:host-context(.dark-theme) .month-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+:host-context(.dark-theme) .event-name-title {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .event-location-text {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .event-time-text {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .event-type-pill {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .event-parts-text {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .legend-item {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .legend-name {
+  color: var(--text-secondary, #90a4ae);
+}
+
+:host-context(.dark-theme) .legend-value {
+  color: var(--text-primary, #e3e2e6);
+}
+
+:host-context(.dark-theme) .legend-percent {
+  color: var(--text-secondary, #90a4ae);
+}
+
+/* ngx-charts dark mode overrides need ::ng-deep */
+:host-context(.dark-theme) ::ng-deep .ngx-charts text {
+  fill: var(--text-secondary, #90a4ae) !important;
+}
+
+:host-context(.dark-theme) ::ng-deep .ngx-charts .gridline-path {
+  stroke: var(--border-color, #23232c) !important;
+}
+
+:host-context(.dark-theme) ::ng-deep .ngx-charts .tick text {
+  fill: var(--text-secondary, #90a4ae) !important;
+}
+
+:host-context(.dark-theme) ::ng-deep .ngx-charts .axis-label {
+  fill: var(--text-primary, #e3e2e6) !important;
+}

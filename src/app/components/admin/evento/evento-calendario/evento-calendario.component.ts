@@ -74,7 +74,13 @@ export class EventoCalendarioComponent implements OnInit {
 
   loadDataAndGenerate() {
     this.eventoService.getEventos().subscribe(resEventos => {
-      this.events = Array.isArray(resEventos.datos) ? resEventos.datos : [];
+      const rawEvents = Array.isArray(resEventos.datos) ? resEventos.datos : [];
+      if (!this.isAdmin) {
+        const currentChurchId = this.authService.getCurrentIglesiaId();
+        this.events = rawEvents.filter(e => !e.iglesiaId || e.iglesiaId === currentChurchId);
+      } else {
+        this.events = rawEvents;
+      }
       
       this.iglesiaService.getIglesias().subscribe(resIglesias => {
         this.iglesias = Array.isArray(resIglesias.datos) ? resIglesias.datos : [];

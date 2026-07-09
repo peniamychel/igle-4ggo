@@ -35,4 +35,14 @@ export class ActivoService {
   deleteActivo(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
+
+  uploadFoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/${id}/foto`, formData);
+  }
+
+  deleteFoto(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}/foto`);
+  }
 }

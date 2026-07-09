@@ -14,7 +14,14 @@ export class ImageUrlPipe implements PipeTransform {
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) {
       return value;
     }
-    const cleanPath = value.startsWith('/') ? value : `/uploads/personas/${value}`;
+    let cleanPath = '';
+    if (value.startsWith('/')) {
+      cleanPath = value;
+    } else if (value.startsWith('activos/') || value.startsWith('iglesias/') || value.startsWith('miembros/') || value.startsWith('cargos/') || value.startsWith('cartas-traspaso/')) {
+      cleanPath = `/uploads/${value}`;
+    } else {
+      cleanPath = `/uploads/personas/${value}`;
+    }
     return `${environment.apiUrl}${cleanPath}`;
   }
 }
