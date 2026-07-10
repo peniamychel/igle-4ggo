@@ -286,7 +286,7 @@ export class DashboardComponent implements OnInit {
         ubicacion: e.ubicacion || 'Templo Central',
         tipo: e.tipoEventoDto?.nombre || 'General',
         fechaInicio: new Date(e.fechaInicio!),
-        participantes: Math.floor(Math.random() * 25) + 5
+        participantes: null
       }))
       .sort((a, b) => a.fechaInicio.getTime() - b.fechaInicio.getTime())
       .slice(0, 4);
@@ -372,8 +372,7 @@ export class DashboardComponent implements OnInit {
       if (idx === currentMonthIdx) {
         return { name: m, value: members.length };
       }
-      const factor = (idx + 1) / (currentMonthIdx + 1);
-      return { name: m, value: Math.round(members.length * factor) };
+      return { name: m, value: 0 };
     });
 
     this.membresiaGrowthData = [

@@ -44,7 +44,71 @@
           </div>
         </div>
 
-        <div class="table-container">
+        <!-- Grid de KPIs / Resumen de Inventario en el Registro de Bienes -->
+        <div class="report-kpis-grid" style="margin-top: 4px;">
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-purple">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainTotalCount }}</span>
+              <span class="rkpi-label">Tipos de Bienes</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-blue">
+              <mat-icon>tag</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainTotalQty }}</span>
+              <span class="rkpi-label">Unidades Totales</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-green">
+              <mat-icon>thumb_up</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainBuenoQty }}</span>
+              <span class="rkpi-label">Buenos</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-orange">
+              <mat-icon>thumbs_up_down</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainRegularQty }}</span>
+              <span class="rkpi-label">Regulares</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-red">
+              <mat-icon>thumb_down</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainMaloQty }}</span>
+              <span class="rkpi-label">Malos</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-slate">
+              <mat-icon>cancel</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainBajaQty }}</span>
+              <span class="rkpi-label">Dados de Baja</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA ESCRITORIO: Tabla -->
+        <div class="table-container" *ngIf="!isMobile">
           <mat-table [dataSource]="dataSource" matSort #mainSort="matSort">
             
             <!-- Foto -->
@@ -130,23 +194,39 @@
             <ng-container matColumnDef="acciones">
               <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
               <mat-cell *matCellDef="let row" class="acciones-cell">
-                <button mat-icon-button color="accent" (click)="printLabel(row)" matTooltip="Imprimir Código Único">
+                <button mat-icon-button class="mac-mini-btn mac-btn-print"
+                        (click)="printLabel(row); $event.stopPropagation()"
+                        matTooltip="Imprimir Código Único">
                   <mat-icon>print</mat-icon>
                 </button>
-                <button mat-icon-button color="primary" (click)="openEditDialog(row)" matTooltip="Editar" *ngIf="!isAdmin">
+                <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                        (click)="openEditDialog(row); $event.stopPropagation()"
+                        matTooltip="Editar"
+                        *ngIf="!isAdmin">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteActivo(row)" matTooltip="Eliminar" *ngIf="!isAdmin">
+                <button mat-icon-button class="mac-mini-btn"
+                        [class.mac-btn-reactivate]="row.estadoConservacion === 'BAJA'"
+                        [class.mac-btn-archive]="row.estadoConservacion !== 'BAJA'"
+                        (click)="toggleBaja(row); $event.stopPropagation()"
+                        [matTooltip]="row.estadoConservacion === 'BAJA' ? 'Reactivar Activo' : 'Dar de Baja'"
+                        *ngIf="!isAdmin">
+                  <mat-icon>{{ row.estadoConservacion === 'BAJA' ? 'check_circle' : 'archive' }}</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-delete"
+                        (click)="deleteActivo(row); $event.stopPropagation()"
+                        matTooltip="Eliminar"
+                        *ngIf="!isAdmin">
                   <mat-icon>delete</mat-icon>
                 </button>
               </mat-cell>
             </ng-container>
 
             <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
             <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell no-data-cell" colspan="10">
+              <td class="mat-cell no-data-cell" colspan="5">
                 <div class="no-results">
                   <mat-icon>search_off</mat-icon>
                   <span>No se encontraron activos que coincidan con la búsqueda.</span>
@@ -157,8 +237,86 @@
 
           <mat-paginator #mainPaginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de activos"></mat-paginator>
         </div>
+
+        <!-- VISTA MÓVIL: Cards -->
+        <div class="mobile-cards-list" *ngIf="isMobile">
+          <!-- Sin resultados -->
+          <div class="no-results mobile-no-results" *ngIf="dataSource.filteredData.length === 0">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron activos que coincidan con la búsqueda.</span>
+          </div>
+
+          <!-- Card por cada activo -->
+          <div class="mobile-asset-card clickable-card" *ngFor="let row of dataSource.filteredData" (click)="openDetailDialog(row)">
+            <!-- Header de la card: imagen + nombre + badge -->
+            <div class="mac-header">
+              <div class="mac-avatar">
+                <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" alt="Foto bien" class="mac-img">
+                <mat-icon *ngIf="!row.uriFoto" class="mac-icon-placeholder">inventory_2</mat-icon>
+              </div>
+              <div class="mac-title-block">
+                <span class="mac-name">{{ row.nombre }}</span>
+                <span class="mac-code">{{ row.codigo || 'Sin código' }}</span>
+              </div>
+              <span class="mac-state-pill state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+                {{ row.estadoConservacion }}
+              </span>
+            </div>
+
+            <!-- Cuerpo: detalles en grid -->
+            <div class="mac-body">
+              <div class="mac-detail-item" *ngIf="row.descripcion">
+                <mat-icon class="mac-detail-icon">notes</mat-icon>
+                <span class="mac-detail-text">{{ row.descripcion }}</span>
+              </div>
+              <div class="mac-meta-row">
+                <div class="mac-meta-item">
+                  <mat-icon class="mac-detail-icon">tag</mat-icon>
+                  <span>{{ row.cantidad }} uds.</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="row.valorEstimado">
+                  <mat-icon class="mac-detail-icon">payments</mat-icon>
+                  <span>{{ row.valorEstimado }} Bs.</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="row.fechaAdquisicion">
+                  <mat-icon class="mac-detail-icon">event</mat-icon>
+                  <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="isAdmin && row.iglesiaNombre">
+                  <mat-icon class="mac-detail-icon">church</mat-icon>
+                  <span>{{ row.iglesiaNombre }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer: acciones en miniatura -->
+            <div class="mac-footer" (click)="$event.stopPropagation()">
+              <div class="mac-actions-right">
+                <button mat-icon-button class="mac-mini-btn mac-btn-print" (click)="printLabel(row)" matTooltip="Imprimir Código">
+                  <mat-icon>print</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-edit" (click)="openEditDialog(row)" *ngIf="!isAdmin" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        class="mac-mini-btn" 
+                        [class.mac-btn-reactivate]="row.estadoConservacion === 'BAJA'"
+                        [class.mac-btn-archive]="row.estadoConservacion !== 'BAJA'"
+                        (click)="toggleBaja(row)" 
+                        *ngIf="!isAdmin"
+                        [matTooltip]="row.estadoConservacion === 'BAJA' ? 'Reactivar' : 'Dar de Baja'">
+                  <mat-icon>{{ row.estadoConservacion === 'BAJA' ? 'check_circle' : 'archive' }}</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-delete" (click)="deleteActivo(row)" *ngIf="!isAdmin" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </mat-tab>
+
 
     <!-- PANEL 2: INFORMES DE INVENTARIO -->
     <mat-tab label="Informes de Inventario">
@@ -196,7 +354,10 @@
 
           </div>
 
-          <div class="reports-actions-row">
+          <div class="reports-actions-row" *ngIf="canPrintReport()">
+            <button mat-flat-button color="accent" class="btn-print-preview" (click)="imprimirVistaPrevia()" [disabled]="reportDataSource.data.length === 0">
+              <mat-icon>print</mat-icon> Imprimir Reporte
+            </button>
             <button mat-raised-button class="btn-pdf" (click)="descargarPDF()" [disabled]="reportDataSource.data.length === 0">
               <mat-icon>picture_as_pdf</mat-icon> Descargar PDF
             </button>
@@ -206,90 +367,120 @@
           </div>
         </div>
 
-        <!-- Tabla Previa del Reporte -->
-        <div class="table-container">
-          <mat-table [dataSource]="reportDataSource" matSort #reportSort="matSort">
-            
-            <!-- Código -->
-            <ng-container matColumnDef="codigo">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span class="code-badge">{{ row.codigo || 'S/C' }}</span>
-              </mat-cell>
-            </ng-container>
+        <!-- CASO 1: Admin no ha seleccionado una iglesia (Alerta/Placeholder) -->
+        <div class="report-select-alert-card" *ngIf="!canPrintReport()">
+          <mat-icon class="alert-icon">church</mat-icon>
+          <h3>Seleccione una Iglesia Sede</h3>
+          <p>
+            Para garantizar la consistencia en el control y firmas del inventario, las impresiones y reportes solo pueden generarse por una iglesia a la vez. Por favor, elija una sede en el filtro superior.
+          </p>
+        </div>
 
-            <!-- Nombre -->
-            <ng-container matColumnDef="nombre">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span class="asset-name">{{ row.nombre }}</span>
-              </mat-cell>
-            </ng-container>
+        <!-- CASO 2: Reporte generado (Vista Resumen + Vista Previa A4) -->
+        <div class="report-results-wrapper" *ngIf="canPrintReport()">
+          
+          <!-- Cabecera de la Vista Previa -->
+          <div class="preview-title-bar">
+            <mat-icon class="icon-subtle">visibility</mat-icon>
+            <h3>Vista Previa del Reporte de Impresión</h3>
+            <span class="preview-hint">(Simulación de hoja física a imprimir)</span>
+          </div>
 
-            <!-- Descripcion -->
-            <ng-container matColumnDef="descripcion">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span>{{ row.descripcion || 'Sin descripción' }}</span>
-              </mat-cell>
-            </ng-container>
+          <!-- SIMULACIÓN DE HOJA DE IMPRESIÓN (A4/Carta) -->
+          <div class="print-paper-sheet" id="print-section">
+            <!-- Encabezado Membretado Oficial -->
+            <div class="pps-header">
+              <img src="/logo.png" class="pps-logo" alt="Logo MCMM">
+              <div class="pps-header-text">
+                <h1 class="pps-org-name">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</h1>
+                <p class="pps-doc-title">REPORTE DETALLADO DE INVENTARIO Y BIENES MATERIALES</p>
+              </div>
+            </div>
 
-            <!-- Cantidad -->
-            <ng-container matColumnDef="cantidad">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Cant. </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span>{{ row.cantidad }} uds.</span>
-              </mat-cell>
-            </ng-container>
+            <hr class="pps-divider">
 
-            <!-- Estado Conservacion -->
-            <ng-container matColumnDef="estadoConservacion">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
-                  {{ row.estadoConservacion }}
-                </span>
-              </mat-cell>
-            </ng-container>
+            <!-- Metadata del Reporte -->
+            <div class="pps-meta-grid">
+              <div class="pps-meta-item">
+                <strong>Iglesia Sede:</strong> <span>{{ getNombreIglesiaReporte() }}</span>
+              </div>
+              <div class="pps-meta-item">
+                <strong>Fecha de Generación:</strong> <span>{{ formatDate(todayDate) }}</span>
+              </div>
+              <div class="pps-meta-item">
+                <strong>Estado Filtro:</strong> <span>{{ reportEstadoConservacion === 'all' ? 'Todos los estados' : reportEstadoConservacion }}</span>
+              </div>
+              <div class="pps-meta-item">
+                <strong>Total Registros:</strong> <span>{{ reportTotalCount }} activos ({{ reportTotalQty }} uds.)</span>
+              </div>
+            </div>
 
-            <!-- Valor Estimado -->
-            <ng-container matColumnDef="valorEstimado">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span>{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
-              </mat-cell>
-            </ng-container>
+            <!-- Resumen Formal del Inventario dentro de la Hoja -->
+            <div class="pps-formal-summary">
+              <div class="pps-summary-title">RESUMEN GENERAL DEL INVENTARIO</div>
+              <table class="pps-summary-table">
+                <tr>
+                  <td><strong>Tipos de Bienes:</strong> {{ reportTotalCount }} regs.</td>
+                  <td><strong>Unidades Totales:</strong> {{ reportTotalQty }} uds.</td>
+                  <td><strong>Buenos:</strong> {{ reportBuenoQty }} uds.</td>
+                </tr>
+                <tr>
+                  <td><strong>Regulares:</strong> {{ reportRegularQty }} uds.</td>
+                  <td><strong>Malos:</strong> {{ reportMaloQty }} uds.</td>
+                  <td><strong>Dados de Baja:</strong> {{ reportBajaQty }} uds.</td>
+                </tr>
+              </table>
+            </div>
 
-            <!-- Fecha Adquisicion -->
-            <ng-container matColumnDef="fechaAdquisicion">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Adquisición </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span>{{ formatDate(row.fechaAdquisicion) }}</span>
-              </mat-cell>
-            </ng-container>
+            <!-- Tabla del reporte -->
+            <table class="pps-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Bien / Activo</th>
+                  <th>Descripción</th>
+                  <th class="text-center">Cant.</th>
+                  <th>Conservación</th>
+                  <th class="text-right">Valor Est.</th>
+                  <th>Fecha Reg.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of reportDataSource.data">
+                  <td class="code-col">{{ item.codigo || 'S/C' }}</td>
+                  <td class="name-col">{{ item.nombre }}</td>
+                  <td class="desc-col">{{ item.descripcion || 'Sin descripción' }}</td>
+                  <td class="qty-col text-center">{{ item.cantidad }} uds.</td>
+                  <td class="state-col">
+                    <span class="pps-badge" [ngClass]="item.estadoConservacion?.toLowerCase()">
+                      {{ item.estadoConservacion }}
+                    </span>
+                  </td>
+                  <td class="val-col text-right">{{ item.valorEstimado ? (item.valorEstimado + ' Bs.') : 'N/A' }}</td>
+                  <td class="date-col">{{ formatDate(item.fechaAdquisicion) }}</td>
+                </tr>
+                <tr *ngIf="reportDataSource.data.length === 0">
+                  <td colspan="7" class="pps-empty-row">
+                    No se encontraron bienes en el inventario con los filtros seleccionados.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-            <!-- Iglesia -->
-            <ng-container matColumnDef="iglesiaNombre">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                <span>{{ row.iglesiaNombre || 'N/A' }}</span>
-              </mat-cell>
-            </ng-container>
-
-            <mat-header-row *matHeaderRowDef="reportDisplayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: reportDisplayedColumns;"></mat-row>
-
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell no-data-cell" colspan="8">
-                <div class="no-results">
-                  <mat-icon>info</mat-icon>
-                  <span>No hay datos de inventario para mostrar con los filtros seleccionados.</span>
-                </div>
-              </td>
-            </tr>
-          </mat-table>
-
-          <mat-paginator #reportPaginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de reportes"></mat-paginator>
+            <!-- Firmas al pie del reporte -->
+            <div class="pps-signatures-row">
+              <div class="pps-sig-box">
+                <div class="pps-sig-line"></div>
+                <span class="pps-sig-name">Tesorero / Diácono Responsable</span>
+                <span class="pps-sig-desc">Inventariador</span>
+              </div>
+              <div class="pps-sig-box">
+                <div class="pps-sig-line"></div>
+                <span class="pps-sig-name">Visto Bueno - Pastor Sede</span>
+                <span class="pps-sig-desc">Firma Autorizada</span>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -298,4 +489,5 @@
   </mat-tab-group>
 
 </div>
+
 

@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../core/services/security/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login-page',
@@ -44,7 +45,7 @@ export class LoginPageComponent {
 
   isDarkMode = this.themeService.isDarkMode;
 
-  demoAccounts = [
+  demoAccounts = environment.production ? [] : [
     {
       username: 'admin',
       password: '123456',

@@ -238,7 +238,8 @@
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e3e8ee);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mat-table {

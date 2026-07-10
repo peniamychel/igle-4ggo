@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +21,8 @@ import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { ActivoFormComponent } from '../activo-form/activo-form.component';
+import { ActivoDetailComponent } from '../activo-detail/activo-detail.component';
+import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -46,18 +48,21 @@ import { FormsModule } from '@angular/forms';
     MatTabsModule,
     MatTooltipModule,
     ImageUrlPipe,
-    FormsModule
+    FormsModule,
+    ActivoDetailComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './activo-list.component.html',
   styleUrls: ['./activo-list.component.css']
 })
 export class ActivoListComponent implements OnInit {
-  displayedColumns: string[] = ['foto', 'codigo', 'nombre', 'descripcion', 'cantidad', 'estadoConservacion', 'valorEstimado', 'fechaAdquisicion', 'iglesiaNombre', 'acciones'];
+  displayedColumns: string[] = ['foto', 'nombre', 'cantidad', 'estadoConservacion', 'acciones'];
   dataSource = new MatTableDataSource<Activo>([]);
   iglesias: Iglesia[] = [];
   selectedIglesiaId: string = 'all';
   isAdmin: boolean = false;
   searchText: string = '';
+  isMobile: boolean = false;
 
   // Panel 2: Reportes
   reportDataSource = new MatTableDataSource<Activo>([]);
@@ -65,6 +70,23 @@ export class ActivoListComponent implements OnInit {
   reportEstadoConservacion: string = 'all';
   reportSearchText: string = '';
   reportDisplayedColumns: string[] = ['codigo', 'nombre', 'descripcion', 'cantidad', 'estadoConservacion', 'valorEstimado', 'fechaAdquisicion', 'iglesiaNombre'];
+
+  // Resumen del Informe
+  reportTotalCount: number = 0;
+  reportTotalQty: number = 0;
+  reportBuenoQty: number = 0;
+  reportRegularQty: number = 0;
+  reportMaloQty: number = 0;
+  reportBajaQty: number = 0;
+  todayDate: Date = new Date();
+
+  // Resumen Panel 1 (Registro de Bienes)
+  mainTotalCount: number = 0;
+  mainTotalQty: number = 0;
+  mainBuenoQty: number = 0;
+  mainRegularQty: number = 0;
+  mainMaloQty: number = 0;
+  mainBajaQty: number = 0;
 
   @ViewChild('mainPaginator') paginator!: MatPaginator;
   @ViewChild('mainSort') sort!: MatSort;
@@ -82,6 +104,7 @@ export class ActivoListComponent implements OnInit {
 
   ngOnInit() {
     this.isAdmin = this.authService.isLoggedRolAdmin();
+    this.isMobile = window.innerWidth < 768;
     
     // Si no es admin, fijamos la iglesia del usuario en el filtro de reportes
     if (!this.isAdmin) {
@@ -95,6 +118,11 @@ export class ActivoListComponent implements OnInit {
     this.loadIglesias();
     this.setupFilter();
     this.generarInforme();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent) {
+    this.isMobile = (event.target as Window).innerWidth < 768;
   }
 
   setupFilter() {
@@ -146,6 +174,17 @@ export class ActivoListComponent implements OnInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.calcularResumenPrincipal();
+  }
+
+  calcularResumenPrincipal() {
+    const list = this.dataSource.filteredData || [];
+    this.mainTotalCount = list.length;
+    this.mainTotalQty = list.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    this.mainBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    this.mainRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    this.mainMaloQty = list.filter(item => item.estadoConservacion === 'MALO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    this.mainBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').reduce((sum, item) => sum + (item.cantidad || 0), 0);
   }
 
   onSearchChange(event: Event) {
@@ -190,15 +229,75 @@ export class ActivoListComponent implements OnInit {
     });
   }
 
+  openDetailDialog(activo: Activo) {
+    const dialogRef = this.dialog.open(ActivoDetailComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: activo,
+      panelClass: 'custom-dialog-container'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'print') {
+        this.printLabel(activo);
+      }
+    });
+  }
+
+  toggleBaja(activo: Activo) {
+    if (this.isAdmin) return;
+    const isBaja = activo.estadoConservacion === 'BAJA';
+    const actionText = isBaja ? 'reactivar' : 'dar de baja';
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: isBaja ? 'Reactivar Activo' : 'Dar de Baja Activo',
+        message: `¿Está seguro que desea <strong>${actionText}</strong> el activo "<strong>${activo.nombre}</strong>"?`,
+        confirmText: isBaja ? 'Reactivar' : 'Dar de Baja',
+        cancelText: 'Cancelar',
+        type: isBaja ? 'info' : 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed && activo.id) {
+        const updatedActivo = { 
+          ...activo, 
+          estadoConservacion: isBaja ? 'BUENO' : 'BAJA' 
+        };
+        this.activoService.updateActivo(updatedActivo).subscribe(() => {
+          this.loadActivos();
+          this.generarInforme();
+          this.snackBar.open(`Activo ${isBaja ? 'reactivado' : 'dado de baja'} exitosamente.`, 'Cerrar', { duration: 3000 });
+        });
+      }
+    });
+  }
+
   deleteActivo(activo: Activo) {
     if (this.isAdmin) return; // Guard
-    if (activo.id && confirm(`¿Está seguro que desea eliminar el activo "${activo.nombre}"?`)) {
-      this.activoService.deleteActivo(activo.id).subscribe(() => {
-        this.loadActivos();
-        this.generarInforme();
-        this.snackBar.open('Activo eliminado exitosamente.', 'Cerrar', { duration: 3000 });
-      });
-    }
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Eliminar Activo',
+        message: `¿Está seguro que desea <strong>eliminar definitivamente</strong> el activo "<strong>${activo.nombre}</strong>"? Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed && activo.id) {
+        this.activoService.deleteActivo(activo.id).subscribe(() => {
+          this.loadActivos();
+          this.generarInforme();
+          this.snackBar.open('Activo eliminado exitosamente.', 'Cerrar', { duration: 3000 });
+        });
+      }
+    });
   }
 
   printLabel(activo: Activo) {
@@ -317,6 +416,15 @@ export class ActivoListComponent implements OnInit {
       }
 
       this.reportDataSource.data = list;
+      
+      // Calcular resúmenes del informe
+      this.reportTotalCount = list.length;
+      this.reportTotalQty = list.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      this.reportBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      this.reportRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      this.reportMaloQty = list.filter(item => item.estadoConservacion === 'MALO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      this.reportBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+
       if (this.reportPaginator) {
         this.reportDataSource.paginator = this.reportPaginator;
       }
@@ -326,7 +434,26 @@ export class ActivoListComponent implements OnInit {
     });
   }
 
+  canPrintReport(): boolean {
+    if (this.isAdmin && this.reportSelectedIglesiaId === 'all') {
+      return false;
+    }
+    return true;
+  }
+
+  imprimirVistaPrevia() {
+    if (!this.canPrintReport()) {
+      this.snackBar.open('Debe seleccionar una iglesia específica para poder imprimir el reporte.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    window.print();
+  }
+
   descargarExcel() {
+    if (!this.canPrintReport()) {
+      this.snackBar.open('Debe seleccionar una iglesia específica para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
     if (!this.reportDataSource.data.length) return;
 
     const data = this.reportDataSource.data.map(r => ({
@@ -349,6 +476,10 @@ export class ActivoListComponent implements OnInit {
   }
 
   descargarPDF() {
+    if (!this.canPrintReport()) {
+      this.snackBar.open('Debe seleccionar una iglesia específica para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
     if (!this.reportDataSource.data.length) return;
 
     const doc = new jsPDF('l', 'mm', 'a4'); // Horizontal
@@ -432,9 +563,25 @@ export class ActivoListComponent implements OnInit {
     doc.text('Total Items:', 14, y);
     doc.setFont('courier', 'normal');
     doc.text(`${this.reportDataSource.data.length} registros`, 55, y);
-    y += 12;
+    y += 10;
 
-    const tableColumn = ['Código', 'Bien / Activo', 'Descripción', 'Cant.', 'Estado', 'Valor Est.', 'Fecha Adq.', 'Sede'];
+    // Resumen Formal en Texto para el PDF (Igual a la hoja A4)
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(14, y, 282, y);
+    y += 5;
+
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(9);
+    doc.text('RESUMEN DE INVENTARIO Y BIENES:', 14, y);
+    doc.setFont('courier', 'normal');
+    doc.text(`Total Tipos: ${this.reportTotalCount} reg. | Total Unidades: ${this.reportTotalQty} uds. | Buenos: ${this.reportBuenoQty} uds. | Regulares: ${this.reportRegularQty} uds. | Malos: ${this.reportMaloQty} uds. | De Baja: ${this.reportBajaQty} uds.`, 85, y);
+    y += 5;
+
+    doc.line(14, y, 282, y);
+    y += 8;
+
+    const tableColumn = ['Código', 'Bien / Activo', 'Descripción', 'Cant.', 'Estado', 'Valor Est.', 'Fecha Adq.'];
     const tableRows = this.reportDataSource.data.map(r => [
       r.codigo || 'S/C',
       r.nombre || '',
@@ -442,8 +589,7 @@ export class ActivoListComponent implements OnInit {
       r.cantidad || 0,
       r.estadoConservacion || 'BUENO',
       r.valorEstimado ? `${r.valorEstimado} Bs.` : 'N/A',
-      r.fechaAdquisicion ? new Date(r.fechaAdquisicion).toLocaleDateString('es-ES') : 'N/A',
-      r.iglesiaNombre || 'N/A'
+      r.fechaAdquisicion ? new Date(r.fechaAdquisicion).toLocaleDateString('es-ES') : 'N/A'
     ]);
 
     autoTable(doc, {
@@ -464,13 +610,12 @@ export class ActivoListComponent implements OnInit {
       },
       columnStyles: {
         0: { cellWidth: 35 },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 55 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 80 },
         3: { cellWidth: 15 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 30 },
-        7: { cellWidth: 45 }
+        4: { cellWidth: 22 },
+        5: { cellWidth: 27 },
+        6: { cellWidth: 30 }
       },
       didDrawPage: (data) => {
         const pageCount = doc.getNumberOfPages();

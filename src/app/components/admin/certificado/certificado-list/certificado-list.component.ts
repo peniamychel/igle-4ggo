@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -64,6 +64,10 @@ import { CertificadoVerificarDialogComponent } from '../certificado-verificar-di
   styleUrls: ['./certificado-list.component.css']
 })
 export class CertificadoListComponent implements OnInit {
+  // All possible columns per role
+  private allColumnsAdmin:  string[] = ['evento', 'iglesia', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
+  private allColumnsLocal:  string[] = ['evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
+
   displayedColumns: string[] = ['evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Certificado>;
   eventos: Evento[] = [];
@@ -96,13 +100,43 @@ export class CertificadoListComponent implements OnInit {
   ngOnInit() {
     this.isAdmin = this.authService.isLoggedRolAdmin();
     if (this.isAdmin) {
-      this.displayedColumns = ['evento', 'iglesia', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
       this.loadIglesias();
     } else {
       this.currentChurchId = this.authService.getCurrentIglesiaId();
     }
+    this.updateDisplayedColumns(window.innerWidth);
     this.setupTableModifiers();
     this.loadInitialData();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent) {
+    this.updateDisplayedColumns((event.target as Window).innerWidth);
+  }
+
+  /**
+   * Adjusts visible columns based on viewport width.
+   * Breakpoints:
+   *   ≥ 960px  → all columns
+   *   600–959  → hide motivo (admin: hide iglesia too)
+   *   < 600px  → only evento + estado + acciones
+   */
+  private updateDisplayedColumns(width: number) {
+    const base = this.isAdmin ? this.allColumnsAdmin : this.allColumnsLocal;
+
+    if (width >= 960) {
+      this.displayedColumns = [...base];
+    } else if (width >= 600) {
+      // Remove motivo (and iglesia for admin to save space)
+      this.displayedColumns = base.filter(
+        col => !['motivo', 'iglesia'].includes(col)
+      );
+    } else {
+      // Minimal: evento + tipoCertificado + estado + acciones
+      this.displayedColumns = base.filter(
+        col => ['evento', 'tipoCertificado', 'estado', 'acciones'].includes(col)
+      );
+    }
   }
 
   private setupTableModifiers() {

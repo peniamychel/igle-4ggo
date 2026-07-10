@@ -18,7 +18,7 @@ export interface ConfirmDialogData {
   template: `
     <h2 mat-dialog-title class="dialog-title">{{ data.title || 'Por favor confirme' }}</h2>
     <mat-dialog-content class="dialog-content">
-      <p class="dialog-message" [innerHTML]="data.message"></p>
+      <p class="dialog-message">{{ data.message }}</p>
     </mat-dialog-content>
     <mat-dialog-actions class="dialog-actions">
       <button mat-stroked-button mat-dialog-close class="btn-cancel">{{ data.cancelText || 'Cancelar' }}</button>

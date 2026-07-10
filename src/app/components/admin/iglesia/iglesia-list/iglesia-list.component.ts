@@ -141,8 +141,6 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
           const churchCertificates = allCertificates.filter((c: any) => c.eventoDto?.iglesiaId === item.id);
           enriched.certificadosEmitidos = churchCertificates.length;
 
-          enriched.email = `${enriched.nombre.toLowerCase().replace(/\s+/g, '')}@iglev4.org`;
-          
           // Set coordinate defaults if null
           if (!enriched.latitud || !enriched.longitud) {
             const coords = this.getDefaultCoords(enriched.nombre);
@@ -153,14 +151,6 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
           // Deduce department
           enriched.departamento = this.deduceDepartamento(enriched.nombre, enriched.direccion);
           enriched.ciudad = this.deduceCiudad(enriched.nombre, enriched.direccion);
-
-          // Pastores - we can fallback to custom simulations if the database cargos don't have them
-          enriched.pastores = (item.id === 1) ? ['Pastor Roberto Ali', 'Pastora Lucía Ramos'] : 
-                              (item.id === 2) ? ['Pastora Lucía Ramos'] :
-                              (item.id === 3) ? ['Pastor Edgar Soto'] :
-                              (item.id === 4) ? ['Pastor Marco Callisaya'] :
-                              (item.id === 5) ? ['Pastora Ana Vargas'] :
-                              (item.id === 6) ? ['Pastor Diego Flores'] : ['Pastora Elena Paz'];
 
           return enriched;
         });

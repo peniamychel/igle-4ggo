@@ -115,17 +115,16 @@ export class UserService {
   getUserByNameForToken(): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/findbyusername`).pipe(
       map((response) => {
-        // Mapea la respuesta JSON a CreateUserDto
         const datos = response.datos;
+        const { password, ...datosSinPassword } = datos;
         return {
-          id: datos.id,
-          email: datos.email,
-          username: datos.username,
-          name: datos.name,
-          apellidos: datos.apellidos,
-          uriFoto: datos.uriFoto,
-          password: datos.password,
-          roles: datos.roles ? datos.roles.map((role: any) => role.nombreRol || role.nombre || role.name || '') : []
+          id: datosSinPassword.id,
+          email: datosSinPassword.email,
+          username: datosSinPassword.username,
+          name: datosSinPassword.name,
+          apellidos: datosSinPassword.apellidos,
+          uriFoto: datosSinPassword.uriFoto,
+          roles: datosSinPassword.roles ? datosSinPassword.roles.map((role: any) => role.nombreRol || role.nombre || role.name || '') : []
         };
       })
     );

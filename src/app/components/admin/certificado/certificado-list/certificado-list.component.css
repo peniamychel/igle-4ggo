@@ -236,7 +236,8 @@
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e3e8ee);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
@@ -350,14 +351,55 @@ tr.mat-row td.no-data-cell {
   font-weight: 500;
 }
 
-/* 5. Responsive */
-@media (max-width: 992px) {
-  .mat-column-motivo {
-    display: none;
+/* 5. Responsive — column visibility is controlled by TS HostListener */
+
+/* ≥960px: all columns shown — default styles apply */
+
+/* 600–959px: motivo & iglesia hidden by TS; table fits without scroll */
+@media (max-width: 959px) and (min-width: 600px) {
+  .container {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-box {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .select-filters {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .filter-select {
+    flex: 1;
+    min-width: 140px;
   }
 }
 
-@media (max-width: 768px) {
+/* <600px: only evento + tipoCertificado + estado + acciones shown by TS */
+@media (max-width: 599px) {
   .container {
     padding: 16px;
     gap: 16px;
@@ -371,9 +413,11 @@ tr.mat-row td.no-data-cell {
 
   .header-actions {
     width: 100%;
+    flex-direction: column;
   }
 
-  .btn-action-primary {
+  .btn-action-primary,
+  .btn-action-secondary {
     width: 100% !important;
     justify-content: center !important;
   }
@@ -381,7 +425,7 @@ tr.mat-row td.no-data-cell {
   .filters-bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 8px;
   }
 
   .search-box {
@@ -396,19 +440,20 @@ tr.mat-row td.no-data-cell {
   }
 
   .filter-select {
-    width: 100%;
+    width: 100% !important;
   }
 
   .table-container {
-    overflow-x: auto;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
-  .mat-table {
-    min-width: 620px;
-  }
-
-  .mat-column-tipoCertificado {
-    display: none;
+  /* Tighter acciones column on small screens */
+  .table-container mat-header-cell.mat-column-acciones,
+  .table-container mat-cell.mat-column-acciones {
+    flex: 0 0 60px;
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
   }
 }
+

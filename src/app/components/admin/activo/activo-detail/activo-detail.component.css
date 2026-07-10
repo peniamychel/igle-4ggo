@@ -1,0 +1,281 @@
+/* ========================================
+   Activo Detail Dialog — Premium CSS
+   ======================================== */
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(124, 77, 255, 0.05) 0%, rgba(124, 77, 255, 0.01) 100%);
+  border-bottom: 1px solid var(--border-color, #e3e8ee);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  color: var(--primary-color, #7c4dff);
+  background: rgba(124, 77, 255, 0.1);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 77, 255, 0.15);
+}
+
+.header-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin: 2px 0 0 0;
+  font-weight: 500;
+}
+
+.close-btn {
+  color: var(--text-secondary, #8792a2);
+  transition: color 0.15s ease;
+}
+
+.close-btn:hover {
+  color: #d32f2f;
+}
+
+.dialog-content {
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 580px;
+  box-sizing: border-box;
+}
+
+/* Sección de Vista Previa de la Imagen (Avatar Centrado Moderado) */
+.asset-preview-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.asset-large-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: var(--card-bg, #ffffff);
+  border: 2px solid var(--border-color, #e3e8ee);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.asset-large-avatar:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(124, 77, 255, 0.15);
+  border-color: var(--primary-color, #7c4dff);
+}
+
+.asset-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary, #8792a2);
+}
+
+.placeholder-icon {
+  font-size: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+  opacity: 0.5;
+}
+
+/* Tarjeta Resumen */
+.summary-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #f1f5f9);
+}
+
+.summary-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.summary-item .label {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  font-weight: 600;
+}
+
+.summary-item .val {
+  font-size: 0.92rem;
+  color: var(--text-primary, #1a1f36);
+  font-weight: 700;
+}
+
+.code-badge {
+  font-family: monospace;
+  background-color: var(--bg-color, #f1f5f9);
+  color: var(--text-primary, #1a1f36);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color, #e3e8ee);
+}
+
+/* Descripción */
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--text-primary, #1a1f36);
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.description-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #697386);
+  line-height: 1.5;
+  background: var(--bg-color, #f8fafc);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e3e8ee);
+  margin: 0;
+}
+
+/* Grid de información técnica */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.info-cell {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+}
+
+.cell-icon {
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  color: var(--text-secondary, #8792a2);
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cell-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-secondary, #8792a2);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.cell-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary, #1a1f36);
+}
+
+.dialog-actions {
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--border-color, #e3e8ee);
+  gap: 10px;
+}
+
+/* ========================================
+   DARK THEME OVERRIDES
+   ======================================== */
+:host-context(.dark-theme) .dialog-header {
+  background: linear-gradient(135deg, rgba(229, 107, 247, 0.08) 0%, rgba(229, 107, 247, 0.02) 100%);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .header-icon {
+  color: #e56bf7;
+  background: rgba(229, 107, 247, 0.12);
+  border-color: rgba(229, 107, 247, 0.2);
+}
+
+:host-context(.dark-theme) .asset-preview-section {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .asset-large-avatar {
+  background: var(--card-bg, #1a1a24);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .summary-card {
+  background: var(--card-bg, #1a1a24);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .summary-item {
+  border-bottom-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .code-badge {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .description-text {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .info-cell {
+  background: var(--card-bg, #1a1a24);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .dialog-actions {
+  border-top-color: var(--border-color, #23232c);
+}

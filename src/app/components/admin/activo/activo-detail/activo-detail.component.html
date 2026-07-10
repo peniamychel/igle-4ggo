@@ -1,0 +1,78 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">inventory_2</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Detalle del Activo / Bien</h2>
+      <p class="header-subtitle">{{ data.nombre }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <!-- Tarjeta con Foto/Previsualización del Activo si existe -->
+  <div class="asset-preview-section">
+    <div class="asset-large-avatar">
+      <img *ngIf="data.uriFoto" [src]="data.uriFoto | imageUrl" [alt]="data.nombre" class="asset-img" />
+      <div *ngIf="!data.uriFoto" class="asset-placeholder">
+        <mat-icon class="placeholder-icon">inventory_2</mat-icon>
+        <span>Sin imagen registrada</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-item">
+      <span class="label">Código Único</span>
+      <span class="code-badge">{{ data.codigo || 'S/C (Sin Código)' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Nombre del Bien</span>
+      <span class="val">{{ data.nombre }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Cantidad</span>
+      <span class="val">{{ data.cantidad }} unidades</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Conservación</span>
+      <span class="estado-badge state-pill" [ngClass]="data.estadoConservacion?.toLowerCase()">
+        {{ data.estadoConservacion }}
+      </span>
+    </div>
+    <div class="summary-item" *ngIf="data.valorEstimado">
+      <span class="label">Valor Estimado</span>
+      <span class="val">{{ data.valorEstimado }} Bs.</span>
+    </div>
+    <div class="summary-item" *ngIf="data.iglesiaNombre">
+      <span class="label">Sede / Iglesia</span>
+      <span class="val">{{ data.iglesiaNombre }}</span>
+    </div>
+  </div>
+
+  <div class="description-section" *ngIf="data.descripcion">
+    <h3 class="section-title">Descripción</h3>
+    <p class="description-text">{{ data.descripcion }}</p>
+  </div>
+
+  <h3 class="section-title" *ngIf="data.fechaAdquisicion">Información de Registro</h3>
+  <div class="info-grid" *ngIf="data.fechaAdquisicion">
+    <div class="info-cell">
+      <mat-icon class="cell-icon">event</mat-icon>
+      <div class="cell-content">
+        <span class="cell-label">Fecha de Adquisición</span>
+        <span class="cell-value">{{ formatDate(data.fechaAdquisicion) }}</span>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-flat-button color="accent" (click)="printLabel()" matTooltip="Imprimir Código QR de Barras">
+    <mat-icon>print</mat-icon>
+    Imprimir Código
+  </button>
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
