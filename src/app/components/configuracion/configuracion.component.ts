@@ -8,10 +8,14 @@ import { AuditTrailComponent } from './audit-trail/audit-trail.component';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/security/auth.service';
 import { IglesiaService } from '../../core/services/iglesia.service';
+import { EventoService } from '../../core/services/evento.service';
+import { EventoAceptacionService } from '../../core/services/evento-aceptacion.service';
+import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IglesiaEditComponent } from '../admin/iglesia/iglesia-edit/iglesia-edit.component';
 import { ImageUrlPipe } from '../../shared/pipes/image-url.pipe';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-configuracion',
@@ -32,6 +36,9 @@ export class ConfiguracionComponent implements OnInit {
   private themeService = inject(ThemeService);
   private authService = inject(AuthService);
   private iglesiaService = inject(IglesiaService);
+  private eventoService = inject(EventoService);
+  private eventoAceptacionService = inject(EventoAceptacionService);
+  private miembroIglesiaService = inject(MiembroIglesiaService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   
@@ -42,6 +49,9 @@ export class ConfiguracionComponent implements OnInit {
   canViewBitacora = false;
   iglesiaPastor: any = null;
   loadingIglesia = false;
+
+  historialNotificaciones: any[] = [];
+  loadingHistorial = false;
 
   ngOnInit() {
     const role = localStorage.getItem('role');
@@ -56,6 +66,8 @@ export class ConfiguracionComponent implements OnInit {
     } else {
       this.selectedTabIndex = 0; // Default to 'General' for Tesorero/other roles
     }
+    
+    this.loadNotificationHistory();
   }
 
   loadPastorChurch() {
@@ -98,5 +110,84 @@ export class ConfiguracionComponent implements OnInit {
 
   setTheme(dark: boolean): void {
     this.themeService.setTheme(dark);
+  }
+
+  loadNotificationHistory() {
+    const iglesiaId = this.authService.getCurrentIglesiaId();
+    if (!iglesiaId) return;
+
+    this.loadingHistorial = true;
+    forkJoin({
+      decisiones: this.eventoAceptacionService.getDecisionesPorIglesia(iglesiaId),
+      eventos: this.eventoService.getEventos()
+    }).subscribe({
+      next: (res) => {
+        const listaDecisiones = res.decisiones.datos || [];
+        const listaEventos = res.eventos.datos || [];
+
+        this.historialNotificaciones = listaDecisiones.map(dec => {
+          const evento = listaEventos.find(e => e.id === dec.eventoId);
+          return {
+            id: dec.id,
+            eventoId: dec.eventoId,
+            nombreEvento: evento ? evento.nombre : `Evento #${dec.eventoId}`,
+            ubicacion: evento ? evento.ubicacion : '',
+            fechaInicio: evento ? evento.fechaInicio : null,
+            estado: dec.estado, // ACEPTADO, ARCHIVADO
+            fechaDecision: dec.updatedAt,
+            eventoObj: evento
+          };
+        });
+
+        // Ordenar de más reciente a más antiguo
+        this.historialNotificaciones.sort((a, b) => {
+          const dateA = a.fechaDecision ? new Date(a.fechaDecision).getTime() : 0;
+          const dateB = b.fechaDecision ? new Date(b.fechaDecision).getTime() : 0;
+          return dateB - dateA;
+        });
+
+        this.loadingHistorial = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar historial de notificaciones:', err);
+        this.loadingHistorial = false;
+      }
+    });
+  }
+
+  cambiarEstadoDecision(row: any, nuevoEstado: 'ACEPTADO' | 'ARCHIVADO') {
+    const iglesiaId = this.authService.getCurrentIglesiaId();
+    if (!iglesiaId) return;
+
+    this.eventoAceptacionService.decidir({
+      eventoId: row.eventoId,
+      iglesiaId: iglesiaId,
+      estado: nuevoEstado
+    }).subscribe({
+      next: () => {
+        const estadoTexto = nuevoEstado === 'ACEPTADO' ? 'Aceptada (agregada a Gestión de Eventos)' : 'Archivada';
+        this.snackBar.open(`Invitación marcada como ${estadoTexto}.`, 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.loadNotificationHistory();
+        // Notificar cambios para recargar el conteo de la campana
+        this.miembroIglesiaService.notifySolicitudesChanged();
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Error al actualizar decisión', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  formatDate(dateStr: string | null): string {
+    if (!dateStr) return 'No definido';
+    return new Date(dateStr).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 }

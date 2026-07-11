@@ -9,9 +9,12 @@
     <span class="toolbar-spacer"></span>
 
     <!-- Solicitudes Notification Button -->
-    <button mat-icon-button *ngIf="isAuthenticated && hasSolicitudesPrivilege()" (click)="openSolicitudesModal()" matTooltip="Solicitudes de Traspaso" style="margin-right: 8px; position: relative;">
-      <mat-icon [class.bell-active]="pendingSolicitudesCount > 0">notifications</mat-icon>
-      <span *ngIf="pendingSolicitudesCount > 0" class="notification-badge">{{ pendingSolicitudesCount }}</span>
+    <button mat-icon-button *ngIf="isAuthenticated && hasSolicitudesPrivilege()" (click)="openSolicitudesModal()" matTooltip="Solicitudes de Traspaso" style="margin-right: 8px;">
+      <mat-icon [class.bell-active]="pendingSolicitudesCount > 0"
+                [matBadge]="pendingSolicitudesCount"
+                [matBadgeHidden]="pendingSolicitudesCount === 0"
+                matBadgeColor="warn"
+                matBadgeSize="small">notifications</mat-icon>
     </button>
 
     <!-- Theme Toggle Button -->
@@ -133,6 +136,10 @@
     <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen" class="sidenav">
       <mat-nav-list>
         <ng-container *ngFor="let item of filteredMenuItems">
+
+          <!-- Separador de grupo -->
+          <div *ngIf="item.groupLabel" class="menu-group-divider"></div>
+
           <!-- Ítem principal sin hijos -->
           <a mat-list-item *ngIf="!item.children" (click)="isSmallScreen && drawer.close()" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: item.route === '/'}">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>

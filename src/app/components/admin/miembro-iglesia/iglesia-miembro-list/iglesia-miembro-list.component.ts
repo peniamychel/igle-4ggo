@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -18,6 +20,7 @@ import { Cargo } from '../../../../core/models/cargo.model';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { MatTableModule } from '@angular/material/table';
 import {
   MiembroIglesiaFormTraspasoComponent
 } from '../modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
@@ -34,18 +37,22 @@ import {
     MatDialogModule,
     MatSnackBarModule,
     MatTooltipModule,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    MatTableModule
   ],
   templateUrl: './iglesia-miembro-list.component.html',
   styleUrls: ['./iglesia-miembro-list.component.css']
 })
 export class IglesiaMiembroListComponent implements OnInit {
   isLoading = true;
+  viewMode: 'grid' | 'table' = 'grid';
+  displayedColumns: string[] = ['miembro', 'origen', 'destino', 'fecha', 'motivo', 'estado', 'acciones'];
   
   allTransfers: any[] = [];
   filteredTransfers: any[] = [];
   searchQuery = '';
-  activeTab: 'pendientes' | 'historial' | 'todas' = 'pendientes';
+  activeTab: 'pendientes' | 'historial' = 'pendientes';
+  selectedTransferId: number | null = null;
   
   currentUser: any;
   isAdmin = false;
@@ -73,11 +80,40 @@ export class IglesiaMiembroListComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
+  private destroyRef = inject(DestroyRef);
+  private route = inject(ActivatedRoute);
+
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
     this.isAdmin = this.authService.isLoggedRolAdmin();
     this.currentIglesiaId = this.authService.getCurrentIglesiaId();
+    
+    // Cargar la preferencia de visualización guardada del usuario
+    const savedMode = localStorage.getItem('traspasos_view_mode');
+    if (savedMode === 'grid' || savedMode === 'table') {
+      this.viewMode = savedMode;
+    }
+    
+    // Forzar modo cuadros si inicia en pantalla móvil
+    this.checkMobileView();
+
     this.loadData();
+
+    // Capturar el ID de traspaso seleccionado desde los parámetros de consulta
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      if (params['selectId']) {
+        this.selectedTransferId = +params['selectId'];
+        this.activeTab = 'pendientes'; // Como es pendiente, nos aseguramos que esté en esa pestaña
+        this.applyFilters();
+      }
+    });
+
+    // Recargar datos en tiempo real al gatillarse el evento
+    this.miembroIglesiaService.solicitudesChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadData();
+      });
   }
 
   loadData() {
@@ -136,6 +172,13 @@ export class IglesiaMiembroListComponent implements OnInit {
         this.calculateKpis();
         this.applyFilters();
         this.isLoading = false;
+
+        // Desplazarse y animar la tarjeta seleccionada si aplica
+        if (this.selectedTransferId) {
+          setTimeout(() => {
+            this.scrollToAndHighlight();
+          }, 350);
+        }
       },
       error: (err) => {
         console.error('Error al cargar datos del dashboard de traspasos', err);
@@ -231,7 +274,40 @@ export class IglesiaMiembroListComponent implements OnInit {
     this.filteredTransfers = temp;
   }
 
-  onTabChange(tab: 'pendientes' | 'historial' | 'todas') {
+  setViewMode(mode: 'grid' | 'table') {
+    // No permitir cambiar a tabla en móviles
+    if (window.innerWidth <= 768 && mode === 'table') {
+      this.viewMode = 'grid';
+      return;
+    }
+    this.viewMode = mode;
+    localStorage.setItem('traspasos_view_mode', mode);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.checkMobileView();
+  }
+
+  private checkMobileView() {
+    if (window.innerWidth <= 768 && this.viewMode === 'table') {
+      this.viewMode = 'grid';
+    }
+  }
+
+  scrollToAndHighlight() {
+    if (!this.selectedTransferId) return;
+    const element = document.getElementById(`transfer-card-${this.selectedTransferId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Remover la selección después de que termine la animación (0.6s * 5 rebotes = 3s)
+      setTimeout(() => {
+        this.selectedTransferId = null;
+      }, 3500);
+    }
+  }
+
+  onTabChange(tab: 'pendientes' | 'historial') {
     this.activeTab = tab;
     this.applyFilters();
   }

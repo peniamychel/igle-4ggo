@@ -17,6 +17,10 @@ export class ResponsableEventoService {
     return this.http.get<ApiResponse<ResponsableEvento[]>>(`${this.apiUrl}/findall`);
   }
 
+  getResponsablesPorEvento(eventoId: number): Observable<ApiResponse<ResponsableEvento[]>> {
+    return this.http.get<ApiResponse<ResponsableEvento[]>>(`${this.apiUrl}/evento/${eventoId}`);
+  }
+
   getResponsableById(id: number): Observable<ResponsableEventoResponse> {
     return this.http.get<ResponsableEventoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }

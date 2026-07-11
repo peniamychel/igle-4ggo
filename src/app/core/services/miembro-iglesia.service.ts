@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { MiembroIglesia, MiembroIglesiaResponse, MiembroIglesiaDetail } from '../models/miembro-iglesia.model';
 import { MiembroResponse } from '../models/miembro.model';
@@ -10,8 +11,15 @@ import { MiembroResponse } from '../models/miembro.model';
 })
 export class MiembroIglesiaService {
   private apiUrl = `${environment.apiUrl}/api/miembroiglesia/v1`;
+  
+  private solicitudesSubject = new Subject<void>();
+  solicitudesChanged$ = this.solicitudesSubject.asObservable();
 
   constructor(private http: HttpClient) {
+  }
+
+  notifySolicitudesChanged(): void {
+    this.solicitudesSubject.next();
   }
 
   getMiembrosIglesia(): Observable<MiembroIglesiaResponse> {
@@ -39,15 +47,21 @@ export class MiembroIglesiaService {
   }
 
   traspaso(data: Partial<MiembroIglesia>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/traspaso`, data);
+    return this.http.put(`${this.apiUrl}/traspaso`, data).pipe(
+      tap(() => this.notifySolicitudesChanged())
+    );
   }
 
   aceptarTraspaso(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/traspaso/${id}/aceptar`, {});
+    return this.http.put(`${this.apiUrl}/traspaso/${id}/aceptar`, {}).pipe(
+      tap(() => this.notifySolicitudesChanged())
+    );
   }
 
   rechazarTraspaso(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/traspaso/${id}/rechazar`, {});
+    return this.http.put(`${this.apiUrl}/traspaso/${id}/rechazar`, {}).pipe(
+      tap(() => this.notifySolicitudesChanged())
+    );
   }
 
   getSolicitudesPendientes(iglesiaId: number): Observable<MiembroIglesiaResponse> {

@@ -1,0 +1,272 @@
+<div class="container">
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">help_outline</mat-icon>
+        <span>Ayuda y Usabilidad</span>
+      </h2>
+      <p class="subtitle-text">Guía de usuario paso a paso y preguntas frecuentes sobre el funcionamiento del software.</p>
+    </div>
+  </div>
+
+  <!-- BUSCADOR DE AYUDA -->
+  <div class="ayuda-search-container">
+    <mat-form-field appearance="outline" class="ayuda-search-field">
+      <mat-label>¿Qué estás buscando?</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput placeholder="Escribe palabras clave (ej: traspaso, ofrenda, inventario)..." (input)="onSearch($event)">
+    </mat-form-field>
+  </div>
+
+  <!-- VISTA 1: RESULTADOS DE BÚSQUEDA (Activa si hay texto de búsqueda) -->
+  <div class="search-results-section" *ngIf="searchQuery">
+    <div class="search-results-header">
+      <mat-icon>manage_search</mat-icon>
+      <span>Resultados de búsqueda para: "<strong>{{ searchQuery }}</strong>"</span>
+      <mat-chip-set class="results-badge-chip">
+        <mat-chip disabled>{{ filteredTopics.length }} coincidencias</mat-chip>
+      </mat-chip-set>
+    </div>
+
+    <!-- Si no hay coincidencias -->
+    <div class="no-search-results" *ngIf="filteredTopics.length === 0">
+      <mat-icon class="no-results-icon">search_off</mat-icon>
+      <h4>No encontramos resultados</h4>
+      <p>Intenta con palabras clave diferentes o revisa la ortografía.</p>
+    </div>
+
+    <!-- Acordeón con temas coincidentes -->
+    <mat-accordion multi="true" *ngIf="filteredTopics.length > 0">
+      <mat-expansion-panel *ngFor="let topic of filteredTopics" [expanded]="true" class="topic-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="topic-title">
+            <mat-icon class="topic-title-icon">{{ topic.icon }}</mat-icon>
+            <span>{{ topic.question }}</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="steps-list">
+          <div *ngFor="let step of topic.steps; let i = index" class="step-item">
+            <div class="step-number-badge">{{ i + 1 }}</div>
+            <div class="step-content">
+              <mat-icon class="step-icon" *ngIf="step.icon">{{ step.icon }}</mat-icon>
+              <span class="step-text" [innerHTML]="step.text"></span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="topic.tip" class="tip-box">
+          <mat-icon class="tip-icon">lightbulb</mat-icon>
+          <div class="tip-content">
+            <strong>Consejo:</strong> {{ topic.tip }}
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <!-- VISTA 2: NAVEGACIÓN NORMAL POR TABS (Activa si el buscador está vacío) -->
+  <mat-tab-group class="ayuda-tab-group" animationDuration="0ms" *ngIf="!searchQuery">
+    <mat-tab *ngFor="let sec of sections">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">{{ sec.icon }}</mat-icon>
+        <span>{{ sec.label }}</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="topics-container">
+          <mat-accordion multi="true">
+            <mat-expansion-panel *ngFor="let topic of sec.topics" class="topic-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="topic-title">
+                  <mat-icon class="topic-title-icon">{{ topic.icon }}</mat-icon>
+                  <span>{{ topic.question }}</span>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <div class="steps-list">
+                <div *ngFor="let step of topic.steps; let i = index" class="step-item">
+                  <div class="step-number-badge">{{ i + 1 }}</div>
+                  <div class="step-content">
+                    <mat-icon class="step-icon" *ngIf="step.icon">{{ step.icon }}</mat-icon>
+                    <span class="step-text">{{ step.text }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="topic.tip" class="tip-box">
+                <mat-icon class="tip-icon">lightbulb</mat-icon>
+                <div class="tip-content">
+                  <strong>Consejo:</strong> {{ topic.tip }}
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Pestaña: Diagramas de Flujo de Datos -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">schema</mat-icon>
+        <span>Diagramas de Flujo</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="dfd-container">
+          
+          <!-- DIAGRAMA 1: CONTEXTO GENERAL -->
+          <div class="dfd-card">
+            <h3 class="dfd-card-title">
+              <mat-icon>hub</mat-icon>
+              <span>Diagrama de Contexto General (Nivel 0)</span>
+            </h3>
+            <p class="dfd-card-desc">Interacción entre los roles del sistema y el núcleo de gestión de la aplicación.</p>
+            
+            <div class="dfd-visual dfd-context-grid">
+              <div class="dfd-node dfd-entity">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <span>Administrador</span>
+                <small class="dfd-node-sub">Global</small>
+              </div>
+              <div class="dfd-connector-arrow horizontal-arrow">
+                <span class="arrow-text-top">Iglesias / Obreros</span>
+                <span class="arrow-line"></span>
+                <span class="arrow-text-bottom">Cuentas / Auditorías</span>
+              </div>
+              
+              <div class="dfd-node dfd-process-core">
+                <mat-icon>settings_suggest</mat-icon>
+                <span>Sistema MCMM</span>
+                <small class="dfd-node-sub">Núcleo Central</small>
+              </div>
+              
+              <div class="dfd-connector-arrow horizontal-arrow">
+                <span class="arrow-text-top">Miembros / Eventos</span>
+                <span class="arrow-line"></span>
+                <span class="arrow-text-bottom">Certificados / Bajas</span>
+              </div>
+              <div class="dfd-node dfd-entity">
+                <mat-icon>person</mat-icon>
+                <span>Pastor</span>
+                <small class="dfd-node-sub">Local</small>
+              </div>
+            </div>
+
+            <div class="dfd-visual dfd-context-subgrid">
+              <div class="dfd-node dfd-entity">
+                <mat-icon>monetization_on</mat-icon>
+                <span>Tesorero</span>
+                <small class="dfd-node-sub">Local</small>
+              </div>
+              <div class="dfd-connector-arrow vertical-arrow">
+                <span class="arrow-text-side">Registrar Ofrendas / Generar Balances de Caja</span>
+                <span class="arrow-line-vertical"></span>
+              </div>
+              <div class="dfd-node dfd-entity">
+                <mat-icon>inventory_2</mat-icon>
+                <span>Diácono</span>
+                <small class="dfd-node-sub">Local</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIAGRAMA 2: MEMBRESÍAS Y TRASPASOS -->
+          <div class="dfd-card">
+            <h3 class="dfd-card-title">
+              <mat-icon>swap_horiz</mat-icon>
+              <span>Flujo de Miembros y Traspasos (Nivel 1)</span>
+            </h3>
+            <p class="dfd-card-desc">Proceso de envío y recepción de miembros entre congregaciones.</p>
+            
+            <div class="dfd-flow-row">
+              <div class="dfd-node dfd-entity font-bold">
+                <mat-icon>church</mat-icon>
+                <span>Pastor Origen</span>
+              </div>
+              <div class="dfd-connector-arrow simple-arrow">
+                <span class="arrow-text-top">Inicia Traspaso</span>
+                <span class="arrow-line"></span>
+              </div>
+              <div class="dfd-node dfd-process">
+                <mat-icon>pending</mat-icon>
+                <span>Solicitud de Traspaso</span>
+                <small class="dfd-node-sub">Estado: Pendiente</small>
+              </div>
+              <div class="dfd-connector-arrow simple-arrow">
+                <span class="arrow-text-top">Notifica</span>
+                <span class="arrow-line"></span>
+              </div>
+              <div class="dfd-node dfd-entity font-bold">
+                <mat-icon>how_to_reg</mat-icon>
+                <span>Pastor Destino</span>
+              </div>
+            </div>
+
+            <div class="dfd-store-row">
+              <mat-icon>swap_calls</mat-icon>
+              <div class="dfd-store-badge">
+                <mat-icon>dns</mat-icon>
+                <span>[Almacén] DB_Traspasos</span>
+              </div>
+              <span class="dfd-flow-direction">➔</span>
+              <div class="dfd-store-badge success-badge">
+                <mat-icon>dns</mat-icon>
+                <span>[Almacén] DB_Miembros (Actualizado)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIAGRAMA 3: INVENTARIO -->
+          <div class="dfd-card">
+            <h3 class="dfd-card-title">
+              <mat-icon>inventory</mat-icon>
+              <span>Flujo de Inventario y Activos (Nivel 1)</span>
+            </h3>
+            <p class="dfd-card-desc">Flujo de datos para registrar, dar de baja, imprimir código y generar informes.</p>
+            
+            <div class="dfd-flow-row mobile-column">
+              <div class="dfd-node dfd-entity">
+                <mat-icon>person</mat-icon>
+                <span>Diácono / Pastor</span>
+              </div>
+              <div class="dfd-connector-arrow simple-arrow flex-col-center">
+                <span class="arrow-text-top">Datos del Bien</span>
+                <span class="arrow-line"></span>
+              </div>
+              <div class="dfd-node dfd-process">
+                <mat-icon>add_box</mat-icon>
+                <span>Registrar / Modificar</span>
+              </div>
+              <div class="dfd-connector-arrow simple-arrow flex-col-center">
+                <span class="arrow-text-top">Persistir</span>
+                <span class="arrow-line"></span>
+              </div>
+              <div class="dfd-node dfd-store">
+                <mat-icon>dns</mat-icon>
+                <span>DB_Activos</span>
+              </div>
+            </div>
+
+            <div class="dfd-action-blocks">
+              <div class="dfd-action-item">
+                <div class="action-header">Acción: Dar de Baja</div>
+                <div class="action-body">Cambia estado a <code>BAJA</code> ➔ Excluye de informes activos.</div>
+              </div>
+              <div class="dfd-action-item">
+                <div class="action-header">Acción: Impresión</div>
+                <div class="action-body">Consulta ID ➔ Genera etiqueta física para el bien.</div>
+              </div>
+              <div class="dfd-action-item">
+                <div class="action-header">Acción: Reporte PDF</div>
+                <div class="action-body">Filtra por Iglesia ➔ Genera resumen formal A4.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

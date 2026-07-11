@@ -22,12 +22,12 @@ import { ParticipacionEventoListComponent } from './components/admin/participaci
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
 import { LoginPageComponent } from './components/auth/login-page/login-page.component';
 
-import { SolicitudListComponent } from './components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
 import { MiIglesiaComponent } from './components/admin/mi-iglesia/mi-iglesia.component';
 import { NoAutorizadoComponent } from './components/auth/no-autorizado/no-autorizado.component';
 import { OfrendaListComponent } from './components/admin/ofrenda/ofrenda-list/ofrenda-list.component';
 import { ActivoListComponent } from './components/admin/activo/activo-list/activo-list.component';
 import { ColaboradoresComponent } from './components/admin/colaboradores/colaboradores.component';
+import { AyudaComponent } from './components/ayuda/ayuda.component';
 
 
 export const routes: Routes = [
@@ -91,12 +91,6 @@ export const routes: Routes = [
         path: 'cambios-iglesia',
         component: IglesiaMiembroListComponent,
         title: 'Cambios Iglesia',
-        canActivate: [privilegioGuard]
-      },
-      {
-        path: 'solicitudes',
-        component: SolicitudListComponent,
-        title: 'Solicitudes',
         canActivate: [privilegioGuard]
       },
       {
@@ -174,6 +168,11 @@ export const routes: Routes = [
         path: 'configuracion',
         component: ConfiguracionComponent,
         title: 'Configuración',
+      },
+      {
+        path: 'ayuda',
+        component: AyudaComponent,
+        title: 'Ayuda',
       },
       {
         path: 'privilegios',

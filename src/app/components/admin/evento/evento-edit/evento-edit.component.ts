@@ -9,9 +9,12 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 import { Evento } from '../../../../core/models/evento.model';
+import { IglesiaService } from '../../../../core/services/iglesia.service';
+import { Iglesia } from '../../../../core/models/iglesia.model';
 
 @Component({
   selector: 'app-evento-edit',
@@ -26,7 +29,8 @@ import { Evento } from '../../../../core/models/evento.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatCheckboxModule
   ],
   templateUrl: './evento-edit.component.html',
   styleUrls: ['./evento-edit.component.css']
@@ -35,10 +39,12 @@ export class EventoEditComponent implements OnInit {
   eventoForm: FormGroup;
   evento: Evento;
   tiposEvento: TipoEvento[] = [];
+  iglesias: Iglesia[] = [];
 
   constructor(
     private fb: FormBuilder,
     private eventoService: EventoService,
+    private iglesiaService: IglesiaService,
     private dialogRef: MatDialogRef<EventoEditComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { evento: Evento, tiposEvento: TipoEvento[] }
   ) {
@@ -50,6 +56,9 @@ export class EventoEditComponent implements OnInit {
       ubicacion: ['', [Validators.required, Validators.maxLength(200)]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required],
+      habilitarInscripciones: [false],
+      invitarATodas: [false],
+      iglesiasInvitadasIds: [[]]
     });
     this.evento = data.evento;
   }
@@ -57,6 +66,7 @@ export class EventoEditComponent implements OnInit {
   ngOnInit() {
     if (this.data) {
       this.tiposEvento = this.data.tiposEvento;
+      
       this.eventoForm.patchValue({
         tipoEventoId: this.evento.tipoEventoId,
         nombre: this.evento.nombre,
@@ -65,13 +75,62 @@ export class EventoEditComponent implements OnInit {
         ubicacion: this.evento.ubicacion,
         fechaInicio: this.evento.fechaInicio,
         fechaFin: this.evento.fechaFin,
+        habilitarInscripciones: this.evento.habilitarInscripciones || false
       });
     }
+    this.loadIglesias();
+  }
+
+  loadIglesias() {
+    this.iglesiaService.getIglesias().subscribe({
+      next: (res) => {
+        this.iglesias = res.datos.filter(i => i.estado);
+        
+        // Detectar si todos los IDs están en la lista de invitados
+        const inviteIds = this.evento.iglesiasInvitadas
+          ? this.evento.iglesiasInvitadas.split(',').filter(x => x.trim() !== '').map(Number)
+          : [];
+        
+        const activeIds = this.iglesias
+          .map(i => i.id)
+          .filter((id): id is number => id !== undefined);
+        const isAllInvited = activeIds.length > 0 && activeIds.every(id => inviteIds.includes(id));
+
+        this.eventoForm.patchValue({
+          invitarATodas: isAllInvited,
+          iglesiasInvitadasIds: isAllInvited ? [] : inviteIds
+        });
+      },
+      error: (err) => console.error('Error al cargar iglesias:', err)
+    });
   }
 
   onSubmit() {
     if (this.eventoForm.valid) {
-      const eventoData: Evento = { ...this.evento, ...this.eventoForm.value };
+      const formValue = this.eventoForm.value;
+      let iglesiasCsv = '';
+      
+      if (formValue.habilitarInscripciones) {
+        if (formValue.invitarATodas) {
+          iglesiasCsv = this.iglesias
+            .map(i => i.id)
+            .filter((id): id is number => id !== undefined)
+            .join(',');
+        } else {
+          const ids: number[] = formValue.iglesiasInvitadasIds || [];
+          iglesiasCsv = ids.join(',');
+        }
+      }
+
+      const eventoData: Evento = {
+        ...this.evento,
+        ...formValue,
+        iglesiasInvitadas: iglesiasCsv
+      };
+      
+      delete (eventoData as any).iglesiasInvitadasIds;
+      delete (eventoData as any).invitarATodas;
+
       this.eventoService.updateEvento(eventoData).subscribe(() => {
         this.dialogRef.close(true);
       });

@@ -13,6 +13,8 @@ export interface Evento {
   estado?: boolean;
   alcance?: string;
   mostrarEnCalendario?: boolean;
+  habilitarInscripciones?: boolean;
+  iglesiasInvitadas?: string;
   createdAt?: Date;
   updatedAt?: Date;
 

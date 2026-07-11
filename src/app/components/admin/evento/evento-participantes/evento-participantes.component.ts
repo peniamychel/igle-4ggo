@@ -132,9 +132,23 @@ export class EventoParticipantesComponent implements OnInit {
   mapMiembrosToParticipantes() {
     if (this.participantes.length && this.miembros.length) {
       this.participantes.forEach(p => {
-        p.miembroDto = this.miembros.find(m => m.id === p.miembroId);
+        const found = this.miembros.find(m => m.id === p.miembroId);
+        if (found) {
+          p.miembroDto = found;
+        }
       });
     }
+
+    // Asegurar que las fotos de TODOS los participantes tengan el prefijo correcto de miembros si es necesario
+    this.participantes.forEach(p => {
+      if (p.miembroDto && p.miembroDto.uriFoto) {
+        const foto = p.miembroDto.uriFoto;
+        if (!foto.startsWith('http') && !foto.startsWith('/') && !foto.startsWith('miembros/')) {
+          p.miembroDto.uriFoto = 'miembros/' + foto;
+        }
+      }
+    });
+
     this.dataSource.data = [...this.participantes];
   }
 
@@ -251,33 +265,21 @@ export class EventoParticipantesComponent implements OnInit {
   }
 
   loadResponsablesInfo() {
-    forkJoin({
-      responsables: this.responsableService.getResponsables(),
-      cargos: this.cargoService.getCargos(),
-      tiposCargo: this.tipoCargoService.getTipoCargos(),
-      miembros: this.miembroService.getMiembros()
-    }).subscribe({
+    if (!this.evento.id) {
+      this.responsablesText = 'No designados';
+      return;
+    }
+    this.responsableService.getResponsablesPorEvento(this.evento.id).subscribe({
       next: (res) => {
-        const allResp = res.responsables.datos || [];
-        const allCargos = res.cargos.datos || [];
-        const allTiposCargo = res.tiposCargo.datos || [];
-        const allMiembros = res.miembros.datos || [];
-
-        allCargos.forEach(c => {
-          c.miembroDto = allMiembros.find(m => m.id === c.idMiembro);
-          c.tipoCargoDto = allTiposCargo.find(tc => tc.id === c.rolCargoId);
-        });
-
-        const eventResp = allResp.filter(r => r.eventoId === this.evento.id);
-
-        const list = eventResp.map(r => {
-          const cargo = allCargos.find(c => c.id === r.cargoId);
-          if (cargo && cargo.miembroDto) {
-            const cargoTitle = cargo.tipoCargoDto ? ` (${cargo.tipoCargoDto.nombre})` : '';
-            return `${cargo.miembroDto.nombre} ${cargo.miembroDto.apellido}${cargoTitle}`;
-          }
-          return '';
-        }).filter(name => name !== '');
+        const list = (res.datos || [])
+          .map(r => {
+            if (r.nombreCompleto) {
+              const cargoTitle = r.nombreCargo ? ` (${r.nombreCargo})` : '';
+              return `${r.nombreCompleto}${cargoTitle}`;
+            }
+            return '';
+          })
+          .filter(name => name !== '');
 
         if (list.length > 0) {
           this.responsablesText = list.join(', ');

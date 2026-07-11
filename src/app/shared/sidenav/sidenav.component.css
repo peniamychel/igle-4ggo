@@ -544,23 +544,7 @@ mat-toolbar {
   }
 }
 
-/* Badge de Notificación */
-.notification-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background-color: #ff9800;
-  color: white;
-  border-radius: 50%;
-  padding: 1px 5px;
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 1.2;
-  min-width: 10px;
-  text-align: center;
-  border: 1.5px solid var(--toolbar-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
+
 
 /* Animación de la campana activa */
 @keyframes ring {
@@ -600,3 +584,20 @@ mat-toolbar {
 ::ng-deep .mat-mdc-nav-list .mat-mdc-list-item[disabled="true"] .mdc-list-item__primary-text {
   color: var(--text-secondary) !important;
 }
+
+/* ── Separadores de Grupo del Menú ── */
+.menu-group-divider {
+  margin: 8px 16px;
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.menu-group-line { display: none; }
+.menu-group-label { display: none; }
+
+:host-context(.dark-theme) .menu-group-divider {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+
+

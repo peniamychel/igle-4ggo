@@ -17,14 +17,17 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEventoService } from '../../../../core/services/tipo-evento.service';
+import { EventoAceptacionService } from '../../../../core/services/evento-aceptacion.service';
+import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
 import { Evento } from '../../../../core/models/evento.model';
 import { TipoEvento } from '../../../../core/models/tipo-evento.model';
+import { EventoAceptacion } from '../../../../core/models/evento-aceptacion.model';
 import { EventoCreateComponent } from '../evento-create/evento-create.component';
 import { EventoDetailComponent } from '../evento-detail/evento-detail.component';
 import { EventoEditComponent } from '../evento-edit/evento-edit.component';
 import { EventoParticipantesComponent } from '../evento-participantes/evento-participantes.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { TipoEventoListComponent } from '../../tipo-evento/tipo-evento-list/tipo-evento-list.component';
 import { ResponsableEventoListComponent } from '../../responsable-evento/responsable-evento-list/responsable-evento-list.component';
@@ -77,6 +80,7 @@ export class EventoListComponent implements OnInit {
 
   isAdmin = false;
   currentChurchId: number | null = null;
+  decisiones: EventoAceptacion[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -86,6 +90,8 @@ export class EventoListComponent implements OnInit {
     private tipoEventoService: TipoEventoService,
     private iglesiaService: IglesiaService,
     private authService: AuthService,
+    private eventoAceptacionService: EventoAceptacionService,
+    private miembroIglesiaService: MiembroIglesiaService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
@@ -127,7 +133,9 @@ export class EventoListComponent implements OnInit {
         matchesIglesia = this.selectedIglesiaId === 'all' || 
           (data.iglesiaId !== undefined && data.iglesiaId === this.selectedIglesiaId);
       } else if (this.currentChurchId) {
-        matchesIglesia = data.iglesiaId !== undefined && data.iglesiaId === this.currentChurchId;
+        const esPropio = data.iglesiaId !== undefined && data.iglesiaId === this.currentChurchId;
+        const esInvitadoAceptado = this.decisiones.some(d => d.eventoId === data.id && d.estado === 'ACEPTADO');
+        matchesIglesia = esPropio || esInvitadoAceptado;
       }
         
       return matchesText && matchesTipo && matchesEstado && matchesIglesia;
@@ -161,21 +169,30 @@ export class EventoListComponent implements OnInit {
   }
 
   loadEventos() {
-    this.eventoService.getEventos().subscribe(response => {
-      let eventos = Array.isArray(response.datos) ? response.datos : [];
-      eventos.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      const tiposMap = new Map<number, TipoEvento>();
-      this.tiposEvento.forEach(t => { if (t.id !== undefined) tiposMap.set(t.id, t); });
+    forkJoin({
+      eventos: this.eventoService.getEventos(),
+      decisiones: this.currentChurchId ? this.eventoAceptacionService.getDecisionesPorIglesia(this.currentChurchId) : of({ datos: [] })
+    }).subscribe({
+      next: (res) => {
+        this.decisiones = res.decisiones.datos || [];
+        let eventos = Array.isArray(res.eventos.datos) ? res.eventos.datos : [];
+        eventos.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        const tiposMap = new Map<number, TipoEvento>();
+        this.tiposEvento.forEach(t => { if (t.id !== undefined) tiposMap.set(t.id, t); });
 
-      eventos.forEach(evento => {
-        evento.tipoEventoDto = evento.tipoEventoId !== undefined ? tiposMap.get(evento.tipoEventoId) : undefined;
-      });
-      this.dataSource.data = eventos;
-      this.applyFilters();
+        eventos.forEach(evento => {
+          evento.tipoEventoDto = evento.tipoEventoId !== undefined ? tiposMap.get(evento.tipoEventoId) : undefined;
+        });
+        this.dataSource.data = eventos;
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error('Error al cargar eventos con decisiones:', err);
+      }
     });
   }
 
@@ -299,6 +316,41 @@ export class EventoListComponent implements OnInit {
     this.snackBar.open(message, 'Cerrar', {
       duration: 3000,
       panelClass: [panelClass]
+    });
+  }
+
+  archivarInvitacion(evento: Evento) {
+    if (!this.currentChurchId || !evento.id) return;
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: '¿Está seguro que desea archivar?',
+        message: `Está a punto de archivar la invitación al evento <strong>${evento.nombre}</strong>. Dejará de mostrarse en su lista de gestión de eventos, pero podrá recuperarlo en el Historial de Notificaciones.`,
+        confirmText: 'Archivar',
+        type: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && evento.id && this.currentChurchId) {
+        this.eventoAceptacionService.decidir({
+          eventoId: evento.id,
+          iglesiaId: this.currentChurchId,
+          estado: 'ARCHIVADO'
+        }).subscribe({
+          next: () => {
+            this.loadEventos();
+            this.messageSnackBar(`Invitación al evento '${evento.nombre}' archivada exitosamente.`);
+            // Notificar a la campana
+            this.miembroIglesiaService.notifySolicitudesChanged();
+          },
+          error: (err) => {
+            const errMsg = err.error?.message || 'Error al archivar la invitación.';
+            this.messageSnackBar(errMsg, 'error');
+          }
+        });
+      }
     });
   }
 }

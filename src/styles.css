@@ -612,3 +612,17 @@ mat-expansion-panel-header {
 .dark-theme mat-expansion-panel-header:not([aria-disabled=true]):hover {
   background-color: rgba(255, 255, 255, 0.04) !important;
 }
+
+/* ══════════════════════════════════════════════════
+   NOTIFICACIONES POPOVER DIALOG OVERLAY RESET
+   ══════════════════════════════════════════════════ */
+.solicitudes-popover-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0 !important;
+}
+.solicitudes-popover-panel .mat-mdc-dialog-content {
+  padding: 0 !important;
+  max-height: unset !important;
+}
+.solicitudes-popover-panel {
+  overflow: visible !important;
+}

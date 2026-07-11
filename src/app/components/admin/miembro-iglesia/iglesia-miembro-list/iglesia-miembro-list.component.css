@@ -275,8 +275,8 @@
 /* Grid de tarjetas de traspaso */
 .transfers-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas en pantallas grandes */
+  gap: 16px;
   margin-top: 16px;
   margin-bottom: 32px;
 }
@@ -284,11 +284,11 @@
 .transfer-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 18px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   transition: all 0.2s ease-in-out;
   position: relative;
@@ -314,22 +314,22 @@
 }
 
 .avatar-circle {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%);
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--primary-color);
 }
 
 .avatar-image {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   border: 1.5px solid var(--border-color);
@@ -342,7 +342,7 @@
 
 .member-name {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -415,9 +415,9 @@
   align-items: center;
   background-color: rgba(0, 0, 0, 0.015);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 12px 16px;
-  gap: 12px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  gap: 8px;
 }
 
 .flow-step {
@@ -435,7 +435,7 @@
 }
 
 .flow-church {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
@@ -475,7 +475,7 @@
 
 .reason-text {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-primary);
   line-height: 1.5;
   display: -webkit-box;
@@ -490,8 +490,8 @@
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid var(--border-color);
-  padding-top: 14px;
-  gap: 12px;
+  padding-top: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -499,7 +499,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -518,14 +518,15 @@
 .card-actions {
   display: flex;
   border-top: 1px solid var(--border-color);
-  padding-top: 14px;
-  margin-top: 4px;
+  padding-top: 10px;
+  margin-top: 2px;
 }
 
 .action-buttons-group {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 8px;
   width: 100%;
 }
 
@@ -565,21 +566,46 @@
 }
 
 .btn-cancel {
-  color: var(--text-secondary) !important;
-  background-color: rgba(0, 0, 0, 0.03) !important;
-  border: 1px solid var(--border-color) !important;
+  color: #ff9800 !important; /* Color naranja de advertencia/cancelación */
+  background-color: rgba(255, 152, 0, 0.08) !important;
+  border: 1px solid rgba(255, 152, 0, 0.25) !important;
   width: 38px !important;
   height: 38px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-width: 38px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   border-radius: 50% !important;
   transition: all 0.2s ease !important;
 }
 
 .btn-cancel:hover {
-  background-color: rgba(0, 0, 0, 0.08) !important;
-  color: var(--text-primary) !important;
+  background-color: #ff9800 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.25) !important;
+}
+
+.btn-cancel mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Soporte Tema Oscuro para Cancelar */
+:host-context(.dark-theme) .btn-cancel {
+  color: #ffb74d !important;
+  background-color: rgba(255, 183, 77, 0.12) !important;
+  border-color: rgba(255, 183, 77, 0.25) !important;
+}
+
+:host-context(.dark-theme) .btn-cancel:hover {
+  background-color: #ffb74d !important;
+  color: #121212 !important;
+  box-shadow: 0 4px 10px rgba(255, 183, 77, 0.3) !important;
 }
 
 /* Estado Vacío */
@@ -632,17 +658,32 @@
 }
 
 /* Responsividad Móvil */
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
   .transfers-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en pantallas medianas */
   }
 }
 
 @media (max-width: 768px) {
+  .transfers-grid {
+    grid-template-columns: 1fr; /* 1 columna en móviles */
+  }
+  
+  .kpis-grid-layout {
+    display: none !important; /* Ocultar KPIs en móviles para ahorrar espacio */
+  }
+
+  .view-toggle-group {
+    display: none !important; /* Huye del alternador en móvil (se fuerza modo cuadros) */
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 12px !important; /* Reduce padding lateral de la página */
+    gap: 16px !important;     /* Reduce espacio vertical */
+  }
+
   .sticky-header {
     position: static !important;
     margin-top: 0 !important;
@@ -681,20 +722,15 @@
     width: 100%;
     max-width: 100%;
   }
-  
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
 }
 
 @media (max-width: 480px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
+  .container {
+    padding: 8px !important; /* Aún menos padding en pantallas ultra pequeñas */
   }
   
   .transfer-card {
-    padding: 16px;
+    padding: 12px; /* Más compacto en móvil ultra pequeño */
   }
   
   .card-header {
@@ -785,3 +821,386 @@
 :host-context(.dark-theme) .btn-action-primary:hover {
   background-color: #c44de0 !important;
 }
+
+/* ── EFECTO DE ANIMACIÓN Y HIGHLIGHT PARA TARJETA SELECCIONADA ── */
+.transfer-card.highlight-bounce {
+  border: 2px solid var(--primary-color, #7c4dff) !important;
+  box-shadow: 0 8px 30px rgba(124, 77, 255, 0.25) !important;
+  animation: bounce-attention 0.6s ease-in-out 5 !important; /* Salta 5 veces */
+}
+
+:host-context(.dark-theme) .transfer-card.highlight-bounce {
+  box-shadow: 0 8px 30px rgba(229, 107, 247, 0.25) !important;
+}
+
+@keyframes bounce-attention {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px); /* Se levanta un poco hacia arriba */
+  }
+}
+
+/* ==========================================================================
+   ESTANDARIZACIÓN MAC-MINI-BTN (SKILL IGLE-APP-FUNCTIONALITY SECCIÓN 5)
+   ========================================================================== */
+.mac-actions-right {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.mac-mini-btn {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  line-height: 38px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.mac-mini-btn mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.mac-btn-archive {
+  color: #e65100 !important;
+  background-color: rgba(230, 81, 0, 0.08) !important;
+  border: 1px solid rgba(230, 81, 0, 0.25) !important;
+}
+
+.mac-btn-archive:hover {
+  background-color: #e65100 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(230, 81, 0, 0.25) !important;
+}
+
+.mac-btn-reactivate {
+  color: #2e7d32 !important;
+  background-color: rgba(46, 125, 50, 0.08) !important;
+  border: 1px solid rgba(46, 125, 50, 0.25) !important;
+}
+
+.mac-btn-reactivate:hover {
+  background-color: #2e7d32 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25) !important;
+}
+
+.mac-btn-delete {
+  color: #d32f2f !important;
+  background-color: rgba(211, 47, 47, 0.08) !important;
+  border: 1px solid rgba(211, 47, 47, 0.25) !important;
+}
+
+.mac-btn-delete:hover {
+  background-color: #d32f2f !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.25) !important;
+}
+
+/* Soporte Tema Oscuro para mac-mini-btn en este componente */
+:host-context(.dark-theme) .mac-btn-archive {
+  color: #ffb74d !important;
+  background-color: rgba(255, 183, 77, 0.12) !important;
+  border-color: rgba(255, 183, 77, 0.25) !important;
+}
+
+:host-context(.dark-theme) .mac-btn-archive:hover {
+  background-color: #ffb74d !important;
+  color: #121212 !important;
+}
+
+:host-context(.dark-theme) .mac-btn-reactivate {
+  color: #81c784 !important;
+  background-color: rgba(129, 199, 132, 0.12) !important;
+  border-color: rgba(129, 199, 132, 0.25) !important;
+}
+
+:host-context(.dark-theme) .mac-btn-reactivate:hover {
+  background-color: #81c784 !important;
+  color: #121212 !important;
+}
+
+:host-context(.dark-theme) .mac-btn-delete {
+  color: #e57373 !important;
+  background-color: rgba(229, 115, 115, 0.12) !important;
+  border-color: rgba(229, 115, 115, 0.25) !important;
+}
+
+:host-context(.dark-theme) .mac-btn-delete:hover {
+  background-color: #e57373 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   ALTERNADOR DE VISTA Y MODO TABLA EN TRASPASOS
+   ========================================================================== */
+
+/* Alternador de Vista */
+.view-toggle-group {
+  display: flex;
+  background-color: rgba(0, 0, 0, 0.02);
+  padding: 4px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.view-toggle-btn {
+  background: transparent;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary, #64748b);
+  transition: all 0.22s ease;
+}
+
+.view-toggle-btn:hover {
+  color: var(--text-primary, #1e293b);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.view-toggle-btn.active {
+  background-color: var(--card-bg, #ffffff);
+  color: var(--primary-color, #7c4dff);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.view-toggle-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Contenedor de la Tabla */
+.table-container {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  overflow: auto; /* Permite scroll horizontal y vertical si es necesario */
+  margin-top: 16px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+
+.transfers-table {
+  width: 100%;
+  min-width: 850px; /* Previene que la tabla se encoja en pantallas móviles */
+}
+
+.transfers-table .mat-header-cell {
+  background-color: rgba(0, 0, 0, 0.015);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary, #1e293b);
+  padding: 16px 12px;
+}
+
+.transfers-table .mat-cell {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #475569);
+  padding: 12px;
+}
+
+.transfers-table .mat-row {
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.transfers-table .mat-row:hover {
+  background-color: rgba(124, 77, 255, 0.015);
+}
+
+/* Columnas Específicas */
+.mat-column-miembro {
+  flex: 2;
+}
+
+.mat-column-origen,
+.mat-column-destino {
+  flex: 1.2;
+}
+
+.mat-column-fecha {
+  flex: 1;
+}
+
+.mat-column-motivo {
+  flex: 1.5;
+}
+
+.mat-column-estado {
+  flex: 1;
+}
+
+.mat-column-acciones {
+  flex: 1.8 !important;
+  min-width: 150px !important;
+  justify-content: flex-end !important;
+  overflow: visible !important;
+}
+
+/* Perfil de Miembro en Tabla */
+.table-member-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-circle-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary-color, #7c4dff);
+}
+
+.avatar-image-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.member-meta-sm {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name-sm {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.member-sub-sm {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #64748b);
+  margin-top: 1px;
+}
+
+/* Celdas especiales de tabla */
+.motivo-table-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* Badges de Estado pequeños en la Tabla */
+.status-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.status-badge-sm.pendiente {
+  background-color: rgba(230, 81, 0, 0.08);
+  color: #e65100;
+}
+
+.status-badge-sm.aceptado {
+  background-color: rgba(46, 125, 50, 0.08);
+  color: #2e7d32;
+}
+
+.status-badge-sm.rechazado {
+  background-color: rgba(198, 40, 40, 0.08);
+  color: #c62828;
+}
+
+.status-badge-sm.cancelado {
+  background-color: rgba(95, 99, 104, 0.08);
+  color: #5f6368;
+}
+
+/* ── SOPORTE TEMA OSCURO ── */
+:host-context(.dark-theme) .view-toggle-group {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .view-toggle-btn:hover {
+  color: var(--text-primary, #e2e8f0);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+:host-context(.dark-theme) .view-toggle-btn.active {
+  background-color: var(--card-bg, #16161c);
+  color: var(--primary-color, #e56bf7);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+:host-context(.dark-theme) .table-container {
+  background-color: var(--card-bg, #16161c);
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .transfers-table .mat-header-cell {
+  background-color: rgba(255, 255, 255, 0.01);
+  color: var(--text-primary, #e2e8f0);
+}
+
+:host-context(.dark-theme) .transfers-table .mat-cell {
+  color: var(--text-secondary, #94a3b8);
+}
+
+:host-context(.dark-theme) .transfers-table .mat-row {
+  border-bottom-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .transfers-table .mat-row:hover {
+  background-color: rgba(229, 107, 247, 0.015);
+}
+
+:host-context(.dark-theme) .avatar-image-sm {
+  border-color: var(--border-color, #23232c);
+}
+
+:host-context(.dark-theme) .member-name-sm {
+  color: #ffffff;
+}
+
+:host-context(.dark-theme) .status-badge-sm.pendiente {
+  background-color: rgba(255, 183, 77, 0.12);
+  color: #ffb74d;
+}
+
+:host-context(.dark-theme) .status-badge-sm.aceptado {
+  background-color: rgba(129, 199, 132, 0.12);
+  color: #81c784;
+}
+
+:host-context(.dark-theme) .status-badge-sm.rechazado {
+  background-color: rgba(229, 115, 115, 0.12);
+  color: #e57373;
+}
+
+:host-context(.dark-theme) .status-badge-sm.cancelado {
+  background-color: rgba(186, 191, 198, 0.12);
+  color: #babfc6;
+}
+

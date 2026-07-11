@@ -17,13 +17,16 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../core/services/user.service';
 import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
+import { EventoService } from '../../core/services/evento.service';
+import { EventoAceptacionService } from '../../core/services/evento-aceptacion.service';
 import { CreateUserDto, SingleUserResponse, User, UserResponse } from '../../core/models/user.model';
 import { ThemeService } from '../../core/services/theme.service';
 import { ImageUrlPipe } from '../pipes/image-url.pipe';
 import { SolicitudListComponent } from '../../components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, forkJoin } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { ROUTE_VIEW_MAP } from '../../core/constants/privilegios.constants';
+import { MatBadgeModule } from '@angular/material/badge';
 
 
 export interface MenuItem {
@@ -36,6 +39,8 @@ export interface MenuItem {
   adminOnly?: boolean;
   /** Si true, el ítem se oculta para usuarios con rol ADMIN */
   nonAdminOnly?: boolean;
+  /** Etiqueta del grupo. Si está presente, se renderiza un separador antes de este ítem */
+  groupLabel?: string;
 }
 
 @Component({
@@ -53,7 +58,8 @@ export interface MenuItem {
     MatDialogModule,
     RouterModule,
     MatTooltipModule,
-    ImageUrlPipe
+    ImageUrlPipe,
+    MatBadgeModule
   ],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']
@@ -78,6 +84,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
   private miembroIglesiaService = inject(MiembroIglesiaService);
+  private eventoService = inject(EventoService);
+  private eventoAceptacionService = inject(EventoAceptacionService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
   private themeService = inject(ThemeService);
   private destroyRef = inject(DestroyRef);
@@ -107,32 +115,39 @@ export class SidenavComponent implements OnInit, OnDestroy {
   filteredMenuItems: MenuItem[] = [];
 
   menuItems: MenuItem[] = [
+    // ── General ──
     { label: 'Inicio', route: '/inicio', icon: 'home' },
-    {
-      label: 'Obreros',
-      route: '/obreros',
-      icon: 'work'
-    },
-    { label: 'Miembros', route: '/miembro', icon: 'people' },
+
+    // ── Miembros ──
+    { label: 'Miembros', route: '/miembro', icon: 'people', groupLabel: 'Miembros' },
+    { label: 'Mis Miembros', route: '/mi-iglesia', icon: 'people_alt', nonAdminOnly: true },
     { label: 'Cambios Iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
-    { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' },
-    { label: 'Mis Miembros', route: '/mi-iglesia', icon: 'people', nonAdminOnly: true },
-    { label: 'Iglesias', route: '/iglesia', icon: 'church' },
-    { label: 'Eventos', route: '/eventos', icon: 'event' },
+
+    // ── Iglesias ──
+    { label: 'Iglesias', route: '/iglesia', icon: 'church', groupLabel: 'Iglesias' },
+    { label: 'Obreros', route: '/obreros', icon: 'work' },
+
+    // ── Eventos ──
+    { label: 'Eventos', route: '/eventos', icon: 'event', groupLabel: 'Eventos' },
     { label: 'Certificaciones', route: '/certificados', icon: 'workspace_premium' },
-    { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
+
+    // ── Recursos ──
+    { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on', groupLabel: 'Recursos' },
     { label: 'Inventario', route: '/activos', icon: 'inventory_2' },
+
+    // ── Sistema ──
     {
       label: 'Administración',
       icon: 'admin_panel_settings',
       adminOnly: true,
+      groupLabel: 'Sistema',
       children: [
         { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' }
       ]
     },
-
-    { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
-    { label: 'Configuración', route: '/configuracion', icon: 'settings' }
+    { label: 'Perfil', route: '/perfil', icon: 'manage_accounts', groupLabel: 'Sistema' },
+    { label: 'Configuración', route: '/configuracion', icon: 'settings' },
+    { label: 'Ayuda', route: '/ayuda', icon: 'help_outline' }
   ];
   constructor() {
   }
@@ -171,7 +186,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
     // Rutas siempre visibles para cualquier usuario autenticado.
     if (route === '/' || route === '/inicio' || route === '/mi-iglesia'
-        || route === '/perfil') {
+        || route === '/perfil' || route === '/ayuda') {
       return true;
     }
 
@@ -383,6 +398,12 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
       if (this.isAuthenticated) {
         this.startPolling();
+        // Escucha en tiempo real si hay mutaciones de traspasos para recargar el conteo
+        this.miembroIglesiaService.solicitudesChanged$
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.loadPendingSolicitudesCount();
+          });
       } else {
         this.stopPolling();
         this.pendingSolicitudesCount = 0;
@@ -416,12 +437,34 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
 
     const iglesiaId = this.authService.getCurrentIglesiaId() || 0;
-    this.miembroIglesiaService.getSolicitudesPendientes(iglesiaId).subscribe({
-      next: (response) => {
-        this.pendingSolicitudesCount = response?.datos?.length || 0;
+
+    forkJoin({
+      traspasos: this.miembroIglesiaService.getSolicitudesPendientes(iglesiaId),
+      eventos: this.eventoService.getEventos(),
+      decisiones: this.eventoAceptacionService.getDecisionesPorIglesia(iglesiaId)
+    }).subscribe({
+      next: (res) => {
+        const traspasosCount = res.traspasos?.datos?.length || 0;
+        let eventosCount = 0;
+        const listaDecisiones = res.decisiones?.datos || [];
+
+        if (iglesiaId && res.eventos?.datos) {
+          res.eventos.datos.forEach(evt => {
+            const isHabilitado = evt.habilitarInscripciones === true;
+            const iglesiasCsv = evt.iglesiasInvitadas || '';
+            const idsInvitados = iglesiasCsv.split(',').filter(x => x.trim() !== '').map(Number);
+            const yaDecidido = listaDecisiones.some(d => d.eventoId === evt.id);
+
+            if (isHabilitado && idsInvitados.includes(iglesiaId) && !yaDecidido) {
+              eventosCount++;
+            }
+          });
+        }
+
+        this.pendingSolicitudesCount = traspasosCount + eventosCount;
       },
       error: (error) => {
-        console.error('Error al cargar conteo de solicitudes:', error);
+        console.error('Error al cargar conteo de notificaciones unificadas:', error);
       }
     });
   }
@@ -518,9 +561,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   openSolicitudesModal(): void {
     this.dialog.open(SolicitudListComponent, {
-      width: '1000px',
-      maxHeight: '90vh',
-      panelClass: 'solicitudes-dialog-panel'
+      width: '420px',
+      maxHeight: '80vh',
+      position: { top: '65px', right: '16px' },
+      panelClass: 'solicitudes-popover-panel',
+      hasBackdrop: true
     });
   }
 

@@ -60,6 +60,32 @@
       </mat-form-field>
     </div>
 
+    <!-- Habilitación de Invitación e Inscripción para Iglesias -->
+    <div class="form-row checkbox-row">
+      <mat-checkbox formControlName="habilitarInscripciones">
+        Habilitar invitaciones e inscripciones para iglesias filiales
+      </mat-checkbox>
+    </div>
+
+    <!-- Invitar a Todas -->
+    <div class="form-row checkbox-row" *ngIf="eventoForm.get('habilitarInscripciones')?.value" style="margin-left: 20px; margin-top: -8px;">
+      <mat-checkbox formControlName="invitarATodas">
+        Invitar a todas las iglesias filiales
+      </mat-checkbox>
+    </div>
+
+    <div class="form-row" *ngIf="eventoForm.get('habilitarInscripciones')?.value && !eventoForm.get('invitarATodas')?.value">
+      <mat-form-field appearance="outline">
+        <mat-label>Seleccionar Iglesias Invitadas</mat-label>
+        <mat-select formControlName="iglesiasInvitadasIds" multiple>
+          <mat-option *ngFor="let igl of iglesias" [value]="igl.id">
+            {{ igl.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Los pastores de las iglesias seleccionadas recibirán una notificación para inscribir miembros.</mat-hint>
+      </mat-form-field>
+    </div>
+
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

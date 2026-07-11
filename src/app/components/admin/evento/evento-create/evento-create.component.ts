@@ -9,8 +9,11 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEvento } from '../../../../core/models/tipo-evento.model';
+import { IglesiaService } from '../../../../core/services/iglesia.service';
+import { Iglesia } from '../../../../core/models/iglesia.model';
 
 @Component({
   selector: 'app-evento-create',
@@ -25,7 +28,8 @@ import { TipoEvento } from '../../../../core/models/tipo-evento.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatCheckboxModule
   ],
   templateUrl: './evento-create.component.html',
   styleUrls: ['./evento-create.component.css']
@@ -33,10 +37,12 @@ import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 export class EventoCreateComponent implements OnInit {
   eventoForm: FormGroup;
   tiposEvento: TipoEvento[] = [];
+  iglesias: Iglesia[] = [];
 
   constructor(
     private fb: FormBuilder,
     private eventoService: EventoService,
+    private iglesiaService: IglesiaService,
     private dialogRef: MatDialogRef<EventoCreateComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { tiposEvento: TipoEvento[] }
   ) {
@@ -48,6 +54,9 @@ export class EventoCreateComponent implements OnInit {
       ubicacion: ['', [Validators.required, Validators.maxLength(200)]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required],
+      habilitarInscripciones: [false],
+      invitarATodas: [false],
+      iglesiasInvitadasIds: [[]]
     });
   }
 
@@ -55,11 +64,43 @@ export class EventoCreateComponent implements OnInit {
     if (this.data) {
       this.tiposEvento = this.data.tiposEvento.filter(t => t.estado);
     }
+    this.loadIglesias();
+  }
+
+  loadIglesias() {
+    this.iglesiaService.getIglesias().subscribe({
+      next: (res) => {
+        this.iglesias = res.datos.filter(i => i.estado);
+      },
+      error: (err) => console.error('Error al cargar iglesias:', err)
+    });
   }
 
   onSubmit() {
     if (this.eventoForm.valid) {
-      const eventoData = this.eventoForm.value;
+      const formValue = this.eventoForm.value;
+      let iglesiasCsv = '';
+      
+      if (formValue.habilitarInscripciones) {
+        if (formValue.invitarATodas) {
+          iglesiasCsv = this.iglesias
+            .map(i => i.id)
+            .filter((id): id is number => id !== undefined)
+            .join(',');
+        } else {
+          const ids: number[] = formValue.iglesiasInvitadasIds || [];
+          iglesiasCsv = ids.join(',');
+        }
+      }
+
+      const eventoData = {
+        ...formValue,
+        iglesiasInvitadas: iglesiasCsv
+      };
+      
+      delete eventoData.iglesiasInvitadasIds;
+      delete eventoData.invitarATodas;
+
       this.eventoService.createEvento(eventoData).subscribe(() => {
         this.dialogRef.close(true);
       });
