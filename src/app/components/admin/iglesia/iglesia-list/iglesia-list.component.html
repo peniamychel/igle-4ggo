@@ -117,7 +117,9 @@
         <h3>Lista de Iglesias</h3>
       </div>
       <div class="directory-list-scrollable" cdkDropList (cdkDropListDropped)="drop($event)">
-        <div class="no-churches-placeholder" *ngIf="filteredIglesias.length === 0">
+        <app-loading-spinner *ngIf="isLoading" message="Cargando iglesias..."></app-loading-spinner>
+
+        <div class="no-churches-placeholder" *ngIf="!isLoading && filteredIglesias.length === 0">
           <mat-icon>church</mat-icon>
           <p>No se encontraron iglesias con los filtros seleccionados.</p>
         </div>

@@ -21,6 +21,7 @@ import { IglesiaEditComponent } from '../iglesia-edit/iglesia-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
@@ -48,6 +49,7 @@ import * as L from 'leaflet';
     HasPrivilegioDirective,
     DragDropModule,
     IglesiaDetailComponent,
+    LoadingSpinnerComponent,
   ],
   templateUrl: './iglesia-list.component.html',
   styleUrls: ['./iglesia-list.component.css']
@@ -57,6 +59,7 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
   filteredIglesias: any[] = [];
   seleccionada: any = null;
   detalleIglesia: any = null;
+  isLoading = true;
 
   // Filter models
   search = '';
@@ -112,6 +115,7 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadIglesias() {
+    this.isLoading = true;
     forkJoin({
       iglesias: this.iglesiaService.getIglesias(),
       miembros: this.miembroService.getMiembros().pipe(catchError(() => of({ datos: [] }))),
@@ -157,9 +161,11 @@ export class IglesiaListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.calculateStats();
         this.applyFilters();
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching data from API services', err);
+        this.isLoading = false;
       }
     });
   }

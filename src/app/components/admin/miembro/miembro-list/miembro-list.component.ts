@@ -21,6 +21,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { MiembroIglesiaFormTraspasoComponent } from '../../miembro-iglesia/modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
@@ -47,7 +48,8 @@ import autoTable from 'jspdf-autotable';
     MatMenuModule,
     MatDividerModule,
     ImageUrlPipe,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './miembro-list.component.html',
   styleUrls: ['./miembro-list.component.css']
@@ -60,6 +62,7 @@ export class MiembroListComponent implements OnInit {
   displayedColumns: string[] = ['miembro', 'contacto', 'iglesia', 'bautismo', 'estado', 'acciones'];
 
   isAdmin = false;
+  isLoading = true;
   selectedIglesiaId: string = 'all';
   selectedEstado: string = 'all';
   searchText: string = '';
@@ -90,12 +93,13 @@ export class MiembroListComponent implements OnInit {
 
   loadMiembros() {
     const estadoBool = this.selectedEstado === 'active' ? true : (this.selectedEstado === 'inactive' ? false : undefined);
-    
+    this.isLoading = true;
+
     this.miembroService.getMiembrosPaged(
-      this.pageIndex, 
-      this.pageSize, 
-      this.searchText, 
-      estadoBool, 
+      this.pageIndex,
+      this.pageSize,
+      this.searchText,
+      estadoBool,
       this.selectedIglesiaId
     ).subscribe({
       next: (response) => {
@@ -103,10 +107,12 @@ export class MiembroListComponent implements OnInit {
           this.miembros.data = response.datos.content || [];
           this.totalElements = response.datos.totalElements || 0;
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error al cargar miembros:', err);
         this.messageSnackBar('Error al cargar la lista de miembros', 'error');
+        this.isLoading = false;
       }
     });
   }
