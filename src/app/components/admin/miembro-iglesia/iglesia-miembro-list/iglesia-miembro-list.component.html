@@ -124,7 +124,7 @@
           <div class="avatar-circle" *ngIf="!solicitud.miembroFoto">
             {{solicitud.miembroInitials}}
           </div>
-          <img [src]="solicitud.miembroFoto" class="avatar-image" *ngIf="solicitud.miembroFoto" />
+          <img [src]="solicitud.miembroFoto" class="avatar-image" *ngIf="solicitud.miembroFoto" loading="lazy" />
           <div class="member-details">
             <h3 class="member-name">{{solicitud.miembroName}}</h3>
             <p class="member-ci-cargo">CI: {{solicitud.miembroCi || 'Sin CI'}} • {{solicitud.miembroCargo || 'Miembro'}}</p>
@@ -208,7 +208,7 @@
             <div class="avatar-circle-sm" *ngIf="!row.miembroFoto">
               {{row.miembroInitials}}
             </div>
-            <img [src]="row.miembroFoto" class="avatar-image-sm" *ngIf="row.miembroFoto" />
+            <img [src]="row.miembroFoto" class="avatar-image-sm" *ngIf="row.miembroFoto" loading="lazy" />
             <div class="member-meta-sm">
               <span class="member-name-sm">{{row.miembroName}}</span>
               <span class="member-sub-sm">CI: {{row.miembroCi || 'Sin CI'}} • {{row.miembroCargo || 'Miembro'}}</span>

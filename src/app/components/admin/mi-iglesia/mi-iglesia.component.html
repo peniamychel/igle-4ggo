@@ -54,6 +54,7 @@
                    [src]="item.uriFoto | imageUrl"
                    [alt]="item.nombre"
                    class="miembro-avatar-img"
+                   loading="lazy"
                    (error)="onImageError($event)">
               <div class="miembro-avatar-placeholder" [style.display]="item.uriFoto ? 'none' : 'flex'">
                 {{item.nombre?.charAt(0) || '?'}}

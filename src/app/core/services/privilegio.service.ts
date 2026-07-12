@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PrivilegioDto, PrivilegioResponse } from '../models/interfaces/privilegio.interface';
 
@@ -10,10 +11,22 @@ import { PrivilegioDto, PrivilegioResponse } from '../models/interfaces/privileg
 export class PrivilegioService {
   private apiUrl = `${environment.apiUrl}/api/privilegios/v1`;
 
+  // Catalogo de privilegios: cambia poco, se cachea y se invalida en cada mutacion
+  // del catalogo (NO al asignar/quitar privilegios de un rol, eso no cambia el catalogo).
+  private privilegiosCache$?: Observable<PrivilegioDto[]>;
+
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<PrivilegioDto[]> {
-    return this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`);
+    if (!this.privilegiosCache$) {
+      this.privilegiosCache$ = this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+    }
+    return this.privilegiosCache$;
+  }
+
+  /** Invalida el cache del catalogo de privilegios; llamar tras crear/editar/eliminar uno. */
+  private invalidateCache(): void {
+    this.privilegiosCache$ = undefined;
   }
 
   getById(id: number): Observable<PrivilegioDto> {
@@ -21,15 +34,15 @@ export class PrivilegioService {
   }
 
   create(dto: PrivilegioDto): Observable<PrivilegioDto> {
-    return this.http.post<PrivilegioDto>(`${this.apiUrl}/create`, dto);
+    return this.http.post<PrivilegioDto>(`${this.apiUrl}/create`, dto).pipe(tap(() => this.invalidateCache()));
   }
 
   update(id: number, dto: PrivilegioDto): Observable<PrivilegioDto> {
-    return this.http.put<PrivilegioDto>(`${this.apiUrl}/update/${id}`, dto);
+    return this.http.put<PrivilegioDto>(`${this.apiUrl}/update/${id}`, dto).pipe(tap(() => this.invalidateCache()));
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`).pipe(tap(() => this.invalidateCache()));
   }
 
   getPrivilegiosByRolCargo(rolCargoId: number): Observable<PrivilegioResponse[]> {

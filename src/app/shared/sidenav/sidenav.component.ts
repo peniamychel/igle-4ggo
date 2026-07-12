@@ -17,13 +17,12 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../core/services/user.service';
 import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
-import { EventoService } from '../../core/services/evento.service';
-import { EventoAceptacionService } from '../../core/services/evento-aceptacion.service';
+import { NotificacionService } from '../../core/services/notificacion.service';
 import { CreateUserDto, SingleUserResponse, User, UserResponse } from '../../core/models/user.model';
 import { ThemeService } from '../../core/services/theme.service';
 import { ImageUrlPipe } from '../pipes/image-url.pipe';
 import { SolicitudListComponent } from '../../components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
-import { Subscription, interval, forkJoin } from 'rxjs';
+import { Subscription, interval } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { ROUTE_VIEW_MAP } from '../../core/constants/privilegios.constants';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -84,8 +83,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
   private miembroIglesiaService = inject(MiembroIglesiaService);
-  private eventoService = inject(EventoService);
-  private eventoAceptacionService = inject(EventoAceptacionService);
+  private notificacionService = inject(NotificacionService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
   private themeService = inject(ThemeService);
   private destroyRef = inject(DestroyRef);
@@ -413,8 +411,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   startPolling() {
     this.stopPolling();
-    // Poll every 15 seconds
-    this.pollingSub = interval(15000).pipe(
+    // Poll cada 60 segundos: el backend expone un endpoint de conteo liviano
+    // (unos pocos bytes) en vez de descargar traspasos/eventos/decisiones completos.
+    this.pollingSub = interval(60000).pipe(
       startWith(0)
     ).subscribe(() => {
       this.loadPendingSolicitudesCount();
@@ -438,30 +437,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
     const iglesiaId = this.authService.getCurrentIglesiaId() || 0;
 
-    forkJoin({
-      traspasos: this.miembroIglesiaService.getSolicitudesPendientes(iglesiaId),
-      eventos: this.eventoService.getEventos(),
-      decisiones: this.eventoAceptacionService.getDecisionesPorIglesia(iglesiaId)
-    }).subscribe({
+    this.notificacionService.getBadge(iglesiaId).subscribe({
       next: (res) => {
-        const traspasosCount = res.traspasos?.datos?.length || 0;
-        let eventosCount = 0;
-        const listaDecisiones = res.decisiones?.datos || [];
-
-        if (iglesiaId && res.eventos?.datos) {
-          res.eventos.datos.forEach(evt => {
-            const isHabilitado = evt.habilitarInscripciones === true;
-            const iglesiasCsv = evt.iglesiasInvitadas || '';
-            const idsInvitados = iglesiasCsv.split(',').filter(x => x.trim() !== '').map(Number);
-            const yaDecidido = listaDecisiones.some(d => d.eventoId === evt.id);
-
-            if (isHabilitado && idsInvitados.includes(iglesiaId) && !yaDecidido) {
-              eventosCount++;
-            }
-          });
-        }
-
-        this.pendingSolicitudesCount = traspasosCount + eventosCount;
+        this.pendingSolicitudesCount = res.datos?.total || 0;
       },
       error: (error) => {
         console.error('Error al cargar conteo de notificaciones unificadas:', error);

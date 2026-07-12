@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ServicioDto, AccionDto } from '../models/interfaces/servicio.interface';
 
@@ -11,10 +12,18 @@ export class ServicioService {
 
   private apiUrl = `${environment.apiUrl}/api/servicios/v1`;
 
+  // Catalogos de servicios/acciones: practicamente estaticos (semilla del sistema),
+  // se cachean para toda la sesion.
+  private serviciosCache$?: Observable<ServicioDto[]>;
+  private accionesCache$?: Observable<AccionDto[]>;
+
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<ServicioDto[]> {
-    return this.http.get<ServicioDto[]>(`${this.apiUrl}/findall`);
+    if (!this.serviciosCache$) {
+      this.serviciosCache$ = this.http.get<ServicioDto[]>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+    }
+    return this.serviciosCache$;
   }
 
   getById(id: number): Observable<ServicioDto> {
@@ -22,7 +31,10 @@ export class ServicioService {
   }
 
   getAllAcciones(): Observable<AccionDto[]> {
-    return this.http.get<AccionDto[]>(`${this.apiUrl}/acciones/findall`);
+    if (!this.accionesCache$) {
+      this.accionesCache$ = this.http.get<AccionDto[]>(`${this.apiUrl}/acciones/findall`).pipe(shareReplay(1));
+    }
+    return this.accionesCache$;
   }
 
   getAccionesByRolCargo(rolCargoId: number): Observable<AccionDto[]> {

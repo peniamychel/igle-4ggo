@@ -135,7 +135,7 @@
           </div>
 
           <div class="church-avatar" [class.inactive]="!ig.estado">
-            <img *ngIf="ig.uriFoto" [src]="ig.uriFoto | imageUrl" [alt]="ig.nombre" />
+            <img *ngIf="ig.uriFoto" [src]="ig.uriFoto | imageUrl" [alt]="ig.nombre" loading="lazy" />
             <span *ngIf="!ig.uriFoto">{{ ig.nombre.replace('Iglesia ', '').slice(0,2).toUpperCase() }}</span>
           </div>
           

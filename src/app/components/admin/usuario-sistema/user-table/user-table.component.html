@@ -99,7 +99,8 @@
                     <img *ngIf="user.uriFoto"
                          [src]="user.uriFoto | imageUrl"
                          [alt]="user.name"
-                         class="miembro-avatar-img">
+                         class="miembro-avatar-img"
+                         loading="lazy">
                     <div class="miembro-avatar-placeholder" [style.display]="user.uriFoto ? 'none' : 'flex'">
                       {{ getInitials(user.name || user.username) }}
                     </div>

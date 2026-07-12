@@ -116,7 +116,7 @@
               <mat-header-cell *matHeaderCellDef> Imagen </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <div class="thumbnail-container">
-                  <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" class="thumbnail-img" alt="Foto bien">
+                  <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" class="thumbnail-img" alt="Foto bien" loading="lazy">
                   <div *ngIf="!row.uriFoto" class="thumbnail-fallback">
                     <mat-icon style="font-size: 20px; width: 20px; height: 20px;">inventory_2</mat-icon>
                   </div>
@@ -251,7 +251,7 @@
             <!-- Header de la card: imagen + nombre + badge -->
             <div class="mac-header">
               <div class="mac-avatar">
-                <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" alt="Foto bien" class="mac-img">
+                <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" alt="Foto bien" class="mac-img" loading="lazy">
                 <mat-icon *ngIf="!row.uriFoto" class="mac-icon-placeholder">inventory_2</mat-icon>
               </div>
               <div class="mac-title-block">

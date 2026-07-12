@@ -91,6 +91,7 @@
                    [src]="miembro.uriFoto | imageUrl"
                    [alt]="miembro.nombre"
                    class="miembro-avatar-img"
+                   loading="lazy"
                    (error)="onImageError($event)">
               <div class="miembro-avatar-placeholder" [style.display]="miembro.uriFoto ? 'none' : 'flex'">
                 {{miembro.nombre?.charAt(0) || '?'}}

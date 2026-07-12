@@ -99,6 +99,7 @@
                    [src]="item.miembroDto.uriFoto | imageUrl"
                    [alt]="item.miembroDto?.nombre"
                    class="miembro-avatar-img"
+                   loading="lazy"
                    (error)="onImageError($event)">
               <div class="miembro-avatar-placeholder" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
                 {{item.miembroDto?.nombre?.charAt(0) || '?'}}
