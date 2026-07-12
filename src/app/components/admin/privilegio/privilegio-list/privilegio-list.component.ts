@@ -29,6 +29,8 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-privilegio-list',
@@ -52,12 +54,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatDividerModule,
     MatMenuModule,
     MatCheckboxModule,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './privilegio-list.component.html',
   styleUrls: ['./privilegio-list.component.css']
 })
 export class PrivilegioListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['nombre', 'acto', 'estado', 'acciones'];
   dataSource: MatTableDataSource<PrivilegioDto>;
 
@@ -135,7 +139,8 @@ export class PrivilegioListComponent implements OnInit {
   }
 
   loadPrivilegios() {
-    this.privilegioService.getAll().subscribe(data => {
+    this.isLoading = true;
+    this.privilegioService.getAll().pipe(finalize(() => this.isLoading = false)).subscribe(data => {
       this.todosPrivilegios = data;
       const sorted = [...data];
       sorted.sort((a, b) => {

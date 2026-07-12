@@ -27,6 +27,8 @@ import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { OfrendaFormComponent } from '../ofrenda-form/ofrenda-form.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../../core/services/security/auth.service';
 
 @Component({
@@ -51,12 +53,14 @@ import { AuthService } from '../../../../core/services/security/auth.service';
     MatNativeDateModule,
     MatTooltipModule,
     MatTabsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    LoadingSpinnerComponent
   ],
   templateUrl: './ofrenda-list.component.html',
   styleUrls: ['./ofrenda-list.component.css']
 })
 export class OfrendaListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['fechaRecaudacion', 'conceptoDetalle', 'iglesiaNombre', 'tipoMovimiento', 'monto', 'usuarioTesoreroUsername', 'acciones'];
   dataSource: MatTableDataSource<Ofrenda>;
 
@@ -216,7 +220,8 @@ export class OfrendaListComponent implements OnInit {
   loadOfrendas() {
     const startStr = this.formatDate(this.startDate);
     const endStr = this.formatDate(this.endDate);
-    this.ofrendaService.getOfrendasByPeriod(startStr, endStr).subscribe(res => {
+    this.isLoading = true;
+    this.ofrendaService.getOfrendasByPeriod(startStr, endStr).pipe(finalize(() => this.isLoading = false)).subscribe(res => {
       let data = Array.isArray(res.datos) ? res.datos : [];
       
       if (this.isAdmin && this.selectedIglesiaId !== null) {

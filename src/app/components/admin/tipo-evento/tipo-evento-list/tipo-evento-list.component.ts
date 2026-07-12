@@ -18,6 +18,7 @@ import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 import { TipoEventoCreateComponent } from '../tipo-evento-create/tipo-evento-create.component';
 import { TipoEventoDetailComponent } from '../tipo-evento-detail/tipo-evento-detail.component';
 import { TipoEventoEditComponent } from '../tipo-evento-edit/tipo-evento-edit.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -40,12 +41,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
+    LoadingSpinnerComponent,
     HasPrivilegioDirective
   ],
   templateUrl: './tipo-evento-list.component.html',
   styleUrls: ['./tipo-evento-list.component.css']
 })
 export class TipoEventoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = [];
   dataSource: MatTableDataSource<TipoEvento>;
   public authService = inject(AuthService);
@@ -73,14 +76,19 @@ export class TipoEventoListComponent implements OnInit {
   }
 
   loadTipoEventos() {
-    this.tipoEventoService.getTipoEventos().subscribe(response => {
-      const data = Array.isArray(response.datos) ? [...response.datos] : [];
-      data.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      this.dataSource.data = data;
+    this.isLoading = true;
+    this.tipoEventoService.getTipoEventos().subscribe({
+      next: response => {
+        const data = Array.isArray(response.datos) ? [...response.datos] : [];
+        data.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        this.dataSource.data = data;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
     });
   }
 

@@ -18,6 +18,7 @@ import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { TipoCargoCreateComponent } from '../tipo-cargo-create/tipo-cargo-create.component';
 import { TipoCargoDetailComponent } from '../tipo-cargo-detail/tipo-cargo-detail.component';
 import { TipoCargoEditComponent } from '../tipo-cargo-edit/tipo-cargo-edit.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
@@ -39,12 +40,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
+    LoadingSpinnerComponent,
     HasPrivilegioDirective
   ],
   templateUrl: './tipo-cargo-list.component.html',
   styleUrls: ['./tipo-cargo-list.component.css']
 })
 export class TipoCargoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['tipo', 'nombre', 'nombreRol', 'estado', 'acciones'];
   dataSource: MatTableDataSource<TipoCargo>;
 
@@ -70,14 +73,19 @@ export class TipoCargoListComponent implements OnInit {
   }
 
   loadTipoCargos() {
-    this.tipoCargoService.getTipoCargos().subscribe(response => {
-      const data = Array.isArray(response.datos) ? [...response.datos] : [];
-      data.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      this.dataSource.data = data;
+    this.isLoading = true;
+    this.tipoCargoService.getTipoCargos().subscribe({
+      next: response => {
+        const data = Array.isArray(response.datos) ? [...response.datos] : [];
+        data.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        this.dataSource.data = data;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
     });
   }
 

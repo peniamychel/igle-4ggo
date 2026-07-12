@@ -29,6 +29,8 @@ import { EventoParticipantesComponent } from '../evento-participantes/evento-par
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin, of } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 import { TipoEventoListComponent } from '../../tipo-evento/tipo-evento-list/tipo-evento-list.component';
 import { ResponsableEventoListComponent } from '../../responsable-evento/responsable-evento-list/responsable-evento-list.component';
 import { ParticipacionEventoListComponent } from '../../participacion-evento/participacion-evento-list/participacion-evento-list.component';
@@ -62,12 +64,14 @@ import { Iglesia } from '../../../../core/models/iglesia.model';
     ResponsableEventoListComponent,
     ParticipacionEventoListComponent,
     EventoCalendarioComponent,
-    EventoParticipantesComponent
+    EventoParticipantesComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './evento-list.component.html',
   styleUrls: ['./evento-list.component.css']
 })
 export class EventoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['nombre', 'tipoEvento', 'ubicacion', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Evento>;
   tiposEvento: TipoEvento[] = [];
@@ -169,10 +173,11 @@ export class EventoListComponent implements OnInit {
   }
 
   loadEventos() {
+    this.isLoading = true;
     forkJoin({
       eventos: this.eventoService.getEventos(),
       decisiones: this.currentChurchId ? this.eventoAceptacionService.getDecisionesPorIglesia(this.currentChurchId) : of({ datos: [] })
-    }).subscribe({
+    }).pipe(finalize(() => this.isLoading = false)).subscribe({
       next: (res) => {
         this.decisiones = res.decisiones.datos || [];
         let eventos = Array.isArray(res.eventos.datos) ? res.eventos.datos : [];

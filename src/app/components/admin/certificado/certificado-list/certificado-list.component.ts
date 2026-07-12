@@ -33,6 +33,8 @@ import { forkJoin } from 'rxjs';
 import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
 import { TipoCertificadoListComponent } from '../../tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 import { CertificadoVerificarDialogComponent } from '../certificado-verificar-dialog/certificado-verificar-dialog.component';
 
 @Component({
@@ -58,12 +60,14 @@ import { CertificadoVerificarDialogComponent } from '../certificado-verificar-di
     TipoCertificadoListComponent,
     HasPrivilegioDirective,
     CertificadoPrintDialogComponent,
-    CertificadoVerificarDialogComponent
+    CertificadoVerificarDialogComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './certificado-list.component.html',
   styleUrls: ['./certificado-list.component.css']
 })
 export class CertificadoListComponent implements OnInit {
+  isLoading = true;
   // All possible columns per role
   private allColumnsAdmin:  string[] = ['evento', 'iglesia', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
   private allColumnsLocal:  string[] = ['evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
@@ -198,7 +202,8 @@ export class CertificadoListComponent implements OnInit {
   }
 
   loadCertificados() {
-    this.certificadoService.getCertificados().subscribe(response => {
+    this.isLoading = true;
+    this.certificadoService.getCertificados().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let certificados = Array.isArray(response.datos) ? response.datos : [];
       certificados.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;

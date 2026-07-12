@@ -23,6 +23,8 @@ import { AuthService } from '../../../../core/services/security/auth.service';
 import { ActivoFormComponent } from '../activo-form/activo-form.component';
 import { ActivoDetailComponent } from '../activo-detail/activo-detail.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -50,12 +52,14 @@ import { FormsModule } from '@angular/forms';
     ImageUrlPipe,
     FormsModule,
     ActivoDetailComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './activo-list.component.html',
   styleUrls: ['./activo-list.component.css']
 })
 export class ActivoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['foto', 'nombre', 'cantidad', 'estadoConservacion', 'acciones'];
   dataSource = new MatTableDataSource<Activo>([]);
   iglesias: Iglesia[] = [];
@@ -140,18 +144,21 @@ export class ActivoListComponent implements OnInit {
   }
 
   loadActivos() {
+    this.isLoading = true;
     if (this.isAdmin) {
-      this.activoService.getActivos().subscribe(res => {
+      this.activoService.getActivos().pipe(finalize(() => this.isLoading = false)).subscribe(res => {
         this.dataSource.data = Array.isArray(res.datos) ? res.datos : [];
         this.applyFilters();
       });
     } else {
       const iglesiaId = this.authService.getCurrentIglesiaId();
       if (iglesiaId) {
-        this.activoService.getActivosByIglesia(iglesiaId).subscribe(res => {
+        this.activoService.getActivosByIglesia(iglesiaId).pipe(finalize(() => this.isLoading = false)).subscribe(res => {
           this.dataSource.data = Array.isArray(res.datos) ? res.datos : [];
           this.applyFilters();
         });
+      } else {
+        this.isLoading = false;
       }
     }
   }

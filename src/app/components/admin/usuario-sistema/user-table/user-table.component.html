@@ -189,7 +189,10 @@
             <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openViewDialog(row)" class="clickable-row"></mat-row>
 
             <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" colspan="6">No se encontraron usuarios que coincidan con la búsqueda.</td>
+              <td class="mat-cell" colspan="6">
+                <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+                <span *ngIf="!isLoading">No se encontraron usuarios que coincidan con la búsqueda.</span>
+              </td>
             </tr>
           </mat-table>
 

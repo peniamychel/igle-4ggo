@@ -81,7 +81,10 @@
     <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
     <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="5">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+      <td class="mat-cell" colspan="5">
+        <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+        <span *ngIf="!isLoading">No se encontraron datos que coincidan con "{{ input.value }}"</span>
+      </td>
     </tr>
   </mat-table>
 

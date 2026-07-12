@@ -20,6 +20,7 @@ import { Cargo } from '../../../../core/models/cargo.model';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { MatTableModule } from '@angular/material/table';
 import {
   MiembroIglesiaFormTraspasoComponent
@@ -38,7 +39,8 @@ import {
     MatSnackBarModule,
     MatTooltipModule,
     HasPrivilegioDirective,
-    MatTableModule
+    MatTableModule,
+    LoadingSpinnerComponent
   ],
   templateUrl: './iglesia-miembro-list.component.html',
   styleUrls: ['./iglesia-miembro-list.component.css']

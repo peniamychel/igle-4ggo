@@ -28,6 +28,8 @@ import { RolesPipe } from '../../../../core/pipes/roles.pipe';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { UserService } from '../../../../core/services/user.service';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 import { ServicioService } from '../../../../core/services/servicio.service';
 import { ServicioDto, AccionDto } from '../../../../core/models/interfaces/servicio.interface';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
@@ -58,12 +60,14 @@ import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
     MatCheckboxModule,
     FormsModule,
     RolesPipe,
-    ImageUrlPipe
+    ImageUrlPipe,
+    LoadingSpinnerComponent
   ],
   templateUrl: './user-table.component.html',
   styleUrls: ['./user-table.component.css']
 })
 export class UserTableComponent implements OnInit, AfterViewInit {
+  isLoading = true;
   displayedColumns: string[] = ['name', 'roles', 'iglesia', 'accionesCount', 'estado', 'actions'];
   dataSource: MatTableDataSource<User>;
   pagedData: User[] = [];
@@ -167,7 +171,8 @@ export class UserTableComponent implements OnInit, AfterViewInit {
   }
 
   loadUsers(): void {
-    this.userService.getAllUsers().subscribe({
+    this.isLoading = true;
+    this.userService.getAllUsers().pipe(finalize(() => this.isLoading = false)).subscribe({
       next: (res: UserResponse) => {
         const users: User[] = res.datos || [];
         this.dataSource.data = users;

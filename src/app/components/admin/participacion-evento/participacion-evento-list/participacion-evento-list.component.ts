@@ -31,6 +31,8 @@ import { ParticipacionEventoEditComponent } from '../participacion-evento-edit/p
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 import { CertificadoRenderComponent } from '../../certificado/certificado-render/certificado-render.component';
 
 @Component({
@@ -53,12 +55,14 @@ import { CertificadoRenderComponent } from '../../certificado/certificado-render
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './participacion-evento-list.component.html',
   styleUrls: ['./participacion-evento-list.component.css']
 })
 export class ParticipacionEventoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['miembro', 'evento', 'fecha', 'certificado', 'estado', 'acciones'];
   dataSource: MatTableDataSource<ParticipacionEvento>;
   eventos: Evento[] = [];
@@ -167,7 +171,8 @@ export class ParticipacionEventoListComponent implements OnInit {
   }
 
   loadParticipaciones() {
-    this.participacionService.getParticipaciones().subscribe(response => {
+    this.isLoading = true;
+    this.participacionService.getParticipaciones().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let participaciones = Array.isArray(response.datos) ? response.datos : [];
       participaciones.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;

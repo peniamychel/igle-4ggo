@@ -28,7 +28,7 @@
   </div>
 
   <div class="loading-shade" *ngIf="loading">
-    <span>Cargando solicitudes...</span>
+    <app-loading-spinner message="Cargando solicitudes..."></app-loading-spinner>
   </div>
 
   <div class="no-requests" *ngIf="!loading && dataSource.data.length === 0">

@@ -18,6 +18,7 @@ import { TipoCertificado } from '../../../../core/models/tipo-certificado.model'
 import { TipoCertificadoCreateComponent } from '../tipo-certificado-create/tipo-certificado-create.component';
 import { TipoCertificadoDetailComponent } from '../tipo-certificado-detail/tipo-certificado-detail.component';
 import { TipoCertificadoEditComponent } from '../tipo-certificado-edit/tipo-certificado-edit.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -40,12 +41,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
+    LoadingSpinnerComponent,
     HasPrivilegioDirective
   ],
   templateUrl: './tipo-certificado-list.component.html',
   styleUrls: ['./tipo-certificado-list.component.css']
 })
 export class TipoCertificadoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = [];
   dataSource: MatTableDataSource<TipoCertificado>;
   public authService = inject(AuthService);
@@ -73,14 +76,19 @@ export class TipoCertificadoListComponent implements OnInit {
   }
 
   loadTipoCertificados() {
-    this.tipoCertificadoService.getTipoCertificados().subscribe(response => {
-      const data = Array.isArray(response.datos) ? [...response.datos] : [];
-      data.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      this.dataSource.data = data;
+    this.isLoading = true;
+    this.tipoCertificadoService.getTipoCertificados().subscribe({
+      next: response => {
+        const data = Array.isArray(response.datos) ? [...response.datos] : [];
+        data.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        this.dataSource.data = data;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
     });
   }
 

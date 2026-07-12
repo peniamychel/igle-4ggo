@@ -20,6 +20,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 import { MiembroIglesiaFormTraspasoComponent } from '../modals/miembro-iglesia-form-traspaso/miembro-iglesia-form.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -60,7 +61,8 @@ interface SolicitudExtendida {
     MatSnackBarModule,
     MatDialogModule,
     MatMenuModule,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './solicitud-list.component.html',
   styleUrls: ['./solicitud-list.component.css']

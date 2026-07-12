@@ -32,6 +32,8 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cargo-list',
@@ -53,12 +55,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatSelectModule,
     MatMenuModule,
     ImageUrlPipe,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './cargo-list.component.html',
   styleUrls: ['./cargo-list.component.css']
 })
 export class CargoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['miembro', 'tipoCargo', 'iglesia', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Cargo>;
 
@@ -160,7 +164,8 @@ export class CargoListComponent implements OnInit {
   }
 
   loadCargos() {
-    this.cargoService.getCargos().subscribe(response => {
+    this.isLoading = true;
+    this.cargoService.getCargos().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let cargos = Array.isArray(response.datos) ? response.datos : [];
       cargos.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;

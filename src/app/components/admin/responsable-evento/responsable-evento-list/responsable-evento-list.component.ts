@@ -31,6 +31,8 @@ import { ResponsableEventoEditComponent } from '../responsable-evento-edit/respo
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-responsable-evento-list',
@@ -50,12 +52,14 @@ import { HasPrivilegioDirective } from '../../../../core/directives/has-privileg
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
-    HasPrivilegioDirective
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './responsable-evento-list.component.html',
   styleUrls: ['./responsable-evento-list.component.css']
 })
 export class ResponsableEventoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['evento', 'responsable', 'estado', 'acciones'];
   dataSource: MatTableDataSource<ResponsableEvento>;
   eventos: Evento[] = [];
@@ -116,7 +120,8 @@ export class ResponsableEventoListComponent implements OnInit {
   }
 
   loadResponsables() {
-    this.responsableService.getResponsables().subscribe(response => {
+    this.isLoading = true;
+    this.responsableService.getResponsables().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let responsables = Array.isArray(response.datos) ? response.datos : [];
       responsables.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;

@@ -81,7 +81,8 @@
 
       <tr class="mat-row" *matNoDataRow>
         <td class="mat-cell no-data-cell" colspan="4">
-          <div class="no-results">
+          <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+          <div class="no-results" *ngIf="!isLoading">
             <mat-icon>search_off</mat-icon>
             <span>No se encontraron datos que coincidan con la búsqueda.</span>
           </div>
