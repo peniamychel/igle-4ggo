@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { TipoCargo, TipoCargoResponse, TipoCargosResponse } from '../models/tipo-cargo.model';
 import { ApiResponse } from '../models/interfaces/api.response';
@@ -24,7 +24,10 @@ export class TipoCargoService {
    */
   getTipoCargos(): Observable<ApiResponse<TipoCargo[]>> {
     if (!this.tipoCargosCache$) {
-      this.tipoCargosCache$ = this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+      this.tipoCargosCache$ = this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.tipoCargosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.tipoCargosCache$;
   }
@@ -34,7 +37,10 @@ export class TipoCargoService {
    */
   getTipoCargosParaColaboradores(): Observable<ApiResponse<TipoCargo[]>> {
     if (!this.tipoCargosColaboradoresCache$) {
-      this.tipoCargosColaboradoresCache$ = this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall-cargo`).pipe(shareReplay(1));
+      this.tipoCargosColaboradoresCache$ = this.http.get<ApiResponse<TipoCargo[]>>(`${this.apiUrl}/findall-cargo`).pipe(
+        catchError(err => { this.tipoCargosColaboradoresCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.tipoCargosColaboradoresCache$;
   }

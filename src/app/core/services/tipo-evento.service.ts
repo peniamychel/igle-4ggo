@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { TipoEvento, TipoEventoResponse, TipoEventosResponse } from '../models/tipo-evento.model';
 import { ApiResponse } from '../models/interfaces/api.response';
@@ -19,7 +19,10 @@ export class TipoEventoService {
 
   getTipoEventos(): Observable<ApiResponse<TipoEvento[]>> {
     if (!this.tipoEventosCache$) {
-      this.tipoEventosCache$ = this.http.get<ApiResponse<TipoEvento[]>>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+      this.tipoEventosCache$ = this.http.get<ApiResponse<TipoEvento[]>>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.tipoEventosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.tipoEventosCache$;
   }

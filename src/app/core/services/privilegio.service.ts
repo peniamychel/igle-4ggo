@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PrivilegioDto, PrivilegioResponse } from '../models/interfaces/privilegio.interface';
 
@@ -19,7 +19,10 @@ export class PrivilegioService {
 
   getAll(): Observable<PrivilegioDto[]> {
     if (!this.privilegiosCache$) {
-      this.privilegiosCache$ = this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+      this.privilegiosCache$ = this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.privilegiosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.privilegiosCache$;
   }

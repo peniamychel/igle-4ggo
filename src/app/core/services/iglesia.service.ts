@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Iglesia, IglesiaDetail } from '../models/iglesia.model';
 import { ApiResponse } from '../models/interfaces/api.response';
@@ -28,7 +28,10 @@ export class IglesiaService {
   getIglesias(): Observable<ApiResponse<[Iglesia]>> {
     if (!this.iglesiasCache$) {
       const url = `${this.apiUrl}/findall`;
-      this.iglesiasCache$ = this.http.get<ApiResponse<[Iglesia]>>(url).pipe(shareReplay(1));
+      this.iglesiasCache$ = this.http.get<ApiResponse<[Iglesia]>>(url).pipe(
+        catchError(err => { this.iglesiasCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.iglesiasCache$;
   }

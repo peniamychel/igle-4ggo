@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ServicioDto, AccionDto } from '../models/interfaces/servicio.interface';
 
@@ -21,7 +21,10 @@ export class ServicioService {
 
   getAll(): Observable<ServicioDto[]> {
     if (!this.serviciosCache$) {
-      this.serviciosCache$ = this.http.get<ServicioDto[]>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+      this.serviciosCache$ = this.http.get<ServicioDto[]>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.serviciosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.serviciosCache$;
   }
@@ -32,7 +35,10 @@ export class ServicioService {
 
   getAllAcciones(): Observable<AccionDto[]> {
     if (!this.accionesCache$) {
-      this.accionesCache$ = this.http.get<AccionDto[]>(`${this.apiUrl}/acciones/findall`).pipe(shareReplay(1));
+      this.accionesCache$ = this.http.get<AccionDto[]>(`${this.apiUrl}/acciones/findall`).pipe(
+        catchError(err => { this.accionesCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.accionesCache$;
   }

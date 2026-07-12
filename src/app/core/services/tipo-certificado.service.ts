@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { TipoCertificado, TipoCertificadoResponse, TipoCertificadosResponse } from '../models/tipo-certificado.model';
 import { ApiResponse } from '../models/interfaces/api.response';
@@ -19,7 +19,10 @@ export class TipoCertificadoService {
 
   getTipoCertificados(): Observable<ApiResponse<TipoCertificado[]>> {
     if (!this.tipoCertificadosCache$) {
-      this.tipoCertificadosCache$ = this.http.get<ApiResponse<TipoCertificado[]>>(`${this.apiUrl}/findall`).pipe(shareReplay(1));
+      this.tipoCertificadosCache$ = this.http.get<ApiResponse<TipoCertificado[]>>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.tipoCertificadosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
     }
     return this.tipoCertificadosCache$;
   }
