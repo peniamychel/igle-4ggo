@@ -102,11 +102,6 @@ export class UserService {
     return this.http.delete(`${this.API_URL}/delete/${id}`);
   }
 
-  // getUserByNameForToken(): Observable<CreateUserDto> {
-  //   return this.http.get<CreateUserDto>(`${this.API_URL}/findbyusername`, {});
-  // }
-
-
   /**
    * Obtiene un usuario por nombre de usuario
    * @param username nombre de usuario
