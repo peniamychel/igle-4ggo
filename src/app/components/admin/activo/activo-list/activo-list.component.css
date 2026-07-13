@@ -164,6 +164,26 @@
  font-weight: 600;
  color: var(--text-primary, #1a1f36);
 }
+.asset-desc {
+ font-size: 0.82rem;
+ color: var(--text-secondary, #697386);
+ line-height: 1.4;
+}
+.asset-qty {
+ display: inline-block;
+ font-weight: 600;
+ font-size: 0.82rem;
+ color: var(--text-primary, #1a1f36);
+ background: #f5efe6;
+ border: 1px solid rgba(143, 98, 57, 0.15);
+ padding: 2px 8px;
+ border-radius: 4px;
+}
+.asset-val {
+ font-weight: 600;
+ font-size: 0.85rem;
+ color: var(--text-primary, #1a1f36);
+}
 .state-pill {
  display: inline-block;
  padding: 4px 12px;
@@ -419,6 +439,66 @@ button.mat-mdc-outlined-button.btn-tools-menu:hover {
  font-size: 0.85rem;
  border: 1px solid #cbd5e1;
 }
+
+/* Grid de KPIs del Registro de Bienes */
+.report-kpis-grid {
+ display: grid;
+ grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+ gap: 16px;
+}
+.rkpi-card {
+ background: var(--card-bg, #fff);
+ border: 1px solid var(--border-color, #e3e8ee);
+ border-radius: 16px;
+ padding: 16px;
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+.rkpi-circle {
+ width: 42px;
+ height: 42px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ flex-shrink: 0;
+}
+.rkpi-circle mat-icon {
+ font-size: 22px !important;
+ width: 22px !important;
+ height: 22px !important;
+}
+.rkpi-info {
+ display: flex;
+ flex-direction: column;
+}
+.rkpi-number {
+ font-size: 1.25rem;
+ font-weight: 800;
+ color: var(--text-primary, #1a1f36);
+ line-height: 1.2;
+}
+.rkpi-label {
+ font-size: 0.72rem;
+ color: var(--text-secondary, #8792a2);
+ font-weight: 600;
+ text-transform: uppercase;
+ letter-spacing: 0.3px;
+ margin-top: 2px;
+}
+.icon-purple { background: rgba(127, 11, 133, 0.1); color: #7F0B85; }
+.icon-blue { background: rgba(33, 150, 243, 0.1); color: #2196f3; }
+.icon-green { background: rgba(76, 175, 80, 0.1); color: #4caf50; }
+.icon-orange { background: rgba(255, 152, 0, 0.1); color: #ff9800; }
+.icon-red { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+.icon-slate { background: rgba(113, 128, 150, 0.1); color: #718096; }
+:host-context(.dark-theme) .rkpi-card {
+ background: var(--card-bg, #1a1a24);
+ border-color: var(--border-color, #23232c);
+}
+
 /* Tabs (identico al patron modern-tabs de Eventos) */
 .modern-tabs {
  background: transparent;

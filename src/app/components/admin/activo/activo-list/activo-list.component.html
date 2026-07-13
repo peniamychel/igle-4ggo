@@ -447,7 +447,7 @@
               <ng-container matColumnDef="estadoConservacion">
                 <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
                 <mat-cell *matCellDef="let act">
-                  <span class="estado-pill" [ngClass]="(act.estadoConservacion || 'bueno') | lowercase">
+                  <span class="state-pill" [ngClass]="(act.estadoConservacion || 'bueno') | lowercase">
                     {{ act.estadoConservacion || 'N/A' }}
                   </span>
                 </mat-cell>
