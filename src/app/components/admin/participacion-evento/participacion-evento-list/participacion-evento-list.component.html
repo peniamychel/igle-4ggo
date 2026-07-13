@@ -21,20 +21,17 @@
  
        <div class="custom-filters">
          <mat-form-field appearance="outline" class="filter-field">
-           <mat-label>Tipo de Evento</mat-label>
            <mat-select [(value)]="selectedTipoEventoId" (selectionChange)="onFilterChange()">
              <mat-option value="all">Todos los tipos</mat-option>
              <mat-option *ngFor="let te of tiposEvento" [value]="te.id ? te.id.toString() : ''">{{ te.nombre }}</mat-option>
            </mat-select>
          </mat-form-field>
- 
+
          <mat-form-field appearance="outline" class="filter-field">
-           <mat-label>Nombre de Evento</mat-label>
-           <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Ej. Bautismo">
+           <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Nombre de evento">
          </mat-form-field>
- 
+
          <mat-form-field appearance="outline" class="filter-field">
-           <mat-label>Certificación</mat-label>
            <mat-select [(value)]="selectedCertificadoStatus" (selectionChange)="onFilterChange()">
              <mat-option value="all">Todos</mat-option>
              <mat-option value="con">Con certificado</mat-option>

@@ -109,8 +109,39 @@
   width: 200px;
 }
 
+/* Estilo pildora (igual al de la pestaña Eventos): sin label flotante,
+   caja redondeada de 48px de alto con el mismo tratamiento que .search-box */
 ::ng-deep .filter-field .mat-mdc-form-field-subscript-wrapper {
-  display: none;
+  display: none !important;
+}
+
+::ng-deep .filter-field .mdc-notched-outline__leading,
+::ng-deep .filter-field .mdc-notched-outline__trailing,
+::ng-deep .filter-field .mdc-notched-outline__notch {
+  border: none !important;
+}
+
+::ng-deep .filter-field .mat-mdc-text-field-wrapper {
+  height: 48px !important;
+  border-radius: 30px !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+::ng-deep .filter-field .mat-mdc-form-field-infix {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+::ng-deep .filter-field.mat-focused .mat-mdc-text-field-wrapper {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.08) !important;
 }
 
 .search-box {
