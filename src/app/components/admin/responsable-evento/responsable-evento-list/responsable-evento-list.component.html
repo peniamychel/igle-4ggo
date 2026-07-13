@@ -1,29 +1,26 @@
 <div class="container">
-  <!-- Contenedor pegajoso para cabecera y filtros -->
-  <div class="sticky-header">
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">assignment_ind</mat-icon>
-        </div>
-        <div>
-          <h2>Responsables de Evento</h2>
-          <p class="subtitle">{{ dataSource.filteredData.length }} registros</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button mat-flat-button class="btn-new-item" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Asignar un nuevo responsable" (click)="openCreateDialog()">
-          <mat-icon>add</mat-icon>
-          Asignar Responsable
-        </button>
-      </div>
+  <!-- 1. Header (patron canonico, igual al de la pestaña Eventos) -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">assignment_ind</mat-icon>
+        <span>Responsables de Evento</span>
+      </h2>
+      <p class="subtitle-text">{{ dataSource.filteredData.length }} registros</p>
     </div>
+    <div class="header-actions">
+      <button mat-flat-button class="btn-action-primary" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Asignar un nuevo responsable" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Asignar Responsable
+      </button>
+    </div>
+  </div>
 
-    <div class="filters-bar">
-      <div class="search-box">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por evento o responsable..." #input>
-      </div>
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por evento o responsable..." #input>
     </div>
   </div>
 

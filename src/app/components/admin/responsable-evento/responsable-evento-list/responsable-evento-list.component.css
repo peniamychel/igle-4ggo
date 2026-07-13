@@ -1,94 +1,71 @@
+/* ========================================
+   Responsables List — alineado al patron de Eventos (evento-list)
+   ======================================== */
 .container {
   padding: 0;
-  max-width: 1400px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Cabecera pegajosa (Sticky Header) */
-/* top = 64px para no solaparse con el mat-toolbar (sticky, 64px de alto) */
-.sticky-header {
-  position: sticky;
-  top: 64px;
-  z-index: 90;
-  background-color: var(--bg-content);
-  padding-top: 8px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* Cabecera del Listado */
+/* 1. Header (identico al de la pestaña Eventos) */
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 16px;
 }
 
-.title-wrapper {
+.page-title {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.title-icon-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
-  border: 1px solid rgba(127, 11, 133, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-color);
-}
-
-.header-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
-}
-
-.title-wrapper h2 {
+  gap: 10px;
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
 }
 
-.title-wrapper .subtitle {
-  margin: 2px 0 0 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+.icon-primary {
+  color: var(--primary-color, #7F0B85);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
   font-weight: 500;
 }
 
-/* Acciones en la cabecera */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.btn-new-item {
-  background-color: #0b857f !important;
+.btn-action-primary {
+  background-color: var(--primary-color, #7F0B85) !important;
   color: #ffffff !important;
-  border-radius: 8px;
-  font-weight: 600;
-  padding: 8px 16px;
-  height: 40px;
-  box-shadow: 0 2px 6px rgba(11, 133, 127, 0.2);
-  transition: all 0.2s ease;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  height: 42px !important;
+  padding: 0 18px !important;
+  font-size: 0.88rem !important;
+  transition: all 0.2s ease !important;
 }
 
-.btn-new-item:hover {
-  background-color: #096d68 !important;
-  box-shadow: 0 4px 12px rgba(11, 133, 127, 0.3) !important;
+.btn-action-primary:hover {
+  background-color: #6b0970 !important;
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.25) !important;
 }
 
-/* Barra de Filtros */
+/* 2. Barra de Filtros */
 .filters-bar {
   display: flex;
   justify-content: space-between;
@@ -264,13 +241,6 @@
 }
 
 @media (max-width: 768px) {
-  .sticky-header {
-    position: static !important;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    border-bottom: none !important;
-  }
-
   .filters-bar {
     flex-direction: column;
     align-items: stretch;

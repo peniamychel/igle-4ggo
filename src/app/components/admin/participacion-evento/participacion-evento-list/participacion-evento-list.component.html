@@ -1,46 +1,43 @@
 <div class="container">
-  <!-- Contenedor pegajoso para cabecera y filtros -->
-  <div class="sticky-header">
-    <div class="header-section">
-      <div class="title-wrapper">
-        <div class="title-icon-circle">
-          <mat-icon class="header-icon">group</mat-icon>
-        </div>
-        <div>
-          <h2>Participaciones de Evento</h2>
-          <p class="subtitle">{{ dataSource.filteredData.length }} registros</p>
-        </div>
-      </div>
+  <!-- 1. Header (patron canonico, igual al de la pestaña Eventos) -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">group</mat-icon>
+        <span>Participaciones de Evento</span>
+      </h2>
+      <p class="subtitle-text">{{ dataSource.filteredData.length }} registros</p>
     </div>
- 
-     <div class="filters-bar">
-       <div class="search-box">
-         <mat-icon class="search-icon">search</mat-icon>
-         <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por miembro o evento..." #input>
-       </div>
- 
-       <div class="custom-filters">
-         <mat-form-field appearance="outline" class="filter-field">
-           <mat-select [(value)]="selectedTipoEventoId" (selectionChange)="onFilterChange()">
-             <mat-option value="all">Todos los tipos</mat-option>
-             <mat-option *ngFor="let te of tiposEvento" [value]="te.id ? te.id.toString() : ''">{{ te.nombre }}</mat-option>
-           </mat-select>
-         </mat-form-field>
+  </div>
 
-         <mat-form-field appearance="outline" class="filter-field">
-           <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Nombre de evento">
-         </mat-form-field>
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por miembro o evento..." #input>
+    </div>
 
-         <mat-form-field appearance="outline" class="filter-field">
-           <mat-select [(value)]="selectedCertificadoStatus" (selectionChange)="onFilterChange()">
-             <mat-option value="all">Todos</mat-option>
-             <mat-option value="con">Con certificado</mat-option>
-             <mat-option value="sin">Sin certificado</mat-option>
-           </mat-select>
-         </mat-form-field>
-       </div>
-     </div>
-   </div>
+    <div class="custom-filters">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-select [(value)]="selectedTipoEventoId" (selectionChange)="onFilterChange()">
+          <mat-option value="all">Todos los tipos</mat-option>
+          <mat-option *ngFor="let te of tiposEvento" [value]="te.id ? te.id.toString() : ''">{{ te.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Nombre de evento">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-select [(value)]="selectedCertificadoStatus" (selectionChange)="onFilterChange()">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="con">Con certificado</mat-option>
+          <mat-option value="sin">Sin certificado</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
 
   <div class="table-container">
     <mat-table [dataSource]="dataSource" matSort>
