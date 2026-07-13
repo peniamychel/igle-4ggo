@@ -73,7 +73,7 @@ export class ActivoListComponent implements OnInit {
   reportSelectedIglesiaId: string = 'all';
   reportEstadoConservacion: string = 'all';
   reportSearchText: string = '';
-  reportDisplayedColumns: string[] = ['codigo', 'nombre', 'descripcion', 'cantidad', 'estadoConservacion', 'valorEstimado', 'fechaAdquisicion', 'iglesiaNombre'];
+  reportDisplayedColumns: string[] = ['codigo', 'nombre', 'descripcion', 'cantidad', 'estadoConservacion', 'valorEstimado', 'fechaAdquisicion'];
 
   // Resumen del Informe
   reportTotalCount: number = 0;
@@ -439,6 +439,22 @@ export class ActivoListComponent implements OnInit {
         this.reportDataSource.sort = this.reportSort;
       }
     });
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling as HTMLElement;
+    if (placeholder) {
+      placeholder.style.display = 'flex';
+    }
+  }
+
+  limpiarFiltrosInforme() {
+    this.reportSelectedIglesiaId = 'all';
+    this.reportEstadoConservacion = 'all';
+    this.reportSearchText = '';
+    this.generarInforme();
   }
 
   canPrintReport(): boolean {
