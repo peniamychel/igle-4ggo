@@ -17,6 +17,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -54,6 +55,7 @@ import { AuthService } from '../../../../core/services/security/auth.service';
     MatTooltipModule,
     MatTabsModule,
     MatCheckboxModule,
+    MatMenuModule,
     LoadingSpinnerComponent
   ],
   templateUrl: './ofrenda-list.component.html',
@@ -177,24 +179,33 @@ export class OfrendaListComponent implements OnInit {
       
       const ingresos = data.filter(o => o.tipoMovimiento === 'INGRESO');
       
-      this.ingresosMensuales = this.mesesNombres.map((name, index) => {
-        const items = ingresos.filter(o => {
-          if (!o.fechaRecaudacion) return false;
-          // Forzar la lectura de la fecha como UTC para evitar desfases
-          const dateMonth = new Date(o.fechaRecaudacion).getUTCMonth();
-          return dateMonth === index;
-        });
-        
-        const total = items.reduce((acc, curr) => acc + (curr.monto || 0), 0);
-        
-        return {
-          month: index,
-          name,
-          total,
-          count: items.length,
-          items: items.sort((a, b) => new Date(b.fechaRecaudacion!).getTime() - new Date(a.fechaRecaudacion!).getTime())
-        };
-      });
+      const now = new Date();
+      // Solo se muestran los meses ya transcurridos del año en curso. Para años
+      // anteriores todos los meses ya pasaron; para años futuros ninguno.
+      const lastVisibleMonth = this.selectedYearGeneral < now.getFullYear() ? 11
+        : this.selectedYearGeneral === now.getFullYear() ? now.getMonth()
+        : -1;
+
+      this.ingresosMensuales = this.mesesNombres
+        .map((name, index) => {
+          const items = ingresos.filter(o => {
+            if (!o.fechaRecaudacion) return false;
+            // Forzar la lectura de la fecha como UTC para evitar desfases
+            const dateMonth = new Date(o.fechaRecaudacion).getUTCMonth();
+            return dateMonth === index;
+          });
+
+          const total = items.reduce((acc, curr) => acc + (curr.monto || 0), 0);
+
+          return {
+            month: index,
+            name,
+            total,
+            count: items.length,
+            items: items.sort((a, b) => new Date(b.fechaRecaudacion!).getTime() - new Date(a.fechaRecaudacion!).getTime())
+          };
+        })
+        .filter(mes => mes.month <= lastVisibleMonth);
 
       if (this.selectedMonthDetail) {
         const found = this.ingresosMensuales.find(m => m.month === this.selectedMonthDetail.month);
@@ -341,16 +352,17 @@ export class OfrendaListComponent implements OnInit {
   }
 
   // --- OPERACIONES ---
-  openCreateDialog() {
+  openCreateDialog(tipo: 'INGRESO' | 'EGRESO' = 'INGRESO') {
     const dialogRef = this.dialog.open(OfrendaFormComponent, {
       width: '450px',
-      data: { mode: 'create', forcedType: 'INGRESO' }
+      data: { mode: 'create', forcedType: tipo }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.refreshAllData();
-        this.snackBar.open('Ofrenda registrada con éxito.', 'Cerrar', { duration: 3000 });
+        const label = tipo === 'EGRESO' ? 'Egreso' : 'Ingreso';
+        this.snackBar.open(`${label} registrado con éxito.`, 'Cerrar', { duration: 3000 });
       }
     });
   }
