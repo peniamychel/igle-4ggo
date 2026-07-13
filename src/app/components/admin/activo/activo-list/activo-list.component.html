@@ -13,12 +13,16 @@
     </div>
   </div>
 
-  <mat-tab-group>
-    
+  <mat-tab-group class="modern-tabs" animationDuration="200ms">
+
     <!-- PANEL 1: REGISTRO DE BIENES -->
-    <mat-tab label="Registro de Bienes">
-      <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 16px;">
-        
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">checklist</mat-icon>
+        <span>Registro de Bienes</span>
+      </ng-template>
+      <div class="tab-content">
+
         <div class="filters-bar">
           <div class="search-box">
             <mat-icon class="search-icon">search</mat-icon>
@@ -45,7 +49,7 @@
         </div>
 
         <!-- Grid de KPIs / Resumen de Inventario en el Registro de Bienes -->
-        <div class="report-kpis-grid" style="margin-top: 4px;">
+        <div class="report-kpis-grid">
           <div class="rkpi-card">
             <div class="rkpi-circle icon-purple">
               <mat-icon>inventory_2</mat-icon>
@@ -320,8 +324,12 @@
 
 
     <!-- PANEL 2: INFORMES DE INVENTARIO -->
-    <mat-tab label="Informes de Inventario">
-      <div class="reports-panel">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">summarize</mat-icon>
+        <span>Informes de Inventario</span>
+      </ng-template>
+      <div class="tab-content">
         
         <div class="reports-filter-card">
           <div class="reports-filters">
