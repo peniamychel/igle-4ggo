@@ -5,9 +5,10 @@
 }
 
 /* Cabecera pegajosa (Sticky Header) */
+/* top = 64px para no solaparse con el mat-toolbar (sticky, 64px de alto) */
 .sticky-header {
   position: sticky;
-  top: -16px;
+  top: 64px;
   z-index: 90;
   background-color: var(--bg-content);
   padding-top: 8px;
