@@ -70,6 +70,16 @@ export class OfrendaFormComponent implements OnInit {
     this.isAdmin = this.authService.isLoggedRolAdmin();
   }
 
+  get formTitle(): string {
+    const tipo = this.data.forcedType || this.data.ofrenda?.tipoMovimiento;
+    const label = tipo === 'EGRESO' ? 'Egreso' : 'Ingreso';
+    return this.isEditMode ? `Editar ${label}` : `Registrar ${label}`;
+  }
+
+  get submitLabel(): string {
+    return this.isEditMode ? 'Guardar cambios' : 'Registrar';
+  }
+
   initForm() {
     const ofrenda = this.data.ofrenda;
     
@@ -84,9 +94,14 @@ export class OfrendaFormComponent implements OnInit {
 
     this.ofrendaForm = this.fb.group({
       id: [ofrenda?.id || null],
-      iglesiaId: [ofrenda?.iglesiaId || null, this.isAdmin ? [Validators.required] : []],
+      // La sede no se puede cambiar al editar (se fija al registrar desde el token).
+      iglesiaId: [
+        { value: ofrenda?.iglesiaId || null, disabled: this.isEditMode },
+        this.isAdmin ? [Validators.required] : []
+      ],
+      // El tipo se bloquea al crear (fijado por el boton) y al editar (inmutable).
       tipoMovimiento: [
-        { value: ofrenda?.tipoMovimiento || this.data.forcedType || 'INGRESO', disabled: !!this.data.forcedType },
+        { value: ofrenda?.tipoMovimiento || this.data.forcedType || 'INGRESO', disabled: !!this.data.forcedType || this.isEditMode },
         [Validators.required]
       ],
       monto: [ofrenda?.monto || '', [Validators.required, Validators.min(0.01)]],

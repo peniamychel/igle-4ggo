@@ -9,6 +9,9 @@ export interface Ofrenda {
   usuarioTesoreroId?: number;
   usuarioTesoreroUsername?: string;
   fechaRegistro?: string;
+  estado?: boolean;
+  updatedAt?: string;
+  usuarioModificacionUsername?: string;
 }
 
 export interface OfrendaResumen {

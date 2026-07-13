@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Editar Movimiento' : 'Registrar Movimiento' }}</h2>
+<h2 mat-dialog-title>{{ formTitle }}</h2>
 
 <mat-dialog-content>
   <form [formGroup]="ofrendaForm">
@@ -48,5 +48,5 @@
 
 <mat-dialog-actions class="form-actions">
   <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" [disabled]="ofrendaForm.invalid" (click)="onSubmit()">Guardar</button>
+  <button mat-raised-button color="primary" [disabled]="ofrendaForm.invalid" (click)="onSubmit()">{{ submitLabel }}</button>
 </mat-dialog-actions>
