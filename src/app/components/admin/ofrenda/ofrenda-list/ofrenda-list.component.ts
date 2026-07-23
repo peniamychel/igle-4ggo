@@ -68,7 +68,9 @@ export class OfrendaListComponent implements OnInit {
 
   startDate!: Date;
   endDate!: Date;
-  selectedIglesiaId: number | null = null;
+  // 0 = "Todas las Sedes". mat-select trata null/undefined como "sin seleccion",
+  // por lo que no puede usarse null como valor real de una opcion (queda en blanco).
+  selectedIglesiaId: number = 0;
   iglesias: Iglesia[] = [];
   isAdmin: boolean = false;
   canWrite: boolean = false;
@@ -173,7 +175,7 @@ export class OfrendaListComponent implements OnInit {
     const endStr = `${this.selectedYearGeneral}-12-31`;
     this.ofrendaService.getOfrendasByPeriod(startStr, endStr).subscribe(res => {
       let data = Array.isArray(res.datos) ? res.datos : [];
-      if (this.isAdmin && this.selectedIglesiaId !== null) {
+      if (this.isAdmin && this.selectedIglesiaId > 0) {
         data = data.filter(o => o.iglesiaId === this.selectedIglesiaId);
       }
       
@@ -235,7 +237,7 @@ export class OfrendaListComponent implements OnInit {
     this.ofrendaService.getOfrendasByPeriod(startStr, endStr).pipe(finalize(() => this.isLoading = false)).subscribe(res => {
       let data = Array.isArray(res.datos) ? res.datos : [];
       
-      if (this.isAdmin && this.selectedIglesiaId !== null) {
+      if (this.isAdmin && this.selectedIglesiaId > 0) {
         data = data.filter(o => o.iglesiaId === this.selectedIglesiaId);
       }
 
@@ -334,7 +336,7 @@ export class OfrendaListComponent implements OnInit {
 
     this.ofrendaService.getOfrendasByPeriod(startStr, endStr).subscribe(res => {
       let data = Array.isArray(res.datos) ? res.datos : [];
-      if (this.isAdmin && this.selectedIglesiaId !== null) {
+      if (this.isAdmin && this.selectedIglesiaId > 0) {
         data = data.filter(o => o.iglesiaId === this.selectedIglesiaId);
       }
       this.reportData = data.sort((a, b) => new Date(a.fechaRecaudacion!).getTime() - new Date(b.fechaRecaudacion!).getTime());

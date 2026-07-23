@@ -13,8 +13,6 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 import { Activo } from '../../../../core/models/activo.model';
 import { ActivoService } from '../../../../core/services/activo.service';
-import { IglesiaService } from '../../../../core/services/iglesia.service';
-import { Iglesia } from '../../../../core/models/iglesia.model';
 import { AuthService } from '../../../../core/services/security/auth.service';
 
 @Component({
@@ -39,8 +37,6 @@ import { AuthService } from '../../../../core/services/security/auth.service';
 export class ActivoFormComponent implements OnInit {
   activoForm!: FormGroup;
   isEditMode: boolean = false;
-  iglesias: Iglesia[] = [];
-  isAdmin: boolean = false;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   uploadingFoto: boolean = false;
@@ -48,7 +44,6 @@ export class ActivoFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private activoService: ActivoService,
-    private iglesiaService: IglesiaService,
     private authService: AuthService,
     private dialogRef: MatDialogRef<ActivoFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { mode: 'create' | 'edit'; activo?: Activo }
@@ -57,9 +52,7 @@ export class ActivoFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isAdmin = this.authService.isLoggedRolAdmin();
     this.initForm();
-    this.loadIglesias();
   }
 
   initForm() {
@@ -88,16 +81,8 @@ export class ActivoFormComponent implements OnInit {
       estadoConservacion: [activo?.estadoConservacion || 'BUENO', [Validators.required]],
       valorEstimado: [activo?.valorEstimado || 0, [Validators.min(0)]],
       fechaAdquisicion: [fecha],
-      iglesiaId: [activo?.iglesiaId || null, this.isAdmin ? [Validators.required] : []]
+      iglesiaId: [activo?.iglesiaId || null]
     });
-  }
-
-  loadIglesias() {
-    if (this.isAdmin) {
-      this.iglesiaService.getIglesias().subscribe(res => {
-        this.iglesias = Array.isArray(res.datos) ? res.datos.filter(ig => ig.estado) : [];
-      });
-    }
   }
 
   onSubmit() {
@@ -118,9 +103,8 @@ export class ActivoFormComponent implements OnInit {
       fechaAdquisicion: finalDate
     };
 
-    if (!this.isAdmin) {
-      payload.iglesiaId = this.authService.getCurrentIglesiaId() || undefined;
-    }
+    // El inventario siempre pertenece a la iglesia del usuario (pastor).
+    payload.iglesiaId = this.authService.getCurrentIglesiaId() || this.data.activo?.iglesiaId || undefined;
 
     const saveObs = this.isEditMode
       ? this.activoService.updateActivo(payload)

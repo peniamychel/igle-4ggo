@@ -45,7 +45,9 @@ export class LoginPageComponent {
 
   isDarkMode = this.themeService.isDarkMode;
 
-  demoAccounts = environment.production ? [] : [
+  // Cuentas demo ocultas temporalmente. Para reactivarlas, descomentar los objetos
+  // de abajo (el @if del template las muestra automáticamente cuando el array no está vacío).
+  demoAccounts: { username: string; password: string; title: string; subtitle: string; icon: string; badge: string; }[] = environment.production ? [] : [
     {
       username: 'admin',
       password: '123456',

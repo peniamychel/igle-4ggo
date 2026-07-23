@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { IglesiaService } from '../../../core/services/iglesia.service';
 import { MiembroService } from '../../../core/services/miembro.service';
 import { MiembroIglesiaService } from '../../../core/services/miembro-iglesia.service';
@@ -22,11 +23,12 @@ import { MiembroIglesiaFormTraspasoComponent } from '../miembro-iglesia/modals/m
 import { MiembroIglesiaDetailComponent } from '../miembro-iglesia/modals/miembro-iglesia-detail/miembro-iglesia-detail.component';
 import { MiembroIglesiaFormCrearComponent } from '../miembro-iglesia/modals/miembro-iglesia-form-crear/miembro-iglesia-form.component';
 import { MiembroIglesiaCrearMiembroComponent } from './nuevo-miembro-dialog/miembro-iglesia-crear-miembro.component';
+import { MiembroFormEditarComponent } from '../miembro/miembro-edit/miembro-edit.component';
+import { MiembroImportReportDialogComponent } from '../miembro/miembro-import-report-dialog/miembro-import-report-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { ImageUrlPipe } from '../../../shared/pipes/image-url.pipe';
 import * as XLSX from 'xlsx';
-import autoTable from 'jspdf-autotable';
-import { jsPDF } from 'jspdf';
+import { generarDirectorioMiembrosPdf } from '../../../shared/utils/directorio-pdf.util';
 import { HasPrivilegioDirective } from '../../../core/directives/has-privilegio.directive';
 
 @Component({
@@ -45,6 +47,7 @@ import { HasPrivilegioDirective } from '../../../core/directives/has-privilegio.
     MatSnackBarModule,
     MatTooltipModule,
     MatMenuModule,
+    MatDividerModule,
     ImageUrlPipe,
     HasPrivilegioDirective
   ],
@@ -225,6 +228,28 @@ export class MiIglesiaComponent implements OnInit {
     }
   }
 
+  // Edita los datos personales del miembro (mismo diálogo que el rol admin).
+  // Disponible para todos los miembros, con o sin cargo: no altera la asignación
+  // de iglesia ni el cargo.
+  openEditDialog(miembro: Miembro) {
+    const dialogRef = this.dialog.open(MiembroFormEditarComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: miembro
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMiembros();
+        this.snackBar.open('Miembro actualizado exitosamente', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      }
+    });
+  }
+
   openTraspasoDialog(miembro: Miembro) {
     if (this.hasCargo(miembro)) {
       this.snackBar.open('No se puede iniciar el traspaso de un miembro con cargo activo desde esta vista.', 'Cerrar', {
@@ -253,6 +278,55 @@ export class MiIglesiaComponent implements OnInit {
     }
   }
 
+  descargarPlantilla() {
+    this.miembroService.downloadTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Plantilla_Miembros.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Plantilla descargada con éxito', 'Cerrar', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Error al descargar la plantilla', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  importarExcel(event: Event) {
+    const element = event.target as HTMLInputElement;
+    const fileList: FileList | null = element.files;
+    if (fileList && fileList.length > 0) {
+      const file = fileList[0];
+      // El backend asigna los miembros a la iglesia del pastor (tomada del token);
+      // la plantilla del pastor no lleva columna Iglesia.
+      this.miembroService.importExcel(file).subscribe({
+        next: (res: any) => {
+          this.loadMiembros();
+          element.value = '';
+          if (res?.datos?.importados) {
+            this.dialog.open(MiembroImportReportDialogComponent, {
+              width: '760px',
+              maxWidth: '95vw',
+              panelClass: 'dialog-fullscreen-mobile',
+              data: res.datos
+            });
+          } else {
+            this.snackBar.open(res.message || 'Membresía importada con éxito.', 'Cerrar', { duration: 4000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error al importar archivo. Verifique el formato.', 'Cerrar', { duration: 3000 });
+          element.value = '';
+        }
+      });
+    }
+  }
+
   exportToExcel() {
     if (!this.selectedIglesia || !this.dataSource.data.length) return;
 
@@ -275,27 +349,18 @@ export class MiIglesiaComponent implements OnInit {
     if (!this.selectedIglesia || !this.dataSource.data.length) return;
 
     try {
-      const doc = new jsPDF();
-      const tableColumn = ['Nombre', 'Apellido', 'CI', 'Celular', 'Dirección', 'Fecha Conversión'];
-      const tableRows = this.dataSource.data.map(m => [
-        m.nombre || '',
-        m.apellido || '',
-        m.ci || '',
-        m.celular || '',
-        m.direccion || '',
-        m.fechaConvercion ? new Date(m.fechaConvercion).toLocaleDateString() : ''
-      ]);
+      const iglesiaNombre = this.selectedIglesia.nombre;
+      // Mismo diseño de "Directorio de Miembros" que el rol administrador,
+      // filtrado a la iglesia del pastor (todas las filas llevan su iglesia).
+      const rows = this.dataSource.data.map(m => ({
+        ...m,
+        iglesiaNombre: m.iglesiaNombre || iglesiaNombre
+      }));
 
-      doc.text(`Lista de Miembros - ${this.selectedIglesia.nombre}`, 14, 15);
-      doc.text(`Total Miembros: ${this.miembrosCount}`, 14, 23);
-
-      autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 30
+      generarDirectorioMiembrosPdf(rows, {
+        subtitulo: `Directorio de Miembros — ${iglesiaNombre}`,
+        fileName: `Directorio_Miembros_${iglesiaNombre}.pdf`
       });
-
-      doc.save(`miembros_${this.selectedIglesia.nombre}.pdf`);
     } catch (e) {
       console.error('Error generating PDF:', e);
       this.snackBar.open('Error al generar el PDF.', 'Cerrar', { duration: 3000 });

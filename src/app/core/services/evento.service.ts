@@ -17,6 +17,18 @@ export class EventoService {
     return this.http.get<ApiResponse<Evento[]>>(`${this.apiUrl}/findall`);
   }
 
+  getEventosArchivados(): Observable<ApiResponse<Evento[]>> {
+    return this.http.get<ApiResponse<Evento[]>>(`${this.apiUrl}/archivados`);
+  }
+
+  archivar(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/archivar/${id}`, {});
+  }
+
+  desarchivar(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/desarchivar/${id}`, {});
+  }
+
   getEventoById(id: number): Observable<EventoResponse> {
     return this.http.get<EventoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }

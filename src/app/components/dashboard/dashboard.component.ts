@@ -321,7 +321,6 @@ export class DashboardComponent implements OnInit {
       id: c.id,
       miembroNombre: c.miembroDto ? `${c.miembroDto.nombre} ${c.miembroDto.apellido}` : (c.eventoDto?.nombre || 'Certificado Emitido'),
       ci: c.miembroDto?.ci || 'S/N',
-      tipoCertificado: c.tipoCertificadoDto?.nombre || 'Certificado',
       evento: c.motivoCertificado || c.lugarEmision || 'Emisión Registrada',
       estado: c.estado ? 'ENTREGADO' : 'PENDIENTE',
       fecha: c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-ES') : 'Reciente'

@@ -19,12 +19,12 @@
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">checklist</mat-icon>
-        <span>Registro de Bienes</span>
+        <span>{{ isAdmin ? 'Gestión Bienes' : 'Registro de Bienes' }}</span>
       </ng-template>
       <div class="tab-content">
 
         <div class="filters-bar">
-          <div class="search-box">
+          <div class="search-box" *ngIf="!isAdmin">
             <mat-icon class="search-icon">search</mat-icon>
             <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, descripción o código..." #searchInput>
           </div>
@@ -34,11 +34,21 @@
             <div *ngIf="isAdmin" class="filter-select">
               <mat-form-field appearance="outline">
                 <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
-                  <mat-option value="all">Todas las iglesias</mat-option>
+                  <mat-option value="all" disabled>Seleccione una iglesia</mat-option>
                   <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
+
+            <!-- Acciones de impresión de códigos (aparecen al seleccionar bienes) -->
+            <button mat-flat-button class="btn-action-primary" *ngIf="selectedPrintCount > 0" (click)="printSelectedLabels()">
+              <mat-icon>qr_code_2</mat-icon>
+              Imprimir códigos ({{ selectedPrintCount }})
+            </button>
+            <button mat-stroked-button class="btn-tools-menu" *ngIf="selectedPrintCount > 0" (click)="clearPrintSelection()">
+              <mat-icon>clear</mat-icon>
+              Limpiar selección
+            </button>
 
             <!-- Botón de Registro (Oculto para ADMIN) -->
             <button mat-flat-button class="btn-action-primary" (click)="openCreateDialog()" *ngIf="!isAdmin">
@@ -48,6 +58,19 @@
           </div>
         </div>
 
+        <!-- Admin sin iglesia seleccionada: no se muestran bienes mezclados -->
+        <div class="report-select-alert-card" *ngIf="!canVerListaPrincipal()">
+          <div class="alert-icon-circle">
+            <mat-icon>church</mat-icon>
+          </div>
+          <h3>Seleccione una Iglesia Sede</h3>
+          <p>
+            Los bienes no pueden mostrarse mezclados entre todas las iglesias. Por favor, elija una sede en el filtro de arriba para ver y gestionar su inventario.
+          </p>
+        </div>
+
+        <ng-container *ngIf="canVerListaPrincipal()">
+
         <!-- Grid de KPIs / Resumen de Inventario en el Registro de Bienes -->
         <div class="report-kpis-grid">
           <div class="rkpi-card">
@@ -56,17 +79,7 @@
             </div>
             <div class="rkpi-info">
               <span class="rkpi-number">{{ mainTotalCount }}</span>
-              <span class="rkpi-label">Tipos de Bienes</span>
-            </div>
-          </div>
-
-          <div class="rkpi-card">
-            <div class="rkpi-circle icon-blue">
-              <mat-icon>tag</mat-icon>
-            </div>
-            <div class="rkpi-info">
-              <span class="rkpi-number">{{ mainTotalQty }}</span>
-              <span class="rkpi-label">Unidades Totales</span>
+              <span class="rkpi-label">Bienes</span>
             </div>
           </div>
 
@@ -114,7 +127,21 @@
         <!-- VISTA ESCRITORIO: Tabla -->
         <div class="table-container" *ngIf="!isMobile">
           <mat-table [dataSource]="dataSource" matSort #mainSort="matSort">
-            
+
+            <!-- Selección (para imprimir códigos) -->
+            <ng-container matColumnDef="select">
+              <mat-header-cell *matHeaderCellDef class="select-col">
+                <mat-checkbox (change)="toggleSelectAllVisible($event.checked)"
+                              [checked]="allVisibleSelected()"
+                              [indeterminate]="someVisibleSelected()"
+                              matTooltip="Seleccionar todos"></mat-checkbox>
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="select-col" (click)="$event.stopPropagation()">
+                <mat-checkbox [checked]="isSelectedForPrint(row)"
+                              (change)="toggleSelectForPrint(row, $event.checked)"></mat-checkbox>
+              </mat-cell>
+            </ng-container>
+
             <!-- Foto -->
             <ng-container matColumnDef="foto">
               <mat-header-cell *matHeaderCellDef> Imagen </mat-header-cell>
@@ -255,6 +282,9 @@
           <div class="mobile-asset-card clickable-card" *ngFor="let row of dataSource.filteredData" (click)="openDetailDialog(row)">
             <!-- Header de la card: imagen + nombre + badge -->
             <div class="mac-header">
+              <mat-checkbox class="mac-select" (click)="$event.stopPropagation()"
+                            [checked]="isSelectedForPrint(row)"
+                            (change)="toggleSelectForPrint(row, $event.checked)"></mat-checkbox>
               <div class="mac-avatar">
                 <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" alt="Foto bien" class="mac-img" loading="lazy">
                 <mat-icon *ngIf="!row.uriFoto" class="mac-icon-placeholder">inventory_2</mat-icon>
@@ -319,6 +349,8 @@
             </div>
           </div>
         </div>
+
+        </ng-container>
       </div>
     </mat-tab>
 
@@ -338,25 +370,63 @@
               <mat-icon class="icon-primary">summarize</mat-icon>
               <span>Informes de Inventario</span>
             </h2>
-            <p class="subtitle-text">{{ reportTotalCount }} bienes registrados · {{ reportTotalQty }} unidades</p>
+            <p class="subtitle-text">{{ reportTotalCount }} bienes registrados</p>
           </div>
-          <div class="header-actions" *ngIf="canPrintReport()">
-            <button mat-stroked-button class="btn-tools-menu" (click)="limpiarFiltrosInforme()" matTooltip="Limpiar filtros">
-              <mat-icon>filter_alt_off</mat-icon>
-              <span>Limpiar</span>
+          <div class="header-actions">
+            <button mat-stroked-button class="btn-preview" (click)="imprimirVistaPrevia()"
+                    [disabled]="!canPrintReport() || reportDataSource.data.length === 0" matTooltip="Vista previa del informe">
+              <mat-icon>visibility</mat-icon>
+              <span>Vista previa</span>
             </button>
-            <button mat-stroked-button class="btn-tools-menu" (click)="descargarExcel()" [disabled]="reportDataSource.data.length === 0" matTooltip="Exportar a Excel">
-              <mat-icon style="color: #2e7d32;">grid_on</mat-icon>
-              <span>Excel</span>
-            </button>
-            <button mat-stroked-button class="btn-tools-menu" (click)="descargarPDF()" [disabled]="reportDataSource.data.length === 0" matTooltip="Descargar PDF">
-              <mat-icon style="color: #c62828;">picture_as_pdf</mat-icon>
-              <span>PDF</span>
-            </button>
-            <button mat-flat-button class="btn-action-primary" (click)="imprimirVistaPrevia()" [disabled]="reportDataSource.data.length === 0" matTooltip="Imprimir reporte">
+            <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLoteInventario()"
+                    [disabled]="!iglesias.length" matTooltip="Generar un PDF por cada sede">
               <mat-icon>print</mat-icon>
-              Imprimir
+              <span>Varias iglesias</span>
             </button>
+            <button mat-stroked-button class="btn-tools-menu" [matMenuTriggerFor]="reportToolsMenu" matTooltip="Herramientas del informe">
+              <mat-icon>tune</mat-icon>
+              <span>Herramientas</span>
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-menu #reportToolsMenu="matMenu">
+              <button mat-menu-item (click)="descargarPDF()" [disabled]="!canPrintReport() || reportDataSource.data.length === 0">
+                <mat-icon>picture_as_pdf</mat-icon>
+                <span>Descargar PDF</span>
+              </button>
+              <button mat-menu-item (click)="descargarExcel()" [disabled]="!canPrintReport() || reportDataSource.data.length === 0">
+                <mat-icon>grid_on</mat-icon>
+                <span>Exportar a Excel</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="limpiarFiltrosInforme()" [disabled]="!canPrintReport()">
+                <mat-icon>filter_alt_off</mat-icon>
+                <span>Limpiar filtros</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        <!-- 2. Filtros (SIEMPRE visibles: el admin elige aquí la sede del reporte) -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" [(ngModel)]="reportSearchText" (keyup)="generarInforme()" placeholder="Buscar por nombre, código o descripción...">
+          </div>
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+              <mat-select [(value)]="reportSelectedIglesiaId" (selectionChange)="generarInforme()">
+                <mat-option value="all" disabled>Seleccione una iglesia</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="reportEstadoConservacion" (selectionChange)="generarInforme()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="BUENO">Bueno</mat-option>
+                <mat-option value="REGULAR">Regular</mat-option>
+                <mat-option value="MALO">Malo</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
         </div>
 
@@ -367,36 +437,12 @@
           </div>
           <h3>Seleccione una Iglesia Sede</h3>
           <p>
-            Para garantizar la consistencia en el control y firmas del inventario, los reportes solo pueden generarse por una iglesia a la vez. Por favor, elija una sede en el filtro inferior.
+            Para garantizar la consistencia en el control y firmas del inventario, los reportes solo pueden generarse por una iglesia a la vez. Por favor, elija una sede en el filtro de arriba.
           </p>
         </div>
 
         <!-- CASO 2: Reporte generado -->
         <ng-container *ngIf="canPrintReport()">
-
-          <!-- 2. Filtros -->
-          <div class="filters-bar">
-            <div class="search-box">
-              <mat-icon class="search-icon">search</mat-icon>
-              <input type="text" [(ngModel)]="reportSearchText" (keyup)="generarInforme()" placeholder="Buscar por nombre, código o descripción...">
-            </div>
-            <div class="select-filters">
-              <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
-                <mat-select [(value)]="reportSelectedIglesiaId" (selectionChange)="generarInforme()">
-                  <mat-option value="all">Todas las iglesias</mat-option>
-                  <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-select [(value)]="reportEstadoConservacion" (selectionChange)="generarInforme()">
-                  <mat-option value="all">Todos los estados</mat-option>
-                  <mat-option value="BUENO">Bueno</mat-option>
-                  <mat-option value="REGULAR">Regular</mat-option>
-                  <mat-option value="MALO">Malo</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-          </div>
 
           <!-- 3. Tabla -->
           <div class="table-container">
@@ -490,9 +536,35 @@
             </mat-paginator>
           </div>
 
-          <!-- Hoja A4 oculta (solo visible en impresión) -->
-          <div class="print-paper-sheet" id="print-section">
-            <div class="pps-header">
+        </ng-container>
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>
+
+<!-- Modal de vista previa del informe (reemplaza el diálogo de impresión del navegador) -->
+<ng-template #previewDialogTpl>
+  <div class="preview-dialog">
+    <div class="preview-dialog-toolbar">
+      <span class="preview-dialog-title">
+        <mat-icon>visibility</mat-icon>
+        <span>Vista previa del informe</span>
+      </span>
+      <span class="preview-dialog-spacer"></span>
+      <button mat-flat-button class="preview-btn-pdf" (click)="descargarPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <span>Descargar PDF</span>
+      </button>
+      <button mat-icon-button mat-dialog-close matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="preview-dialog-body">
+      <div class="print-paper-sheet preview-visible">
+        <div class="pps-header">
               <img src="/logo.png" class="pps-logo" alt="Logo MCMM">
               <div class="pps-header-text">
                 <h1 class="pps-org-name">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</h1>
@@ -504,20 +576,20 @@
               <div class="pps-meta-item"><strong>Iglesia Sede:</strong> <span>{{ getNombreIglesiaReporte() }}</span></div>
               <div class="pps-meta-item"><strong>Fecha de Generación:</strong> <span>{{ formatDate(todayDate) }}</span></div>
               <div class="pps-meta-item"><strong>Estado Filtro:</strong> <span>{{ reportEstadoConservacion === 'all' ? 'Todos los estados' : reportEstadoConservacion }}</span></div>
-              <div class="pps-meta-item"><strong>Total Registros:</strong> <span>{{ reportTotalCount }} activos ({{ reportTotalQty }} uds.)</span></div>
+              <div class="pps-meta-item"><strong>Total Registros:</strong> <span>{{ reportTotalCount }} bienes</span></div>
             </div>
             <div class="pps-formal-summary">
               <div class="pps-summary-title">RESUMEN GENERAL DEL INVENTARIO</div>
               <table class="pps-summary-table">
                 <tr>
-                  <td><strong>Tipos de Bienes:</strong> {{ reportTotalCount }} regs.</td>
-                  <td><strong>Unidades Totales:</strong> {{ reportTotalQty }} uds.</td>
-                  <td><strong>Buenos:</strong> {{ reportBuenoQty }} uds.</td>
+                  <td><strong>Bienes:</strong> {{ reportTotalCount }}</td>
+                  <td><strong>Buenos:</strong> {{ reportBuenoQty }}</td>
+                  <td><strong>Regulares:</strong> {{ reportRegularQty }}</td>
                 </tr>
                 <tr>
-                  <td><strong>Regulares:</strong> {{ reportRegularQty }} uds.</td>
-                  <td><strong>Malos:</strong> {{ reportMaloQty }} uds.</td>
-                  <td><strong>Dados de Baja:</strong> {{ reportBajaQty }} uds.</td>
+                  <td><strong>Malos:</strong> {{ reportMaloQty }}</td>
+                  <td><strong>Dados de Baja:</strong> {{ reportBajaQty }}</td>
+                  <td></td>
                 </tr>
               </table>
             </div>
@@ -548,15 +620,42 @@
               <div class="pps-sig-box"><div class="pps-sig-line"></div><span class="pps-sig-name">Tesorero / Diácono Responsable</span><span class="pps-sig-desc">Inventariador</span></div>
               <div class="pps-sig-box"><div class="pps-sig-line"></div><span class="pps-sig-name">Visto Bueno - Pastor Sede</span><span class="pps-sig-desc">Firma Autorizada</span></div>
             </div>
-          </div>
-
-        </ng-container>
-
       </div>
-    </mat-tab>
+    </div>
+  </div>
+</ng-template>
 
-  </mat-tab-group>
-
-</div>
-
-
+<!-- Modal de vista previa de códigos de activos (uno o varios) -->
+<ng-template #labelsDialogTpl>
+  <div class="preview-dialog">
+    <div class="preview-dialog-toolbar">
+      <span class="preview-dialog-title">
+        <mat-icon>qr_code_2</mat-icon>
+        <span>{{ labelsToPrint.length === 1 ? 'Código del activo' : 'Códigos de activos (' + labelsToPrint.length + ')' }}</span>
+      </span>
+      <span class="preview-dialog-spacer"></span>
+      <button mat-flat-button class="preview-btn-pdf" (click)="descargarLabelsPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <span>Descargar PDF</span>
+      </button>
+      <button mat-icon-button mat-dialog-close matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="preview-dialog-body labels-body">
+      <div class="label-print-card" *ngFor="let a of labelsToPrint">
+        <div class="lpc-title">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</div>
+        <div class="lpc-subtitle">{{ a.iglesiaNombre || 'Iglesia Responsable' }}</div>
+        <div class="lpc-divider"></div>
+        <div class="lpc-code">{{ a.codigo || 'SIN CODIGO' }}</div>
+        <div class="lpc-name">{{ a.nombre }}</div>
+        <div class="lpc-meta">Cantidad: {{ a.cantidad }} uds. | Estado: {{ a.estadoConservacion }}</div>
+        <div class="lpc-divider"></div>
+        <div class="lpc-details">
+          <strong>Fecha de Reg:</strong> {{ formatDate(a.fechaAdquisicion) }}<br/>
+          <strong>Descripción:</strong> {{ a.descripcion || 'Sin descripción' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

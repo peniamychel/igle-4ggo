@@ -6,6 +6,20 @@
 <form [formGroup]="eventoForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
 
+    <!-- Iglesia organizadora: el admin la elige; para pastor/encargado se fija
+         automáticamente desde su sesión (selector oculto). -->
+    <div class="form-row" *ngIf="mostrarSelectorIglesia">
+      <mat-form-field appearance="outline">
+        <mat-label>Iglesia Organizadora</mat-label>
+        <mat-select formControlName="iglesiaId">
+          <mat-option *ngFor="let igl of iglesias" [value]="igl.id">
+            {{ igl.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('iglesiaId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Tipo de Evento</mat-label>
@@ -58,6 +72,13 @@
         <mat-datepicker #pickerFin></mat-datepicker>
         <mat-error>{{ getError('fechaFin') }}</mat-error>
       </mat-form-field>
+    </div>
+
+    <!-- Generar certificado para el evento -->
+    <div class="form-row checkbox-row">
+      <mat-checkbox formControlName="generaCertificado">
+        Generar certificado para este evento
+      </mat-checkbox>
     </div>
 
     <!-- Habilitación de Invitación e Inscripción para Iglesias -->

@@ -20,20 +20,6 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline">
-        <mat-label>Tipo de Certificado</mat-label>
-        <mat-select formControlName="tipoCertificadoId">
-          <mat-option *ngFor="let tc of tiposCertificado" [value]="tc.id">
-            {{ tc.nombre }}
-          </mat-option>
-        </mat-select>
-        <mat-error>{{ getError('tipoCertificadoId') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
         <mat-label>Motivo del Certificado</mat-label>
         <textarea matInput formControlName="motivoCertificado" rows="2" placeholder="Certificado de Bautismo"></textarea>
         <mat-error>{{ getError('motivoCertificado') }}</mat-error>

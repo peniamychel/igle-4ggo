@@ -1,24 +1,5 @@
 <div class="container">
-  <mat-tab-group class="modern-tabs" animationDuration="200ms">
-    <!-- Pestaña 0: Calendario -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">calendar_month</mat-icon>
-        <span>Calendario Anual</span>
-      </ng-template>
-      <div class="tab-content">
-        <app-evento-calendario></app-evento-calendario>
-      </div>
-    </mat-tab>
-
-    <!-- Pestaña 1: Eventos -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">local_activity</mat-icon>
-        <span>Eventos</span>
-      </ng-template>
-
-      <div class="tab-content">
+  <div class="tab-content">
         <!-- 1. Header -->
         <div class="header-section">
           <div class="title-meta">
@@ -31,6 +12,35 @@
             </p>
           </div>
           <div class="header-actions">
+            <button mat-stroked-button [matMenuTriggerFor]="herramientasMenu" matTooltip="Herramientas de eventos">
+              <mat-icon>tune</mat-icon>
+              <span>Herramientas</span>
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-menu #herramientasMenu="matMenu">
+              <button mat-menu-item (click)="openCalendario()">
+                <mat-icon>calendar_month</mat-icon>
+                <span>Calendario anual</span>
+              </button>
+              <button mat-menu-item *ngIf="isAdmin" (click)="openTiposEvento()">
+                <mat-icon>category</mat-icon>
+                <span>Tipos de evento</span>
+              </button>
+              <button mat-menu-item (click)="openResponsables()">
+                <mat-icon>assignment_ind</mat-icon>
+                <span>Responsables</span>
+              </button>
+              <button mat-menu-item (click)="openParticipaciones()">
+                <mat-icon>group</mat-icon>
+                <span>Participaciones</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="openArchivadosDialog()">
+                <mat-icon>inventory_2</mat-icon>
+                <span>Eventos archivados</span>
+              </button>
+            </mat-menu>
+
             <button mat-flat-button class="btn-action-primary" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
               <mat-icon>add</mat-icon>
               Nuevo Evento
@@ -173,6 +183,10 @@
                       <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
                       <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
                     </button>
+                    <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="archivarEvento(item)">
+                      <mat-icon style="color: #ff9800;">archive</mat-icon>
+                      <span style="color: #ff9800; font-weight: 500;">Archivar evento</span>
+                    </button>
                     <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="deleteEvento(item)">
                       <mat-icon style="color: #dc3545;">delete</mat-icon>
                       <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
@@ -203,40 +217,5 @@
 
           <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de eventos"></mat-paginator>
         </div>
-      </div>
-    </mat-tab>
-
-    <!-- Pestaña 2: Tipos de Evento -->
-    <mat-tab *ngIf="isAdmin">
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">category</mat-icon>
-        <span>Tipos de Evento</span>
-      </ng-template>
-      <div class="tab-content">
-        <app-tipo-evento-list></app-tipo-evento-list>
-      </div>
-    </mat-tab>
-
-    <!-- Pestaña 3: Responsables -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">assignment_ind</mat-icon>
-        <span>Responsables</span>
-      </ng-template>
-      <div class="tab-content">
-        <app-responsable-evento-list></app-responsable-evento-list>
-      </div>
-    </mat-tab>
-
-    <!-- Pestaña 4: Participaciones -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">group</mat-icon>
-        <span>Participaciones</span>
-      </ng-template>
-      <div class="tab-content">
-        <app-participacion-evento-list></app-participacion-evento-list>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
+  </div>
 </div>

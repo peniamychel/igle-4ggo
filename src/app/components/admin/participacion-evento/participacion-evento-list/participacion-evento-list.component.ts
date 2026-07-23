@@ -151,7 +151,6 @@ export class ParticipacionEventoListComponent implements OnInit {
         const searchTerms = [
           this.getMiembroNombreCompleto(data.miembroDto),
           data.eventoDto?.nombre,
-          data.certificadoDto?.tipoCertificadoDto?.nombre,
           data.certificadoDto?.motivoCertificado
         ].map(v => (v || '').toLowerCase()).join(' ');
         if (!searchTerms.includes(textQuery)) {

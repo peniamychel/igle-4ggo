@@ -310,6 +310,34 @@
   color: #dc3545;
 }
 
+/* Diseño Pill (estado de la plantilla del certificado) */
+.diseno-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.diseno-pill .diseno-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.diseno-pill.pendiente {
+  background-color: rgba(255, 152, 0, 0.12);
+  color: #e08600;
+}
+
+.diseno-pill.listo {
+  background-color: rgba(11, 133, 127, 0.1);
+  color: #0b857f;
+}
+
 /* Acciones */
 .acciones-cell {
   display: flex;
@@ -398,7 +426,7 @@ tr.mat-row td.no-data-cell {
   }
 }
 
-/* <600px: only evento + tipoCertificado + estado + acciones shown by TS */
+/* <600px: only evento + estado + acciones shown by TS */
 @media (max-width: 599px) {
   .container {
     padding: 16px;

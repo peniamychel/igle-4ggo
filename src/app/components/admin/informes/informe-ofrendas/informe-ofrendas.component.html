@@ -1,0 +1,62 @@
+<!-- Configuración -->
+<div class="config-bar">
+  <div class="config-filters">
+    <span class="config-title"><mat-icon>tune</mat-icon> Configurar informe de ofrendas</span>
+    <mat-form-field appearance="outline" class="filter-field" style="min-width: 130px;">
+      <mat-label>Gestión</mat-label>
+      <mat-select [(ngModel)]="selectedYear" (selectionChange)="onFiltroChange()">
+        <mat-option *ngFor="let a of anosDisponibles" [value]="a">{{ a }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin">
+      <mat-label>Iglesia</mat-label>
+      <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="onFiltroChange()">
+        <mat-option value="all">Todas las sedes (consolidado)</mat-option>
+        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="config-actions">
+    <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLote()" [disabled]="isLoading || isGenerating || !iglesias.length">
+      <mat-icon>print</mat-icon>
+      Varias iglesias
+    </button>
+    <button mat-flat-button class="btn-pdf" (click)="descargarPDF()" [disabled]="isLoading || isGenerating || !hayDatos">
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
+    </button>
+  </div>
+</div>
+
+<app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+<ng-container *ngIf="!isLoading">
+  <!-- KPIs -->
+  <div class="kpis-row">
+    <div class="kpi-card">
+      <div class="kpi-circle icon-teal"><mat-icon>trending_up</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">Bs. {{ totalIngresos | number:'1.2-2' }}</span><span class="kpi-label">Ingresos</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-orange"><mat-icon>trending_down</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">Bs. {{ totalEgresos | number:'1.2-2' }}</span><span class="kpi-label">Egresos</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-purple"><mat-icon>account_balance_wallet</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">Bs. {{ neto | number:'1.2-2' }}</span><span class="kpi-label">Neto</span></div>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="chart-card full">
+    <p class="chart-title"><mat-icon>bar_chart</mat-icon> Ingresos por mes — {{ selectedYear }}</p>
+    <div class="chart-canvas" #chartMeses *ngIf="hayDatos; else sinDatos">
+      <ngx-charts-bar-vertical [view]="view" [scheme]="schemeBar" [results]="ingresosMesData"
+        [xAxis]="true" [yAxis]="true" [showDataLabel]="false" [roundEdges]="true" [animations]="false">
+      </ngx-charts-bar-vertical>
+    </div>
+    <ng-template #sinDatos>
+      <div class="empty-chart">No hay ofrendas registradas para {{ selectedYear }}.</div>
+    </ng-template>
+  </div>
+</ng-container>

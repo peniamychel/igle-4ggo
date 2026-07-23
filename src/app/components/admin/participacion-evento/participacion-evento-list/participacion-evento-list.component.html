@@ -59,7 +59,7 @@
 
       <ng-container matColumnDef="certificado">
         <mat-header-cell *matHeaderCellDef mat-sort-header>Certificado</mat-header-cell>
-        <mat-cell *matCellDef="let item" class="certificado-cell">{{ item.certificadoDto ? (item.certificadoDto.tipoCertificadoDto?.nombre || 'Certificado') : 'Sin certificado' }}</mat-cell>
+        <mat-cell *matCellDef="let item" class="certificado-cell">{{ item.certificadoDto ? (item.certificadoDto.motivoCertificado || 'Certificado') : 'Sin certificado' }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="estado">

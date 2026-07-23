@@ -12,14 +12,42 @@
       </p>
     </div>
     <div class="header-actions">
-      <button mat-stroked-button class="btn-pdf" matTooltip="Exportar Lista en PDF" (click)="generatePDF()">
-        <mat-icon>picture_as_pdf</mat-icon>
-        PDF
+      <!-- Herramientas: exportación (Directorio PDF / Excel) + plantilla e importación.
+           Exportar está disponible para todos; plantilla/importar requieren privilegio
+           de escritura. La plantilla del pastor NO lleva columna Iglesia; el backend
+           asigna los miembros a su iglesia (tomada del token). -->
+      <button mat-stroked-button [matMenuTriggerFor]="toolsMenu" class="btn-tools-menu"
+              matTooltip="Exportar / Plantilla / Importar">
+        <mat-icon>tune</mat-icon>
+        <span>Herramientas</span>
+        <mat-icon>arrow_drop_down</mat-icon>
       </button>
-      <button mat-stroked-button class="btn-excel" matTooltip="Exportar Lista en Excel" (click)="exportToExcel()">
-        <mat-icon>grid_on</mat-icon>
-        Excel
-      </button>
+      <mat-menu #toolsMenu="matMenu">
+        <button mat-menu-item (click)="generatePDF()">
+          <mat-icon style="color: #e53935;">picture_as_pdf</mat-icon>
+          <span>Directorio PDF</span>
+        </button>
+        <button mat-menu-item (click)="exportToExcel()">
+          <mat-icon style="color: #1e7e34;">grid_on</mat-icon>
+          <span>Exportar a Excel</span>
+        </button>
+
+        <ng-container *ngIf="hasPrivilegio('Escribir MiembroIglesia')">
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="descargarPlantilla()">
+            <mat-icon style="color: #2e7d32;">table_view</mat-icon>
+            <span>Descargar Plantilla Excel</span>
+          </button>
+          <button mat-menu-item (click)="excelInput.click()">
+            <mat-icon style="color: #2e7d32;">upload_file</mat-icon>
+            <span>Importar desde Excel</span>
+          </button>
+        </ng-container>
+      </mat-menu>
+
+      <!-- Input oculto para importar excel -->
+      <input type="file" #excelInput style="display: none;" accept=".xlsx, .xls" (change)="importarExcel($event)">
+
       <button mat-flat-button
               [class.btn-action-primary]="hasPrivilegio('Escribir MiembroIglesia')"
               [class.btn-action-disabled]="!hasPrivilegio('Escribir MiembroIglesia')"
@@ -118,6 +146,12 @@
             <button mat-menu-item (click)="openMiembroIglesiaDetail(item)">
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
+            </button>
+            <!-- Editar disponible para TODOS los miembros (incluidos los que tienen
+                 cargo): solo edita datos personales, no toca la iglesia ni el cargo. -->
+            <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="openEditDialog(item)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
             <ng-container *ngIf="!hasCargo(item)">
               <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="openTraspasoDialog(item)">

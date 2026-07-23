@@ -267,8 +267,7 @@
                 <span class="member-ci">CI: {{ c.ci }}</span>
               </div>
               <div class="certificado-details">
-                <span class="cert-type">{{ c.tipoCertificado }}</span>
-                <span class="cert-event">· {{ c.evento }}</span>
+                <span class="cert-event">{{ c.evento }}</span>
               </div>
               <div class="activity-footer">
                 <span class="status-badge" [class.delivered]="c.estado === 'ENTREGADO'" [class.pending]="c.estado === 'PENDIENTE'">

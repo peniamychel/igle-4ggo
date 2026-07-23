@@ -14,7 +14,6 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { privilegioGuard } from './core/guards/privilegio.guard';
 import { TipoEventoListComponent } from './components/admin/tipo-evento/tipo-evento-list/tipo-evento-list.component';
-import { TipoCertificadoListComponent } from './components/admin/tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
 import { EventoListComponent } from './components/admin/evento/evento-list/evento-list.component';
 import { CertificadoListComponent } from './components/admin/certificado/certificado-list/certificado-list.component';
 import { ResponsableEventoListComponent } from './components/admin/responsable-evento/responsable-evento-list/responsable-evento-list.component';
@@ -143,11 +142,6 @@ export const routes: Routes = [
         canActivate: [privilegioGuard]
       },
       {
-        path: 'tipocertificado',
-        redirectTo: 'certificados',
-        pathMatch: 'full'
-      },
-      {
         path: 'ofrendas',
         component: OfrendaListComponent,
         title: 'Ofrendas',
@@ -157,6 +151,12 @@ export const routes: Routes = [
         path: 'activos',
         component: ActivoListComponent,
         title: 'Inventario',
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'informes',
+        loadComponent: () => import('./components/admin/informes/informes.component').then(m => m.InformesComponent),
+        title: 'Informes',
         canActivate: [privilegioGuard]
       },
       {

@@ -28,6 +28,8 @@ import { MiembroIglesiaFormTraspasoComponent } from '../../miembro-iglesia/modal
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { generarDirectorioMiembrosPdf } from '../../../../shared/utils/directorio-pdf.util';
+import { MiembroImportReportDialogComponent } from '../miembro-import-report-dialog/miembro-import-report-dialog.component';
 
 @Component({
   selector: 'app-miembro-list',
@@ -279,41 +281,34 @@ export class MiembroListComponent implements OnInit {
   }
 
   generateDirectorPdf() {
-    try {
-      const doc = new jsPDF();
-      const tableColumn = ['Nombre Completo', 'CI', 'Celular', 'Dirección', 'Iglesia', 'Cargo'];
-      const tableRows = this.miembros.filteredData.map(m => [
-        `${m.nombre} ${m.apellido}`,
-        m.ci || 'Sin CI',
-        m.celular || 'Sin celular',
-        m.direccion || 'Sin dirección',
-        m.iglesiaNombre || 'Sin Iglesia',
-        m.cargoNombre || 'Miembro'
-      ]);
+    // Traer TODOS los miembros que cumplen el filtro actual (no solo la página
+    // visible), respetando la iglesia, el estado y la búsqueda seleccionados.
+    const estadoBool = this.selectedEstado === 'active' ? true : (this.selectedEstado === 'inactive' ? false : undefined);
+    const iglesiaFiltrada = this.selectedIglesiaId && this.selectedIglesiaId !== 'all' ? this.selectedIglesiaId : null;
 
-      doc.setFontSize(18);
-      doc.text('Movimiento Cristiano Misionero Maranatha', 14, 15);
-      doc.setFontSize(14);
-      doc.text('Directorio General de Miembros', 14, 23);
-      doc.setFontSize(10);
-      doc.text(`Total Registros: ${this.miembros.filteredData.length}`, 14, 30);
-      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
-
-      autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 35,
-        theme: 'striped',
-        headStyles: { fillColor: [127, 11, 133] }, // primary purple
-        margin: { top: 35 }
-      });
-
-      doc.save('Directorio_Miembros.pdf');
-      this.messageSnackBar('Directorio PDF generado exitosamente');
-    } catch (e) {
-      console.error(e);
-      this.messageSnackBar('Error al generar PDF', 'error');
-    }
+    this.miembroService.getMiembrosPaged(0, 100000, this.searchText, estadoBool, this.selectedIglesiaId).subscribe({
+      next: (response) => {
+        try {
+          const rows = response?.datos?.content || [];
+          generarDirectorioMiembrosPdf(rows, {
+            subtitulo: iglesiaFiltrada
+              ? `Directorio de Miembros — ${iglesiaFiltrada}`
+              : 'Directorio General de Miembros',
+            fileName: iglesiaFiltrada
+              ? `Directorio_Miembros_${iglesiaFiltrada}.pdf`
+              : 'Directorio_Miembros.pdf'
+          });
+          this.messageSnackBar('Directorio PDF generado exitosamente');
+        } catch (e) {
+          console.error(e);
+          this.messageSnackBar('Error al generar PDF', 'error');
+        }
+      },
+      error: (e) => {
+        console.error(e);
+        this.messageSnackBar('Error al generar PDF', 'error');
+      }
+    });
   }
 
   generateCardsPdf() {
@@ -394,30 +389,23 @@ export class MiembroListComponent implements OnInit {
     let fileList: FileList | null = element.files;
     if (fileList && fileList.length > 0) {
       const file = fileList[0];
-      
-      let targetIglesiaId: number | undefined;
-      const isAdmin = this.authService.isLoggedRolAdmin();
-      
-      if (isAdmin) {
-        const churchNames = this.iglesias.map(i => `${i.id}: ${i.nombre}`).join('\n');
-        const input = prompt(`Por favor ingrese el ID de la iglesia de destino:\n\n${churchNames}`);
-        if (!input) {
-          element.value = '';
-          return;
-        }
-        targetIglesiaId = parseInt(input, 10);
-        if (isNaN(targetIglesiaId)) {
-          this.messageSnackBar('ID de iglesia no válido.', 'error');
-          element.value = '';
-          return;
-        }
-      }
 
-      this.miembroService.importExcel(file, targetIglesiaId).subscribe({
+      // El backend enruta según el rol: el admin asigna la iglesia de cada miembro
+      // desde la columna "Iglesia" de la plantilla; pastor/obrero usan su iglesia del token.
+      this.miembroService.importExcel(file).subscribe({
         next: (res) => {
           this.loadMiembros();
-          this.messageSnackBar(res.message || 'Membresía importada con éxito.', 'success');
           element.value = '';
+          if (res?.datos?.importados) {
+            this.dialog.open(MiembroImportReportDialogComponent, {
+              width: '760px',
+              maxWidth: '95vw',
+              panelClass: 'dialog-fullscreen-mobile',
+              data: res.datos
+            });
+          } else {
+            this.messageSnackBar(res.message || 'Membresía importada con éxito.', 'success');
+          }
         },
         error: (err) => {
           this.messageSnackBar('Error al importar archivo. Verifique el formato.', 'error');

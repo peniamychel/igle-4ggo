@@ -28,7 +28,6 @@ export const ROUTE_VIEW_MAP: Readonly<Record<string, string>> = {
   'participacion-evento': 'EVENTOS:VER',
   // --- Certificados ---
   'certificados':         'CERTIFICADOS:VER',
-  'tipocertificado':      'CERTIFICADOS:VER',
   // --- Usuarios ---
   'usuariosistema':       'USUARIOS:VER',
   'privilegios':          'USUARIOS:VER',
@@ -38,6 +37,8 @@ export const ROUTE_VIEW_MAP: Readonly<Record<string, string>> = {
   'bitacora':             'BITACORA:VER',
   // --- Ofrendas ---
   'ofrendas':             'OFRENDAS:VER',
+  // --- Informes (agrega datos de varios módulos; se gatea con lectura de dashboard) ---
+  'informes':             'DASHBOARD:VER',
 };
 
 export const ROUTE_WRITE_MAP: Readonly<Record<string, string>> = {
@@ -57,7 +58,6 @@ export const ROUTE_WRITE_MAP: Readonly<Record<string, string>> = {
   'responsable-evento':   'EVENTOS:EDITAR',
   'participacion-evento': 'EVENTOS:EDITAR',
   'certificados':         'CERTIFICADOS:GENERAR',
-  'tipocertificado':      'CERTIFICADOS:GENERAR',
   'usuariosistema':       'USUARIOS:EDITAR',
   'privilegios':          'USUARIOS:EDITAR',
   'servicios':            'USUARIOS:EDITAR',

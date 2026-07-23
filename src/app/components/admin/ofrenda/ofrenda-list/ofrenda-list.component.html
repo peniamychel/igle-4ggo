@@ -31,7 +31,7 @@
         <!-- 2. Filtros -->
         <div class="filters-bar">
           <div class="select-filters">
-            <mat-form-field appearance="outline" class="filter-select w-year">
+            <mat-form-field appearance="outline" class="filter-select">
               <mat-select [(ngModel)]="selectedYearGeneral" (selectionChange)="onYearGeneralChange()">
                 <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
               </mat-select>
@@ -39,7 +39,7 @@
 
             <mat-form-field *ngIf="isAdmin" appearance="outline" class="filter-select">
               <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="loadGeneralMonthData()">
-                <mat-option [value]="null">Todas las Sedes</mat-option>
+                <mat-option [value]="0">Todas las Sedes</mat-option>
                 <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -185,7 +185,7 @@
 
             <mat-form-field *ngIf="isAdmin" appearance="outline" class="filter-select">
               <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="applyFilters()">
-                <mat-option [value]="null">Todas las Sedes</mat-option>
+                <mat-option [value]="0">Todas las Sedes</mat-option>
                 <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -296,7 +296,7 @@
         <div class="filters-bar report-filters-bar">
           <div class="select-filters">
             <!-- Criterio -->
-            <mat-form-field appearance="outline" class="filter-select">
+            <mat-form-field appearance="outline" class="report-field">
               <mat-label>Criterio de Rango</mat-label>
               <mat-select [(ngModel)]="reportCriterio" (selectionChange)="generarInforme()">
                 <mat-option value="fechas">Rango de Fechas</mat-option>
@@ -310,14 +310,14 @@
             <ng-container [ngSwitch]="reportCriterio">
               <!-- Rango de Fechas -->
               <ng-container *ngSwitchCase="'fechas'">
-                <mat-form-field appearance="outline" class="filter-select">
+                <mat-form-field appearance="outline" class="report-field">
                   <mat-label>Desde Fecha</mat-label>
                   <input matInput [matDatepicker]="repDesde" [(ngModel)]="reportStartDate" (dateChange)="generarInforme()">
                   <mat-datepicker-toggle matIconSuffix [for]="repDesde"></mat-datepicker-toggle>
                   <mat-datepicker #repDesde></mat-datepicker>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-select">
+                <mat-form-field appearance="outline" class="report-field">
                   <mat-label>Hasta Fecha</mat-label>
                   <input matInput [matDatepicker]="repHasta" [(ngModel)]="reportEndDate" (dateChange)="generarInforme()">
                   <mat-datepicker-toggle matIconSuffix [for]="repHasta"></mat-datepicker-toggle>
@@ -327,7 +327,7 @@
 
               <!-- Semanas -->
               <ng-container *ngSwitchCase="'semana'">
-                <mat-form-field appearance="outline" class="filter-select">
+                <mat-form-field appearance="outline" class="report-field">
                   <mat-label>Seleccionar Semana</mat-label>
                   <input matInput type="week" [(ngModel)]="reportWeek" (change)="generarInforme()">
                 </mat-form-field>
@@ -335,14 +335,14 @@
 
               <!-- Meses -->
               <ng-container *ngSwitchCase="'mes'">
-                <mat-form-field appearance="outline" class="filter-select w-month">
+                <mat-form-field appearance="outline" class="report-field w-month">
                   <mat-label>Mes</mat-label>
                   <mat-select [(ngModel)]="reportMonth" (selectionChange)="generarInforme()">
                     <mat-option *ngFor="let name of mesesNombres; let i = index" [value]="i">{{ name }}</mat-option>
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-select w-year">
+                <mat-form-field appearance="outline" class="report-field w-year">
                   <mat-label>Año</mat-label>
                   <mat-select [(ngModel)]="reportYear" (selectionChange)="generarInforme()">
                     <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
@@ -352,7 +352,7 @@
 
               <!-- Años -->
               <ng-container *ngSwitchCase="'anio'">
-                <mat-form-field appearance="outline" class="filter-select w-year">
+                <mat-form-field appearance="outline" class="report-field w-year">
                   <mat-label>Año</mat-label>
                   <mat-select [(ngModel)]="reportYear" (selectionChange)="generarInforme()">
                     <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
@@ -362,10 +362,10 @@
             </ng-container>
 
             <!-- Filtro iglesia para admin en reporte -->
-            <mat-form-field *ngIf="isAdmin" appearance="outline" class="filter-select">
+            <mat-form-field *ngIf="isAdmin" appearance="outline" class="report-field">
               <mat-label>Iglesia Sede</mat-label>
               <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="generarInforme()">
-                <mat-option [value]="null">Todas las Sedes (Consolidado)</mat-option>
+                <mat-option [value]="0">Todas las Sedes (Consolidado)</mat-option>
                 <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
               </mat-select>
             </mat-form-field>

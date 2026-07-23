@@ -12,9 +12,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEventoService } from '../../../../core/services/tipo-evento.service';
 import { EventoAceptacionService } from '../../../../core/services/evento-aceptacion.service';
@@ -26,6 +26,8 @@ import { EventoCreateComponent } from '../evento-create/evento-create.component'
 import { EventoDetailComponent } from '../evento-detail/evento-detail.component';
 import { EventoEditComponent } from '../evento-edit/evento-edit.component';
 import { EventoParticipantesComponent } from '../evento-participantes/evento-participantes.component';
+import { EventoArchivadosDialogComponent } from '../evento-archivados-dialog/evento-archivados-dialog.component';
+import { EventoHerramientaDialogComponent } from '../evento-herramienta-dialog/evento-herramienta-dialog.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin, of } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -56,15 +58,10 @@ import { Iglesia } from '../../../../core/models/iglesia.model';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatTabsModule,
     MatSelectModule,
     MatMenuModule,
+    MatDividerModule,
     HasPrivilegioDirective,
-    TipoEventoListComponent,
-    ResponsableEventoListComponent,
-    ParticipacionEventoListComponent,
-    EventoCalendarioComponent,
-    EventoParticipantesComponent,
     LoadingSpinnerComponent
   ],
   templateUrl: './evento-list.component.html',
@@ -308,12 +305,85 @@ export class EventoListComponent implements OnInit {
             },
             error: (err) => {
               const errMsg = err.error?.message || 'No se pudo eliminar el evento. Verifique si tiene dependencias asociadas.';
-              this.messageSnackBar(errMsg, 'error');
+              // El evento tiene certificados o participantes: se avisa en un modal informativo.
+              this.dialog.open(ConfirmDialogComponent, {
+                width: '440px',
+                data: {
+                  title: 'No se puede eliminar',
+                  message: errMsg,
+                  confirmText: 'Entendido',
+                  cancelText: 'Cerrar',
+                  type: 'warning'
+                }
+              });
             }
           });
         }
       });
     }
+  }
+
+  archivarEvento(evento: Evento) {
+    if (!evento.id) return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: '¿Archivar evento?',
+        message: `El evento <strong>${evento.nombre}</strong> saldrá de la lista principal y podrá verse en "Herramientas → Eventos archivados", desde donde puede recuperarse.`,
+        confirmText: 'Archivar',
+        type: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && evento.id) {
+        this.eventoService.archivar(evento.id).subscribe({
+          next: () => {
+            this.loadEventos();
+            this.messageSnackBar(`Evento '${evento.nombre}' archivado.`);
+          },
+          error: (err) => {
+            this.messageSnackBar(err.error?.message || 'Error al archivar el evento.', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  openArchivadosDialog() {
+    const dialogRef = this.dialog.open(EventoArchivadosDialogComponent, {
+      width: '820px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { tiposEvento: this.tiposEvento, iglesias: this.iglesias, isAdmin: this.isAdmin }
+    });
+    // Al cerrar, recargar por si se desarchivaron eventos.
+    dialogRef.afterClosed().subscribe(() => this.loadEventos());
+  }
+
+  // Herramientas: abren en modal los antiguos paneles/pestañas.
+  openCalendario() {
+    this.openHerramienta('Calendario Anual', 'calendar_month', EventoCalendarioComponent);
+  }
+  openTiposEvento() {
+    this.openHerramienta('Tipos de Evento', 'category', TipoEventoListComponent);
+  }
+  openResponsables() {
+    this.openHerramienta('Responsables de Evento', 'assignment_ind', ResponsableEventoListComponent);
+  }
+  openParticipaciones() {
+    this.openHerramienta('Participaciones', 'group', ParticipacionEventoListComponent);
+  }
+
+  private openHerramienta(title: string, icon: string, component: any) {
+    const dialogRef = this.dialog.open(EventoHerramientaDialogComponent, {
+      width: '92vw',
+      maxWidth: '1150px',
+      height: '86vh',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { title, icon, component }
+    });
+    dialogRef.afterClosed().subscribe(() => this.loadEventos());
   }
 
   messageSnackBar(message: string, type: 'success' | 'warning' | 'error' = 'success') {

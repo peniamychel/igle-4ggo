@@ -626,3 +626,40 @@ mat-expansion-panel-header {
 .solicitudes-popover-panel {
   overflow: visible !important;
 }
+
+/* ══════════════════════════════════════════════════
+   AIRE LATERAL UNIFORME EN MÓVIL
+   Cada módulo definía su propio padding en `.container` (24px, 20px, 0…), lo que
+   dejaba "aire" desigual en los extremos en pantallas pequeñas. Se unifica el
+   padding horizontal a 8px en móvil (el shell de la app ya aporta márgenes),
+   dejando el padding vertical de cada módulo intacto.
+   ══════════════════════════════════════════════════ */
+@media (max-width: 599px) {
+  .container,
+  .iglesias-container,
+  .dashboard-container,
+  .settings-page {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   Impresión: ocultar overlays de Angular Material
+   (menús, tooltips, snackbars) para que no se cuelen
+   en la vista previa de impresión de los informes.
+   ══════════════════════════════════════════════════ */
+@media print {
+  .cdk-overlay-container,
+  .cdk-overlay-container * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Modal de vista previa de informe: sin padding para que la barra
+   de acciones y la hoja ocupen todo el diálogo. */
+.preview-dialog-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  padding: 0 !important;
+  overflow: hidden;
+}

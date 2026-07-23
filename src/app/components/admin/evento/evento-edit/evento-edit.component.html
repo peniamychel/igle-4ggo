@@ -60,6 +60,19 @@
       </mat-form-field>
     </div>
 
+    <!-- Generar certificado para el evento -->
+    <div class="form-row checkbox-row">
+      <mat-checkbox formControlName="generaCertificado">
+        Generar certificado para este evento
+      </mat-checkbox>
+    </div>
+    <div class="form-row" *ngIf="yaTieneCertificado" style="margin-left: 4px; margin-top: -8px;">
+      <span style="font-size: 0.8rem; color: #697386; display: inline-flex; align-items: center; gap: 6px;">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #0b857f;">info</mat-icon>
+        Este evento ya tiene certificados; no se puede quitar.
+      </span>
+    </div>
+
     <!-- Habilitación de Invitación e Inscripción para Iglesias -->
     <div class="form-row checkbox-row">
       <mat-checkbox formControlName="habilitarInscripciones">

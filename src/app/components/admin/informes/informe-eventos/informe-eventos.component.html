@@ -1,0 +1,80 @@
+<!-- Configuración -->
+<div class="config-bar">
+  <div class="config-filters">
+    <span class="config-title"><mat-icon>tune</mat-icon> Configurar informe de eventos</span>
+    <mat-form-field appearance="outline" class="filter-field" style="min-width: 130px;">
+      <mat-label>Gestión</mat-label>
+      <mat-select [(ngModel)]="selectedYear" (selectionChange)="onFiltroChange()">
+        <mat-option *ngFor="let a of anosDisponibles" [value]="a">{{ a }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin">
+      <mat-label>Iglesia</mat-label>
+      <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="onFiltroChange()">
+        <mat-option value="all">Todas las sedes (consolidado)</mat-option>
+        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="config-actions">
+    <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLote()" [disabled]="isLoading || isGenerating || !iglesias.length">
+      <mat-icon>print</mat-icon>
+      Varias iglesias
+    </button>
+    <button mat-flat-button class="btn-pdf" (click)="descargarPDF()" [disabled]="isLoading || isGenerating || !totalEventos">
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
+    </button>
+  </div>
+</div>
+
+<app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+<ng-container *ngIf="!isLoading">
+  <div class="kpis-row">
+    <div class="kpi-card">
+      <div class="kpi-circle icon-purple"><mat-icon>event</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ totalEventos }}</span><span class="kpi-label">Eventos</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-teal"><mat-icon>groups</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ totalParticipaciones }}</span><span class="kpi-label">Participaciones</span></div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <p class="chart-title"><mat-icon>pie_chart</mat-icon> Participación por tipo de evento</p>
+      <div class="chart-canvas" #chartTipo *ngIf="participacionTipoData.length; else sinPart">
+        <ngx-charts-pie-chart [view]="view" [scheme]="scheme" [results]="participacionTipoData"
+          [labels]="true" [doughnut]="false" [animations]="false">
+        </ngx-charts-pie-chart>
+      </div>
+      <ng-template #sinPart>
+        <div class="empty-chart">No hay participaciones registradas para {{ selectedYear }}.</div>
+      </ng-template>
+    </div>
+
+    <div class="chart-card">
+      <p class="chart-title"><mat-icon>list_alt</mat-icon> Eventos ({{ totalEventos }})</p>
+      <div class="table-card" style="border:none; padding:0;">
+        <table class="preview-table" *ngIf="eventosTabla.length; else sinEventos">
+          <thead>
+            <tr><th>Evento</th><th>Tipo</th><th>Fecha</th><th>Partic.</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of eventosTabla">
+              <td>{{ e.nombre }}</td>
+              <td>{{ e.tipo }}</td>
+              <td>{{ e.fecha }}</td>
+              <td>{{ e.participantes }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #sinEventos>
+          <div class="empty-chart">Sin eventos en {{ selectedYear }}.</div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</ng-container>

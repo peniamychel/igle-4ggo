@@ -1,0 +1,102 @@
+<div class="report-dialog">
+  <!-- Encabezado -->
+  <div class="report-header">
+    <div class="report-title">
+      <mat-icon class="header-icon">assignment_turned_in</mat-icon>
+      <h2>Resultado de la Importación</h2>
+    </div>
+    <div class="report-summary">
+      <span class="summary-chip chip-ok">
+        <mat-icon>check_circle</mat-icon>
+        {{ importados.length }} importados
+      </span>
+      <span class="summary-chip chip-error" *ngIf="errores.length > 0">
+        <mat-icon>error</mat-icon>
+        {{ errores.length }} no importados
+      </span>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <mat-dialog-content class="report-content">
+    <mat-tab-group animationDuration="200ms" class="report-tabs">
+      <!-- Importados -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon ok">check_circle</mat-icon>
+          Importados ({{ importados.length }})
+        </ng-template>
+
+        <div class="tab-body">
+          <div class="empty-state" *ngIf="importados.length === 0">
+            <mat-icon>inbox</mat-icon>
+            <span>No se importó ningún registro.</span>
+          </div>
+
+          <table class="report-table" *ngIf="importados.length > 0">
+            <thead>
+              <tr>
+                <th class="col-fila">Fila</th>
+                <th>CI</th>
+                <th>Nombre</th>
+                <th>Iglesia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of importados">
+                <td class="col-fila">{{ item.fila }}</td>
+                <td>{{ item.ci }}</td>
+                <td>{{ item.nombre }} {{ item.apellido }}</td>
+                <td>{{ item.iglesia }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-tab>
+
+      <!-- No importados -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon error">error</mat-icon>
+          No importados ({{ errores.length }})
+        </ng-template>
+
+        <div class="tab-body">
+          <div class="empty-state" *ngIf="errores.length === 0">
+            <mat-icon>task_alt</mat-icon>
+            <span>Todas las filas se importaron correctamente.</span>
+          </div>
+
+          <table class="report-table" *ngIf="errores.length > 0">
+            <thead>
+              <tr>
+                <th class="col-fila">Fila</th>
+                <th>CI</th>
+                <th>Nombre</th>
+                <th>Iglesia</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of errores">
+                <td class="col-fila">{{ item.fila }}</td>
+                <td>{{ item.ci || '—' }}</td>
+                <td>{{ (item.nombre || item.apellido) ? (item.nombre + ' ' + item.apellido) : '—' }}</td>
+                <td>{{ item.iglesia || '—' }}</td>
+                <td><span class="motivo-badge">{{ item.motivo }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-dialog-content>
+
+  <!-- Acciones -->
+  <mat-dialog-actions align="end" class="report-actions">
+    <button mat-flat-button class="btn-close" [mat-dialog-close]="true">
+      <mat-icon>close</mat-icon>
+      Cerrar
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -56,6 +56,7 @@ export class EventoEditComponent implements OnInit {
       ubicacion: ['', [Validators.required, Validators.maxLength(200)]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required],
+      generaCertificado: [false],
       habilitarInscripciones: [false],
       invitarATodas: [false],
       iglesiasInvitadasIds: [[]]
@@ -63,10 +64,15 @@ export class EventoEditComponent implements OnInit {
     this.evento = data.evento;
   }
 
+  // Si el evento ya tiene certificado, la casilla queda marcada y bloqueada (no se puede quitar).
+  yaTieneCertificado = false;
+
   ngOnInit() {
     if (this.data) {
       this.tiposEvento = this.data.tiposEvento;
-      
+
+      this.yaTieneCertificado = !!this.evento.tieneCertificado;
+
       this.eventoForm.patchValue({
         tipoEventoId: this.evento.tipoEventoId,
         nombre: this.evento.nombre,
@@ -75,8 +81,13 @@ export class EventoEditComponent implements OnInit {
         ubicacion: this.evento.ubicacion,
         fechaInicio: this.evento.fechaInicio,
         fechaFin: this.evento.fechaFin,
+        generaCertificado: this.yaTieneCertificado,
         habilitarInscripciones: this.evento.habilitarInscripciones || false
       });
+
+      if (this.yaTieneCertificado) {
+        this.eventoForm.get('generaCertificado')?.disable();
+      }
     }
     this.loadIglesias();
   }

@@ -12,26 +12,21 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { CertificadoService } from '../../../../core/services/certificado.service';
 import { EventoService } from '../../../../core/services/evento.service';
-import { TipoCertificadoService } from '../../../../core/services/tipo-certificado.service';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { AuthService } from '../../../../core/services/security/auth.service';
 import { Certificado } from '../../../../core/models/certificado.model';
 import { Evento } from '../../../../core/models/evento.model';
-import { TipoCertificado } from '../../../../core/models/tipo-certificado.model';
 import { Iglesia } from '../../../../core/models/iglesia.model';
-import { CertificadoCreateComponent } from '../certificado-create/certificado-create.component';
 import { CertificadoDetailComponent } from '../certificado-detail/certificado-detail.component';
 import { CertificadoEditComponent } from '../certificado-edit/certificado-edit.component';
 import { CertificadoPrintDialogComponent } from '../certificado-print-dialog/certificado-print-dialog.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
-import { TipoCertificadoListComponent } from '../../tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { finalize } from 'rxjs/operators';
@@ -54,10 +49,8 @@ import { CertificadoVerificarDialogComponent } from '../certificado-verificar-di
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
-    MatTabsModule,
     MatSelectModule,
     MatMenuModule,
-    TipoCertificadoListComponent,
     HasPrivilegioDirective,
     CertificadoPrintDialogComponent,
     CertificadoVerificarDialogComponent,
@@ -69,16 +62,14 @@ import { CertificadoVerificarDialogComponent } from '../certificado-verificar-di
 export class CertificadoListComponent implements OnInit {
   isLoading = true;
   // All possible columns per role
-  private allColumnsAdmin:  string[] = ['evento', 'iglesia', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
-  private allColumnsLocal:  string[] = ['evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
+  private allColumnsAdmin:  string[] = ['evento', 'iglesia', 'motivo', 'diseno', 'estado', 'acciones'];
+  private allColumnsLocal:  string[] = ['evento', 'motivo', 'diseno', 'estado', 'acciones'];
 
-  displayedColumns: string[] = ['evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['evento', 'motivo', 'diseno', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Certificado>;
   eventos: Evento[] = [];
-  tiposCertificado: TipoCertificado[] = [];
   iglesias: Iglesia[] = [];
 
-  selectedTipoId: string = 'all';
   selectedEstado: string = 'all';
   selectedIglesiaId: any = 'all';
   searchText: string = '';
@@ -92,7 +83,6 @@ export class CertificadoListComponent implements OnInit {
   constructor(
     private certificadoService: CertificadoService,
     private eventoService: EventoService,
-    private tipoCertificadoService: TipoCertificadoService,
     private iglesiaService: IglesiaService,
     private authService: AuthService,
     private dialog: MatDialog,
@@ -136,9 +126,9 @@ export class CertificadoListComponent implements OnInit {
         col => !['motivo', 'iglesia'].includes(col)
       );
     } else {
-      // Minimal: evento + tipoCertificado + estado + acciones
+      // Minimal: evento + diseño + estado + acciones
       this.displayedColumns = base.filter(
-        col => ['evento', 'tipoCertificado', 'estado', 'acciones'].includes(col)
+        col => ['evento', 'diseno', 'estado', 'acciones'].includes(col)
       );
     }
   }
@@ -149,14 +139,10 @@ export class CertificadoListComponent implements OnInit {
       
       const matchesText = !textQuery || (
         (data.motivoCertificado || '') + ' ' +
-        (data.eventoDto?.nombre || '') + ' ' +
-        (data.tipoCertificadoDto?.nombre || '')
+        (data.eventoDto?.nombre || '')
       ).toLowerCase().includes(textQuery);
-      
-      const matchesTipo = this.selectedTipoId === 'all' || 
-        (data.tipoCertificadoId !== undefined && data.tipoCertificadoId.toString() === this.selectedTipoId);
-      
-      const matchesEstado = this.selectedEstado === 'all' || 
+
+      const matchesEstado = this.selectedEstado === 'all' ||
         (this.selectedEstado === 'active' && data.estado) ||
         (this.selectedEstado === 'inactive' && !data.estado);
 
@@ -169,7 +155,7 @@ export class CertificadoListComponent implements OnInit {
         matchesIglesia = certIglesiaId !== undefined && certIglesiaId === this.currentChurchId;
       }
         
-      return matchesText && matchesTipo && matchesEstado && matchesIglesia;
+      return matchesText && matchesEstado && matchesIglesia;
     };
   }
 
@@ -191,12 +177,8 @@ export class CertificadoListComponent implements OnInit {
   }
 
   loadInitialData() {
-    forkJoin({
-      eventos: this.eventoService.getEventos(),
-      tiposCertificado: this.tipoCertificadoService.getTipoCertificados()
-    }).subscribe(results => {
-      this.eventos = results.eventos.datos || [];
-      this.tiposCertificado = (results.tiposCertificado.datos || []).filter(tc => tc.estado);
+    this.eventoService.getEventos().subscribe(res => {
+      this.eventos = res.datos || [];
       this.loadCertificados();
     });
   }
@@ -213,12 +195,8 @@ export class CertificadoListComponent implements OnInit {
       const eventosMap = new Map<number, Evento>();
       this.eventos.forEach(e => { if (e.id !== undefined) eventosMap.set(e.id, e); });
 
-      const tiposMap = new Map<number, any>();
-      this.tiposCertificado.forEach(t => { if (t.id !== undefined) tiposMap.set(t.id, t); });
-
       certificados.forEach(cert => {
         cert.eventoDto = cert.eventoId !== undefined ? eventosMap.get(cert.eventoId) : undefined;
-        cert.tipoCertificadoDto = cert.tipoCertificadoId !== undefined ? tiposMap.get(cert.tipoCertificadoId) : undefined;
       });
       this.dataSource.data = certificados;
       this.applyFilters();
@@ -245,36 +223,6 @@ export class CertificadoListComponent implements OnInit {
     });
   }
 
-  openCreateDialog() {
-    let availableEvents = this.eventos;
-    if (!this.isAdmin && this.currentChurchId) {
-      availableEvents = this.eventos.filter(e => !e.iglesiaId || e.iglesiaId === this.currentChurchId);
-    }
-
-    // Excluir eventos que ya tienen un certificado
-    const certEventIds = this.dataSource.data
-      .map(c => c.eventoId)
-      .filter((id): id is number => id !== undefined);
-    availableEvents = availableEvents.filter(e => e.id !== undefined && !certEventIds.includes(e.id));
-
-    const dialogRef = this.dialog.open(CertificadoCreateComponent, {
-      width: '600px',
-      maxWidth: '95vw',
-      panelClass: 'dialog-fullscreen-mobile',
-      data: {
-        eventos: availableEvents,
-        tiposCertificado: this.tiposCertificado
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadCertificados();
-        this.messageSnackBar('Certificado creado exitosamente');
-      }
-    });
-  }
-
   openEditDialog(certificado: Certificado) {
     let availableEvents = this.eventos;
     if (!this.isAdmin && this.currentChurchId) {
@@ -294,8 +242,7 @@ export class CertificadoListComponent implements OnInit {
       panelClass: 'dialog-fullscreen-mobile',
       data: {
         certificado,
-        eventos: availableEvents,
-        tiposCertificado: this.tiposCertificado
+        eventos: availableEvents
       }
     });
 

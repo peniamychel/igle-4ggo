@@ -132,6 +132,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     // ── Recursos ──
     { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on', groupLabel: 'Recursos' },
     { label: 'Inventario', route: '/activos', icon: 'inventory_2' },
+    { label: 'Informes', route: '/informes', icon: 'assessment' },
 
     // ── Sistema ──
     {

@@ -18,6 +18,12 @@ export interface Evento {
   createdAt?: Date;
   updatedAt?: Date;
 
+  // Entrada: al crear/editar, indica si el evento genera certificado.
+  generaCertificado?: boolean;
+  // Solo respuesta.
+  archivado?: boolean;
+  tieneCertificado?: boolean;
+
   tipoEventoDto?: TipoEvento;
 }
 

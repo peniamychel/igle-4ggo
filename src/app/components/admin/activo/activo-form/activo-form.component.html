@@ -96,17 +96,6 @@
       </mat-form-field>
     </div>
 
-    <!-- Iglesia (Visible solo para ADMIN) -->
-    <div class="row" *ngIf="isAdmin">
-      <mat-form-field appearance="outline">
-        <mat-label>Iglesia Sede</mat-label>
-        <mat-select formControlName="iglesiaId">
-          <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="activoForm.get('iglesiaId')?.hasError('required')">Debe seleccionar una iglesia</mat-error>
-      </mat-form-field>
-    </div>
-
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-actions">

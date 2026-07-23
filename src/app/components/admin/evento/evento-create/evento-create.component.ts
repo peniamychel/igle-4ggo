@@ -14,6 +14,7 @@ import { EventoService } from '../../../../core/services/evento.service';
 import { TipoEvento } from '../../../../core/models/tipo-evento.model';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
+import { AuthService } from '../../../../core/services/security/auth.service';
 
 @Component({
   selector: 'app-evento-create',
@@ -38,22 +39,30 @@ export class EventoCreateComponent implements OnInit {
   eventoForm: FormGroup;
   tiposEvento: TipoEvento[] = [];
   iglesias: Iglesia[] = [];
+  // Visible para el admin (elige la organizadora) y, como respaldo, para
+  // cualquier usuario cuyo token no traiga iglesia asociada.
+  mostrarSelectorIglesia = false;
 
   constructor(
     private fb: FormBuilder,
     private eventoService: EventoService,
     private iglesiaService: IglesiaService,
+    private authService: AuthService,
     private dialogRef: MatDialogRef<EventoCreateComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { tiposEvento: TipoEvento[] }
   ) {
     this.eventoForm = this.fb.group({
       tipoEventoId: ['', Validators.required],
+      // El backend exige iglesiaId (@NotNull). Para pastor/encargado se fija desde
+      // el token (y el backend igual lo impone); el admin la elige en el selector.
+      iglesiaId: [null, Validators.required],
       nombre: ['', [Validators.required, Validators.maxLength(200)]],
       motivo: ['', [Validators.required, Validators.maxLength(500)]],
       uriFoto: [null],
       ubicacion: ['', [Validators.required, Validators.maxLength(200)]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required],
+      generaCertificado: [false],
       habilitarInscripciones: [false],
       invitarATodas: [false],
       iglesiasInvitadasIds: [[]]
@@ -63,6 +72,11 @@ export class EventoCreateComponent implements OnInit {
   ngOnInit() {
     if (this.data) {
       this.tiposEvento = this.data.tiposEvento.filter(t => t.estado);
+    }
+    const iglesiaToken = this.authService.getCurrentIglesiaId();
+    this.mostrarSelectorIglesia = this.authService.isLoggedRolAdmin() || iglesiaToken === null;
+    if (!this.mostrarSelectorIglesia) {
+      this.eventoForm.patchValue({ iglesiaId: iglesiaToken });
     }
     this.loadIglesias();
   }

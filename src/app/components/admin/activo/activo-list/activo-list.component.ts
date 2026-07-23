@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 
 import { Activo } from '../../../../core/models/activo.model';
@@ -24,6 +27,7 @@ import { ActivoFormComponent } from '../activo-form/activo-form.component';
 import { ActivoDetailComponent } from '../activo-detail/activo-detail.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { InformeLoteDialogComponent } from '../../informes/informe-lote-dialog/informe-lote-dialog.component';
 import { finalize } from 'rxjs/operators';
 
 import { jsPDF } from 'jspdf';
@@ -49,6 +53,9 @@ import { FormsModule } from '@angular/forms';
     MatSnackBarModule,
     MatTabsModule,
     MatTooltipModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatCheckboxModule,
     ImageUrlPipe,
     FormsModule,
     ActivoDetailComponent,
@@ -60,7 +67,11 @@ import { FormsModule } from '@angular/forms';
 })
 export class ActivoListComponent implements OnInit {
   isLoading = true;
-  displayedColumns: string[] = ['foto', 'nombre', 'cantidad', 'estadoConservacion', 'acciones'];
+  displayedColumns: string[] = ['select', 'foto', 'nombre', 'cantidad', 'estadoConservacion', 'acciones'];
+
+  // Selección para impresión de códigos (etiquetas) de varios bienes a la vez
+  selectedForPrint = new Set<number>();
+  labelsToPrint: Activo[] = [];
   dataSource = new MatTableDataSource<Activo>([]);
   iglesias: Iglesia[] = [];
   selectedIglesiaId: string = 'all';
@@ -97,6 +108,8 @@ export class ActivoListComponent implements OnInit {
   
   @ViewChild('reportPaginator') reportPaginator!: MatPaginator;
   @ViewChild('reportSort') reportSort!: MatSort;
+  @ViewChild('previewDialogTpl') previewDialogTpl!: TemplateRef<any>;
+  @ViewChild('labelsDialogTpl') labelsDialogTpl!: TemplateRef<any>;
 
   constructor(
     private activoService: ActivoService,
@@ -133,7 +146,7 @@ export class ActivoListComponent implements OnInit {
     this.dataSource.filterPredicate = (data: Activo, filter: string) => {
       const textQuery = this.searchText.trim().toLowerCase();
       const matchesText = !textQuery || (
-        (data.nombre || '') + ' ' + (data.descripcion || '') + ' ' + (data.codigo || '')
+        (data.nombre || '') + ' ' + (data.descripcion || '') + ' ' + (data.codigo || '') + ' ' + (data.iglesiaNombre || '')
       ).toLowerCase().includes(textQuery);
 
       const matchesIglesia = this.selectedIglesiaId === 'all' || 
@@ -145,6 +158,7 @@ export class ActivoListComponent implements OnInit {
 
   loadActivos() {
     this.isLoading = true;
+    this.reportCacheLoaded = false; // invalida la caché del informe al recargar activos
     if (this.isAdmin) {
       this.activoService.getActivos().pipe(finalize(() => this.isLoading = false)).subscribe(res => {
         this.dataSource.data = Array.isArray(res.datos) ? res.datos : [];
@@ -186,12 +200,13 @@ export class ActivoListComponent implements OnInit {
 
   calcularResumenPrincipal() {
     const list = this.dataSource.filteredData || [];
+    // Se cuenta la cantidad de bienes registrados, NO se suman las unidades (cantidad).
     this.mainTotalCount = list.length;
-    this.mainTotalQty = list.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-    this.mainBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-    this.mainRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-    this.mainMaloQty = list.filter(item => item.estadoConservacion === 'MALO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-    this.mainBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    this.mainTotalQty = list.length;
+    this.mainBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').length;
+    this.mainRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').length;
+    this.mainMaloQty = list.filter(item => item.estadoConservacion === 'MALO').length;
+    this.mainBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').length;
   }
 
   onSearchChange(event: Event) {
@@ -307,137 +322,257 @@ export class ActivoListComponent implements OnInit {
     });
   }
 
+  /** Abre el modal de vista previa del código de UN activo. */
   printLabel(activo: Activo) {
-    const printWindow = window.open('', '_blank', 'width=600,height=450');
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Etiqueta de Activo - ${activo.codigo || 'S/C'}</title>
-          <style>
-            body {
-              font-family: 'Courier New', Courier, monospace;
-              padding: 20px;
-              text-align: center;
-              color: #000;
-            }
-            .label-card {
-              border: 2px dashed #000;
-              padding: 20px;
-              display: inline-block;
-              max-width: 420px;
-              width: 100%;
-              box-sizing: border-box;
-              margin: auto;
-              background-color: #fff;
-            }
-            .title {
-              font-size: 13px;
-              font-weight: bold;
-              margin-bottom: 5px;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .subtitle {
-              font-size: 11px;
-              color: #444;
-              margin-bottom: 12px;
-              font-weight: bold;
-            }
-            .divider {
-              border-top: 1px dashed #000;
-              margin: 10px 0;
-            }
-            .code-box {
-              font-size: 22px;
-              font-weight: bold;
-              letter-spacing: 2px;
-              background-color: #f2f2f2;
-              padding: 8px 12px;
-              margin: 8px 0;
-              display: inline-block;
-              border: 1px solid #000;
-            }
-            .asset-name {
-              font-size: 15px;
-              font-weight: bold;
-              margin-top: 8px;
-            }
-            .asset-meta {
-              font-size: 12px;
-              margin-top: 4px;
-            }
-            .meta-details {
-              font-size: 10px;
-              margin-top: 12px;
-              text-align: left;
-              line-height: 1.4;
-            }
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <div class="label-card">
-            <div class="title">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</div>
-            <div class="subtitle">${activo.iglesiaNombre || 'Iglesia Responsable'}</div>
-            <div class="divider"></div>
-            <div class="code-box">${activo.codigo || 'SIN CODIGO'}</div>
-            <div class="asset-name">${activo.nombre}</div>
-            <div class="asset-meta">Cantidad: ${activo.cantidad} uds. | Estado: ${activo.estadoConservacion}</div>
-            <div class="divider"></div>
-            <div class="meta-details">
-              <strong>Fecha de Reg:</strong> ${this.formatDate(activo.fechaAdquisicion)}<br/>
-              <strong>Descripción:</strong> ${activo.descripcion || 'Sin descripción'}
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    this.labelsToPrint = [activo];
+    this.abrirModalEtiquetas();
+  }
+
+  /** Abre el modal con los códigos de todos los activos seleccionados. */
+  printSelectedLabels() {
+    const labels = this.dataSource.filteredData.filter(a => a.id != null && this.selectedForPrint.has(a.id));
+    if (!labels.length) {
+      this.snackBar.open('Seleccione al menos un bien para imprimir su código.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    this.labelsToPrint = labels;
+    this.abrirModalEtiquetas();
+  }
+
+  private abrirModalEtiquetas() {
+    this.dialog.open(this.labelsDialogTpl, {
+      panelClass: 'preview-dialog-panel',
+      width: '860px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      autoFocus: false
+    });
+  }
+
+  // ── Selección múltiple para impresión de códigos ──
+  isSelectedForPrint(a: Activo): boolean {
+    return a.id != null && this.selectedForPrint.has(a.id);
+  }
+
+  toggleSelectForPrint(a: Activo, checked: boolean) {
+    if (a.id == null) return;
+    if (checked) this.selectedForPrint.add(a.id);
+    else this.selectedForPrint.delete(a.id);
+  }
+
+  get selectedPrintCount(): number {
+    return this.selectedForPrint.size;
+  }
+
+  allVisibleSelected(): boolean {
+    const vis = this.dataSource.filteredData;
+    return vis.length > 0 && vis.every(a => a.id != null && this.selectedForPrint.has(a.id));
+  }
+
+  someVisibleSelected(): boolean {
+    const vis = this.dataSource.filteredData;
+    return vis.some(a => a.id != null && this.selectedForPrint.has(a.id)) && !this.allVisibleSelected();
+  }
+
+  toggleSelectAllVisible(checked: boolean) {
+    const vis = this.dataSource.filteredData;
+    if (checked) vis.forEach(a => { if (a.id != null) this.selectedForPrint.add(a.id); });
+    else vis.forEach(a => { if (a.id != null) this.selectedForPrint.delete(a.id); });
+  }
+
+  clearPrintSelection() {
+    this.selectedForPrint.clear();
+  }
+
+  /** Genera un único PDF con las etiquetas (códigos) de los activos en labelsToPrint. */
+  descargarLabelsPDF() {
+    const labels = this.labelsToPrint;
+    if (!labels.length) return;
+
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageW = 210, pageH = 297;
+    const margin = 12;
+    const cols = 2;
+    const colGap = 8;
+    const rowGap = 8;
+    const cardW = (pageW - margin * 2 - colGap * (cols - 1)) / cols;
+    const cardH = 60;
+
+    let x = margin, y = margin, col = 0;
+
+    labels.forEach((a, idx) => {
+      this.dibujarEtiqueta(doc, a, x, y, cardW, cardH);
+      col++;
+      if (col >= cols) {
+        col = 0;
+        x = margin;
+        y += cardH + rowGap;
+        if (idx < labels.length - 1 && y + cardH > pageH - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      } else {
+        x += cardW + colGap;
+      }
+    });
+
+    const filename = labels.length === 1
+      ? `Codigo_${(labels[0].codigo || 'activo')}.pdf`
+      : `Codigos_activos_${labels.length}.pdf`;
+    doc.save(filename);
+  }
+
+  /** Dibuja una etiqueta (código) de un activo en el PDF, en la posición dada. */
+  private dibujarEtiqueta(doc: jsPDF, a: Activo, x: number, y: number, w: number, h: number) {
+    // Borde punteado
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.4);
+    doc.setLineDashPattern([1.2, 1.2], 0);
+    doc.rect(x, y, w, h);
+    doc.setLineDashPattern([], 0);
+
+    const cx = x + w / 2;
+    let cy = y + 8;
+
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(0);
+    const org = doc.splitTextToSize('MOVIMIENTO CRISTIANO MISIONERO MARANATHA', w - 10);
+    doc.text(org, cx, cy, { align: 'center' });
+    cy += org.length * 3.2 + 1.5;
+
+    doc.setFontSize(7);
+    doc.setTextColor(70);
+    const igl = doc.splitTextToSize(a.iglesiaNombre || 'Iglesia Responsable', w - 10);
+    doc.text(igl, cx, cy, { align: 'center' });
+    cy += igl.length * 3 + 3;
+
+    // Caja con el código
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(0);
+    const code = a.codigo || 'SIN CODIGO';
+    const codeW = Math.min(doc.getTextWidth(code) + 10, w - 8);
+    const boxX = cx - codeW / 2;
+    doc.setFillColor(242, 242, 242);
+    doc.setLineWidth(0.3);
+    doc.rect(boxX, cy - 5.5, codeW, 9, 'FD');
+    doc.text(code, cx, cy - 0.5, { align: 'center', baseline: 'middle' });
+    cy += 9;
+
+    // Nombre del bien
+    doc.setFontSize(9.5);
+    doc.setTextColor(0);
+    const name = doc.splitTextToSize(a.nombre || '', w - 10);
+    doc.text(name, cx, cy, { align: 'center' });
+    cy += name.length * 3.6 + 1.5;
+
+    // Meta
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(40);
+    doc.text(`Cantidad: ${a.cantidad ?? 0} uds.  |  Estado: ${a.estadoConservacion || '-'}`, cx, cy, { align: 'center' });
   }
 
   // --- Panel 2: Lógica de Reportes ---
+  private reportActivosCache: Activo[] = [];
+  private reportCacheLoaded = false;
+
+  /** Carga los activos del reporte una sola vez y luego aplica los filtros en cliente. */
   generarInforme() {
-    const obs = this.isAdmin 
+    if (this.reportCacheLoaded) {
+      this.aplicarFiltrosReporte();
+      return;
+    }
+    const obs = this.isAdmin
       ? this.activoService.getActivos()
       : this.activoService.getActivosByIglesia(this.authService.getCurrentIglesiaId() || 0);
-
     obs.subscribe(res => {
-      let list = Array.isArray(res.datos) ? res.datos : [];
-      
-      // Filtrar por Iglesia
-      if (this.reportSelectedIglesiaId !== 'all') {
-        list = list.filter(a => a.iglesiaId?.toString() === this.reportSelectedIglesiaId);
-      }
-      // Filtrar por Estado Conservación
-      if (this.reportEstadoConservacion !== 'all') {
-        list = list.filter(a => a.estadoConservacion === this.reportEstadoConservacion);
-      }
-      // Filtrar por texto
-      if (this.reportSearchText.trim()) {
-        const q = this.reportSearchText.toLowerCase().trim();
-        list = list.filter(a => 
-          (a.nombre || '').toLowerCase().includes(q) ||
-          (a.descripcion || '').toLowerCase().includes(q) ||
-          (a.codigo || '').toLowerCase().includes(q)
-        );
-      }
+      this.reportActivosCache = Array.isArray(res.datos) ? res.datos : [];
+      this.reportCacheLoaded = true;
+      this.aplicarFiltrosReporte();
+    });
+  }
 
+  /** Aplica iglesia + estado + búsqueda sobre la caché (instantáneo, sin re-consultar). */
+  private aplicarFiltrosReporte() {
+    // Admin sin iglesia elegida: no se muestra informe consolidado (debe elegir una sede).
+    if (this.isAdmin && this.reportSelectedIglesiaId === 'all') {
+      this.reportDataSource.data = [];
+      this.computarResumenReporte([]);
+      return;
+    }
+
+    let list = [...this.reportActivosCache];
+
+    if (this.reportSelectedIglesiaId !== 'all') {
+      list = list.filter(a => a.iglesiaId?.toString() === this.reportSelectedIglesiaId);
+    }
+    if (this.reportEstadoConservacion !== 'all') {
+      list = list.filter(a => a.estadoConservacion === this.reportEstadoConservacion);
+    }
+    const q = this.reportSearchText.trim().toLowerCase();
+    if (q) {
+      list = list.filter(a =>
+        (a.nombre || '').toLowerCase().includes(q) ||
+        (a.descripcion || '').toLowerCase().includes(q) ||
+        (a.codigo || '').toLowerCase().includes(q)
+      );
+    }
+
+    this.reportDataSource.data = list;
+    this.computarResumenReporte(list);
+    if (this.reportPaginator) {
+      this.reportDataSource.paginator = this.reportPaginator;
+      this.reportPaginator.firstPage();
+    }
+    if (this.reportSort) {
+      this.reportDataSource.sort = this.reportSort;
+    }
+  }
+
+  /** Calcula los resúmenes del informe (conteo de BIENES, no suma de cantidades). */
+  private computarResumenReporte(list: Activo[]) {
+    this.reportTotalCount = list.length;
+    this.reportTotalQty = list.length;
+    this.reportBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').length;
+    this.reportRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').length;
+    this.reportMaloQty = list.filter(item => item.estadoConservacion === 'MALO').length;
+    this.reportBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').length;
+  }
+
+  /** Lote (admin): abre el diálogo para generar un PDF por cada iglesia seleccionada. */
+  abrirLoteInventario() {
+    if (!this.isAdmin) return;
+    // Se cargan todos los activos una vez y cada iglesia solo re-filtra en cliente.
+    this.activoService.getActivos().subscribe(res => {
+      const todos = Array.isArray(res.datos) ? res.datos : [];
+      const ref = this.dialog.open(InformeLoteDialogComponent, {
+        width: '560px', maxWidth: '95vw', panelClass: 'dialog-fullscreen-mobile', disableClose: true,
+        data: {
+          titulo: 'Informe de Inventario',
+          iglesias: this.iglesias.filter(i => i.id != null).map(i => ({ id: i.id!, nombre: i.nombre })),
+          generarUno: (iglesiaId: number) => this.generarPdfLoteParaIglesia(iglesiaId, todos)
+        }
+      });
+      ref.afterClosed().subscribe(() => this.limpiarFiltrosInforme());
+    });
+  }
+
+  private generarPdfLoteParaIglesia(iglesiaId: number, todos: Activo[]): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const list = todos.filter(a => a.iglesiaId === iglesiaId);
+      // Fija el estado del reporte a esta iglesia (buildReportPDF y el nombre de archivo lo usan).
+      this.reportSelectedIglesiaId = iglesiaId.toString();
+      this.reportEstadoConservacion = 'all';
+      this.reportSearchText = '';
       this.reportDataSource.data = list;
-      
-      // Calcular resúmenes del informe
-      this.reportTotalCount = list.length;
-      this.reportTotalQty = list.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      this.reportBuenoQty = list.filter(item => item.estadoConservacion === 'BUENO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      this.reportRegularQty = list.filter(item => item.estadoConservacion === 'REGULAR').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      this.reportMaloQty = list.filter(item => item.estadoConservacion === 'MALO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      this.reportBajaQty = list.filter(item => item.estadoConservacion === 'BAJA').reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      this.computarResumenReporte(list);
 
-      if (this.reportPaginator) {
-        this.reportDataSource.paginator = this.reportPaginator;
-      }
-      if (this.reportSort) {
-        this.reportDataSource.sort = this.reportSort;
-      }
+      const doc = new jsPDF('l', 'mm', 'a4');
+      this.loadImage('/logo.png')
+        .then(logo => { this.buildReportPDF(doc, logo); resolve(); })
+        .catch(() => { this.buildReportPDF(doc, null); resolve(); });
     });
   }
 
@@ -464,12 +599,26 @@ export class ActivoListComponent implements OnInit {
     return true;
   }
 
+  // El administrador no puede ver los bienes de todas las iglesias mezclados:
+  // debe elegir una sede específica en el filtro de "Registro de Bienes".
+  canVerListaPrincipal(): boolean {
+    return !this.isAdmin || this.selectedIglesiaId !== 'all';
+  }
+
   imprimirVistaPrevia() {
     if (!this.canPrintReport()) {
       this.snackBar.open('Debe seleccionar una iglesia específica para poder imprimir el reporte.', 'Cerrar', { duration: 3000 });
       return;
     }
-    window.print();
+    // Mostrar la vista previa en un modal (no abrir el diálogo de impresión del navegador).
+    // Desde el modal se puede generar el PDF.
+    this.dialog.open(this.previewDialogTpl, {
+      panelClass: 'preview-dialog-panel',
+      width: '960px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      autoFocus: false
+    });
   }
 
   descargarExcel() {
@@ -598,7 +747,7 @@ export class ActivoListComponent implements OnInit {
     doc.setFontSize(9);
     doc.text('RESUMEN DE INVENTARIO Y BIENES:', 14, y);
     doc.setFont('courier', 'normal');
-    doc.text(`Total Tipos: ${this.reportTotalCount} reg. | Total Unidades: ${this.reportTotalQty} uds. | Buenos: ${this.reportBuenoQty} uds. | Regulares: ${this.reportRegularQty} uds. | Malos: ${this.reportMaloQty} uds. | De Baja: ${this.reportBajaQty} uds.`, 85, y);
+    doc.text(`Bienes: ${this.reportTotalCount} | Buenos: ${this.reportBuenoQty} | Regulares: ${this.reportRegularQty} | Malos: ${this.reportMaloQty} | De Baja: ${this.reportBajaQty}`, 85, y);
     y += 5;
 
     doc.line(14, y, 282, y);
