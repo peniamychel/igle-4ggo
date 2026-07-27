@@ -49,3 +49,288 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   padding: 6px 24px;
   font-weight: 500;
 }
+
+/* FOTO BANNER */
+.foto-banner-wrapper {
+  margin: 0 -24px;
+  margin-bottom: 8px;
+}
+
+.foto-banner-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(124,77,255,0.12) 100%);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.foto-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.foto-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #6366f1;
+}
+
+.foto-banner-placeholder mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  opacity: 0.6;
+}
+
+.foto-banner-placeholder span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.foto-banner-placeholder small {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.foto-banner-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foto-banner-wrapper .foto-hint {
+  display: block;
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 500;
+  padding: 4px 24px 0;
+}
+
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.7);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.upload-label:hover {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.upload-label mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.foto-banner-overlay .delete-foto-btn {
+  background: rgba(244,67,54,0.85) !important;
+  color: white !important;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  backdrop-filter: blur(4px);
+}
+
+.delete-foto-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+
+.btn-spinner {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* MAPA DE UBICACION */
+.ubicacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.ubicacion-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+}
+
+.ubicacion-title mat-icon {
+  color: #2e7d32;
+}
+
+.ubicacion-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.dot-green {
+  width: 8px;
+  height: 8px;
+  background-color: #2e7d32;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.map-frame {
+  position: relative;
+  width: 100%;
+}
+
+.map-container {
+  height: 286px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.clear-map-btn {
+  position: absolute;
+  top: 80px;
+  right: 8px;
+  background-color: white !important;
+  color: #d32f2f !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.ubicacion-footer-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-top: 10px;
+}
+
+.dark-theme .ubicacion-footer-box {
+  background-color: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coords-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+}
+
+.coords-display mat-icon {
+  color: #2e7d32;
+}
+
+.coords-values {
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.gmaps-link {
+  color: #1b5e20;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gmaps-link:hover {
+  text-decoration: underline;
+}
+
+.map-help-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #666);
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.map-help-text mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Header Styles */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border-color);
+  margin: 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(127, 11, 133, 0.1) 0%, rgba(127, 11, 133, 0.05) 100%);
+  border: 1px solid rgba(127, 11, 133, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+}
+
+.header-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.close-btn {
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* Overwrite mat-dialog-content padding to accommodate custom header */
+mat-dialog-content {
+  padding: 24px !important;
+}

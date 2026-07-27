@@ -41,6 +41,7 @@ export class TipoCargoEditComponent implements OnInit {
     this.tipoCargoForm = this.fb.group({
       tipo: ['', [Validators.required, Validators.maxLength(50)]],
       nombre: ['', [Validators.required, Validators.maxLength(100)]],
+      nombreRol: ['', [Validators.required, Validators.maxLength(50)]],
     });
   }
 

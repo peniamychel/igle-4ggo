@@ -99,8 +99,8 @@ export class ResponsableEventoCreateComponent implements OnInit {
   }
 
   getCargoNombreCompleto(cargo: Cargo): string {
-    if (!cargo.miembroDto || !cargo.miembroDto.personaDto) return 'N/A';
-    const p = cargo.miembroDto.personaDto;
+    if (!cargo.miembroDto) return 'N/A';
+    const p = cargo.miembroDto;
     const tipo = cargo.tipoCargoDto?.nombre || '';
     const iglesia = cargo.iglesiaDto?.nombre || '';
     const nombreBase = `${p.nombre} ${p.apellido}${tipo ? ` (${tipo})` : ''}`;

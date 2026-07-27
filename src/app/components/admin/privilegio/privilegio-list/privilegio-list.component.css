@@ -1,121 +1,640 @@
-.container {
-  padding: 20px;
-  max-width: 1200px;
+/* ==========================================================================
+   PANEL DE ROLES Y PRIVILEGIOS (RBAC) - Premium Stylesheet
+   ========================================================================== */
+
+:root {
+  --primary-color: #7F0B85;
+  --primary-glow: rgba(127, 11, 133, 0.1);
+  --success-color: #2196f3;
+  --success-glow: rgba(33, 150, 243, 0.1);
+  --write-color: #e040fb;
+  --write-glow: rgba(224, 64, 251, 0.1);
+  --neutral-bg: #f8f9fa;
+  --border-color: #eef0f2;
+  --text-main: #333333;
+  --text-muted: #6c757d;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.privileges-dashboard {
+  padding: 20px 0;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.nuevo-buscar {
+/* ── CABECERA DEL DASHBOARD ── */
+.dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1.5px solid var(--border-color);
+  padding-bottom: 16px;
 }
 
-.mat-form-field {
+.header-info h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 6px 0;
+}
+
+.header-info p {
+  color: var(--text-muted);
   font-size: 14px;
-  width: 300px;
+  margin: 0;
 }
 
-.table-container {
-  background: var(--card-bg);
+.btn-nuevo-privilegio {
+  border-radius: 8px;
+  height: 44px;
+  font-weight: 600;
+}
+
+/* ── DISEÑO DE DOBLE COLUMNA ── */
+.dashboard-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── COLUMNA IZQUIERDA: SIDEBAR DE ROLES ── */
+.roles-sidebar {
+  flex: 0 0 320px;
+  background-color: #ffffff;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  box-shadow: var(--card-shadow);
   overflow: hidden;
-  transition: background-color 0.25s ease, border-color 0.25s ease;
+  padding: 16px 0;
 }
 
-.mat-table {
+.sidebar-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 12px;
+  color: var(--primary-color);
+}
+
+.sidebar-title-wrapper mat-icon {
+  font-size: 24px;
+}
+
+.sidebar-title-wrapper h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.role-item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--neutral-bg);
+}
+
+.role-item-card:hover {
+  background-color: rgba(127, 11, 133, 0.03);
+  border-color: rgba(127, 11, 133, 0.15);
+}
+
+.role-item-card.active {
+  background-color: var(--primary-glow);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(127, 11, 133, 0.08);
+}
+
+.role-avatar-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1.5px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.role-item-card.active .role-avatar-wrapper {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background-color: #ffffff;
+}
+
+.role-avatar-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.role-card-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.role-name {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--text-main);
+}
+
+.role-code {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Barra de Progreso en la Tarjeta de Rol */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
   width: 100%;
 }
 
-.clickable-row {
-  cursor: pointer;
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 3px;
+  transition: width 0.4s ease-out;
 }
 
+.progress-text {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.active-indicator-chevron {
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+
+.role-item-card.active .active-indicator-chevron {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--primary-color);
+}
+
+/* ── COLUMNA DERECHA: SECCIÓN DE DETALLE Y CONFIGURACIÓN ── */
+.privileges-main-panel {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Active Role Banner */
+.active-role-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  padding: 16px 20px;
+}
+
+.banner-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background-color: var(--primary-glow);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-text h3 {
+  margin: 0 0 2px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.banner-text p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Cuadrícula de Tarjetas de Categoría */
+.categories-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.category-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #fafbfc;
+}
+
+.category-title-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.category-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+}
+
+.category-titles h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.category-titles p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Fila de Privilegio Individual */
+.category-body {
+  padding: 8px 0;
+}
+
+.privilege-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.privilege-row:last-child {
+  border-bottom: none;
+}
+
+.privilege-row:hover {
+  background-color: #fbfbfc;
+}
+
+.privilege-label-info {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+.privilege-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.privilege-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── SWITCH DESLIZANTE DE DISEÑO PROPIO (PURE CSS TOGGLE) ── */
+.switch-control {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch-control input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+}
+
+/* Toggle Activado - Color por defecto (Lectura - Azul) */
+.switch-control input:checked + .slider {
+  background-color: var(--success-color);
+  box-shadow: 0 0 4px var(--success-glow);
+}
+
+.switch-control input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Toggle Activado - Escritura (Morado) */
+.switch-control.type-write input:checked + .slider {
+  background-color: var(--write-color);
+  box-shadow: 0 0 4px var(--write-glow);
+}
+
+/* Toggle Activado - Master Switch (Fucsia/Tema Principal) */
+.switch-control.master-switch input:checked + .slider {
+  background-color: var(--primary-color);
+  box-shadow: 0 0 4px var(--primary-glow);
+}
+
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* ── SECCIÓN DE TABLA MAESTRA SECUNDARIA ── */
 .section-divider {
   margin: 32px 0;
 }
 
-.roles-card {
-  margin-top: 16px;
+.master-privileges-card {
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  background-color: #ffffff;
 }
 
-.roles-card mat-card-header {
+.advanced-table-content {
+  padding: 16px 20px;
+}
+
+.table-search-bar {
   margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.rol-selector {
-  margin-bottom: 24px;
+.table-search-bar mat-form-field {
+  width: 320px;
 }
 
-.rol-selector .mat-button-toggle-group {
-  flex-wrap: wrap;
+.table-wrapper {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.rol-selector .mat-button-toggle {
-  font-size: 13px;
-}
-
-.privilegios-asignados,
-.privilegios-disponibles {
-  margin: 20px 0;
-}
-
-.privilegios-asignados h4,
-.privilegios-disponibles h4 {
-  margin: 0 0 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: color 0.25s ease;
-}
-
-.add-chip {
+.clickable-row {
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
-.add-chip:hover {
+.clickable-row:hover {
+  background-color: #fafafa;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.estado-badge.activo {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.estado-badge.inactivo {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.acciones-cell {
+  justify-content: flex-end;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* ── RESPONSIVE DESIGN ── */
+@media (max-width: 992px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  
+  .roles-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+/* ── MATRIX VIEW STYLES ── */
+.tab-selector-wrapper {
+  margin-top: 10px;
+}
+
+.custom-toggle-group {
+  border-radius: 20px !important;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e3e8ee) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.custom-toggle-group mat-button-toggle {
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  height: 38px;
+  line-height: 38px;
+  color: var(--text-secondary, #697386);
+}
+
+.custom-toggle-group .mat-button-toggle-checked {
+  background-color: var(--primary-color, #7c4dff) !important;
+  color: #ffffff !important;
+}
+
+.matrix-layout-container {
+  margin-top: 24px;
+}
+
+.matrix-card {
+  border-radius: 16px !important;
+  border: 1px solid var(--border-color, #e3e8ee);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.matrix-header-icon {
+  color: var(--primary-color, #7c4dff);
+}
+
+.matrix-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.matrix-subtitle {
+  font-size: 0.85rem !important;
+  color: var(--text-secondary, #697386);
+}
+
+.matrix-card-content {
+  padding: 24px !important;
+}
+
+.matrix-table-wrapper {
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.matrix-table th {
+  background-color: #f8f9fa;
+  padding: 14px 18px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #4f566b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border-color, #e3e8ee);
+}
+
+.matrix-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color, #e3e8ee);
+  vertical-align: middle;
+}
+
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+.matrix-table tr:hover {
+  background-color: rgba(124, 77, 255, 0.02);
+}
+
+.col-service {
+  min-width: 280px;
+}
+
+.col-role {
+  min-width: 120px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.service-cell {
+  display: flex;
+  align-items: center;
+}
+
+.service-icon-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.service-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background-color: rgba(124, 77, 255, 0.08);
+  color: var(--primary-color, #7c4dff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
-.empty-message {
-  color: var(--text-secondary);
-  font-style: italic;
-  font-size: 13px;
-  margin: 8px 0;
-  transition: color 0.25s ease;
+.service-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-@media (max-width: 768px) {
-  .mat-column-acto {
-    display: none;
-  }
+.service-name-text {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-primary, #1a1f36);
+}
 
-  .container {
-    padding: 12px;
-  }
-
-  .nuevo-buscar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .nuevo-buscar button {
-    width: 100%;
-    margin-bottom: 12px;
-  }
-
-  .mat-form-field {
-    width: 100%;
-  }
-
-  .rol-selector .mat-button-toggle-group {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .rol-selector .mat-button-toggle {
-    width: 100%;
-  }
+.service-desc-text {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #697386);
+  max-width: 450px;
+  white-space: normal;
 }

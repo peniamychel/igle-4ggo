@@ -1,0 +1,53 @@
+.lote-dialog { display: flex; flex-direction: column; min-width: 460px; max-width: 560px; }
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border-color, #e3e8ee);
+}
+.header-title { display: flex; align-items: center; gap: 12px; }
+.header-icon { color: var(--primary-color, #7F0B85); font-size: 26px; width: 26px; height: 26px; }
+.dialog-header h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-primary, #1a1f36); }
+.header-subtitle { margin: 2px 0 0; font-size: 0.82rem; color: var(--text-secondary, #697386); }
+.close-btn { color: var(--text-secondary, #697386); }
+
+.dialog-content { padding: 16px 24px 0 !important; max-height: 55vh; }
+
+.check-all { font-weight: 700; margin-bottom: 8px; }
+.iglesias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border-color, #eef1f5);
+  padding-top: 10px;
+}
+.iglesia-item { font-size: 0.9rem; }
+
+.progreso-box { padding: 12px 0 8px; }
+.progreso-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: var(--text-primary, #1a1f36);
+  margin-bottom: 12px;
+}
+.progreso-label.ok { color: #0b857f; }
+.progreso-label mat-icon { font-size: 20px; width: 20px; height: 20px; }
+.spin { animation: spin 1s linear infinite; color: var(--primary-color, #7F0B85); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.errores { color: #dc3545; font-size: 0.82rem; margin-top: 10px; }
+
+.dialog-actions { padding: 14px 24px 18px; gap: 10px; }
+.btn-generar {
+  background-color: var(--primary-color, #7F0B85) !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+
+@media (max-width: 520px) {
+  .lote-dialog { min-width: unset; width: 100%; }
+}

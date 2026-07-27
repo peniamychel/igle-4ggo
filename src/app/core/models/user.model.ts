@@ -1,3 +1,6 @@
+import { PermisoDto, PrivilegioDto } from './interfaces/permiso.interface';
+import { AccionDto } from './interfaces/servicio.interface';
+
 export interface User {
   id?: number;
   email: string;
@@ -8,11 +11,18 @@ export interface User {
   estado: boolean;
   password?: string;
   roles: Role[];
+  miembroId?: number;
+  iglesiaNombre?: string;
+  acciones?: AccionDto[];
+  permisos?: PermisoDto[];
+  privilegios?: PrivilegioDto[];
 }
 
 export interface Role {
   id: number;
-  name: string;
+  name?: string;
+  nombre?: string;
+  nombreRol?: string;
 }
 
 export interface UserResponse {
@@ -34,21 +44,18 @@ export interface CreateUserDto {
   apellidos: string;
   uriFoto: string;
   password: string;
-  roles: string[];
+  roles?: string[];
+  miembroId?: number;
 }
 
-
 export interface UpdateUserDto {
-  id: number;
+  id?: number;
   username: string;
   email: string;
   name: string;
   apellidos: string;
-}
-
-export interface UpdateUserRolesDto {
-  id: number;
-  roles: string[];
+  miembroId?: number;
+  estado?: boolean;
 }
 
 export interface ChangePasswordDto {

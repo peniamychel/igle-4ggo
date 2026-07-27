@@ -1,85 +1,75 @@
+/* ═══════════════════════════════════════════════
+   PÁGINA DE PERFIL — ESTILO PREMIUM
+   ═══════════════════════════════════════════════ */
+
+:host {
+  display: block;
+  background-color: var(--bg-content);
+  min-height: 100vh;
+}
+
 .settings-page {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 40px;
+  padding: 24px 28px 48px;
+  box-sizing: border-box;
 }
 
 .loading-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 80px;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
+/* ── 1. Banner y Cabecera del Perfil (Hero) ── */
+.profile-hero {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  margin-bottom: 28px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
-.header-info {
-  flex: 1;
+.hero-banner {
+  height: 180px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  position: relative;
 }
 
-.page-title {
-  margin: 0 0 4px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.page-subtitle {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.content-grid {
+.hero-content {
+  padding: 0 32px 32px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-/* Profile Card */
-.profile-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.profile-card-header {
-  padding: 32px;
-  display: flex;
-  justify-content: center;
-}
-
-.avatar-section {
-  display: flex;
-  align-items: center;
-  gap: 28px;
+.avatar-container {
+  margin-top: -70px;
+  margin-bottom: 16px;
+  display: inline-block;
+  align-self: flex-start;
+  z-index: 2;
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
-  border: 3px solid var(--border-color);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border: 4px solid var(--card-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   position: relative;
-  flex-shrink: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  background-color: var(--card-bg);
 }
 
 .avatar:hover {
-  border-color: #7c4dff;
-  box-shadow: 0 4px 16px rgba(124, 77, 255, 0.2);
-}
-
-.dark-theme .avatar:hover {
-  border-color: #ab92ff;
-  box-shadow: 0 4px 16px rgba(171, 146, 255, 0.2);
+  transform: scale(1.03);
+  border-color: var(--primary-color);
 }
 
 .avatar:hover .avatar-overlay {
@@ -90,22 +80,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .avatar-placeholder {
   width: 100%;
   height: 100%;
-  background: var(--border-color);
+  background: linear-gradient(135deg, #7c4dff 0%, #00bfa5 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ffffff;
 }
 
 .avatar-placeholder span {
-  font-size: 36px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 48px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .avatar-overlay {
@@ -114,153 +104,328 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
   border-radius: 50%;
 }
 
 .avatar-overlay mat-icon {
-  color: white;
-  font-size: 28px;
+  color: #ffffff;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
-.user-identity {
-  text-align: left;
+/* User Identity Info */
+.user-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.user-name {
-  margin: 0 0 4px;
-  font-size: 1.25rem;
+.user-meta-left {
+  flex: 1;
+}
+
+.user-fullname {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.user-username-tag {
+  font-size: 0.95rem;
   font-weight: 600;
+  color: var(--primary-color);
+  margin: 4px 0 0;
+}
+
+.user-meta-right button.btn-edit {
+  height: 42px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: rgba(127, 11, 133, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(127, 11, 133, 0.15);
+  padding: 0 20px;
+  transition: all 0.2s ease;
+}
+
+.user-meta-right button.btn-edit:hover {
+  background: var(--primary-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* ── 2. Grid de Distribución ── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+}
+
+/* ── 3. Estilos de Cards (Columnas) ── */
+.side-card, .details-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.side-card:last-child, .details-card:last-child {
+  margin-bottom: 0;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.card-icon {
+  color: var(--primary-color);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.card-header h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Lista de Roles */
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.role-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.role-badge-row.ADMIN {
+  background: rgba(127, 11, 133, 0.08);
+  color: #b031b5;
+}
+
+.role-badge-row.ENCARGADO_IGLESIA {
+  background: rgba(46, 125, 50, 0.08);
+  color: #2e7d32;
+}
+
+.role-badge-row.ENCARGADO_EVENTO {
+  background: rgba(239, 108, 0, 0.08);
+  color: #ef6c00;
+}
+
+.role-badge-row.TESORERO {
+  background: rgba(2, 136, 209, 0.08);
+  color: #0288d1;
+}
+
+.role-badge-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Indicador de Estado */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.indicator-dot.active {
+  background-color: #2e7d32;
+}
+
+.indicator-dot.active::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: rgba(46, 125, 50, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.indicator-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicator-title {
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
-.user-username {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-  color: #7c4dff;
-  font-weight: 500;
+.indicator-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
 }
 
-.dark-theme .user-username {
-  color: #ab92ff;
-}
-
-.role-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.role-chip {
-  background: #ede7f6;
-  color: #7c4dff;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.dark-theme .role-chip {
-  background: rgba(124, 77, 255, 0.15);
-  color: #ab92ff;
-}
-
-/* Info Cards */
-.info-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 24px;
-}
-
-.card-header-row {
+/* Detalle General en Columna Derecha */
+.card-header-with-action {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
 }
 
-.card-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
+.card-title-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.card-title mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: #7c4dff;
+.card-title-icon {
+  color: var(--primary-color);
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
 }
 
-.dark-theme .card-title mat-icon {
-  color: #ab92ff;
+.card-header-with-action h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
 }
 
-.info-grid {
+.btn-card-edit {
+  color: var(--text-secondary);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-card-edit:hover {
+  color: var(--primary-color);
+  transform: scale(1.08);
+}
+
+.details-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
 }
 
-.info-item {
+.detail-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.info-label {
-  font-size: 0.75rem;
-  font-weight: 500;
+.detail-label {
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.info-value {
-  font-size: 0.9rem;
+.detail-value {
+  font-size: 0.92rem;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
 }
 
-.info-value.masked {
-  letter-spacing: 2px;
+.detail-value.highlight-text {
+  color: var(--primary-color);
 }
 
-/* Responsive */
+.detail-value.masked {
+  letter-spacing: 4px;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+/* ── 4. Responsive Adaptations ── */
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
 @media (max-width: 600px) {
   .settings-page {
-    padding: 16px;
+    padding: 16px 14px 32px;
   }
 
-  .page-header {
+  .hero-banner {
+    height: 120px;
+  }
+
+  .hero-content {
+    padding: 0 20px 24px;
+  }
+
+  .avatar-container {
+    margin-top: -50px;
+    align-self: center;
+  }
+
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .user-meta {
+    text-align: center;
+    justify-content: center;
     flex-direction: column;
+    align-items: center;
     gap: 16px;
   }
 
-  .avatar-section {
-    flex-direction: column;
-    text-align: center;
+  .user-fullname {
+    font-size: 1.35rem;
   }
 
-  .user-identity {
-    text-align: center;
-  }
-
-  .role-chips {
+  .btn-edit {
+    width: 100%;
     justify-content: center;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
   }
 }

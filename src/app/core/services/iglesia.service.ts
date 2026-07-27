@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Iglesia, IglesiaResponse, IglesiaDetail, IglesiasResponse } from '../models/iglesia.model';
+import { Iglesia, IglesiaDetail } from '../models/iglesia.model';
 import { ApiResponse } from '../models/interfaces/api.response';
 
 
@@ -14,24 +15,30 @@ export class IglesiaService {
 
   private apiUrl = `${environment.apiUrl}/api/iglesia/v1`;
 
+  // Cache del catalogo de iglesias: cambia poco, se reutiliza entre componentes
+  // en vez de re-pedirlo en cada navegacion. Se invalida en cada mutacion.
+  private iglesiasCache$?: Observable<ApiResponse<[Iglesia]>>;
+
   constructor(private http: HttpClient) { }
 
   /**
-   * Obtiene los headers con el token
-   * @returns headers con el token
-   */
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
-  /**
-   * Obtiene todas las iglesias
+   * Obtiene todas las iglesias (con cache compartido entre suscriptores)
    * @returns lista de iglesias
    */
   getIglesias(): Observable<ApiResponse<[Iglesia]>> {
-    const url = `${this.apiUrl}/findall`;
-    return this.http.get<ApiResponse<[Iglesia]>>(url, { headers: this.getHeaders() });
+    if (!this.iglesiasCache$) {
+      const url = `${this.apiUrl}/findall`;
+      this.iglesiasCache$ = this.http.get<ApiResponse<[Iglesia]>>(url).pipe(
+        catchError(err => { this.iglesiasCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
+    }
+    return this.iglesiasCache$;
+  }
+
+  /** Invalida el cache de iglesias; llamar tras cualquier mutacion. */
+  private invalidateCache(): void {
+    this.iglesiasCache$ = undefined;
   }
 
   /**
@@ -40,7 +47,7 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   getIglesiaById(id: number): Observable<IglesiaDetail> {
-    return this.http.get<IglesiaDetail>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<IglesiaDetail>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   /**
@@ -49,7 +56,7 @@ export class IglesiaService {
    * @returns iglesia creada
    */
   createIglesia(iglesia: Iglesia): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, iglesia, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/create`, iglesia).pipe(tap(() => this.invalidateCache()));
   }
 
   /**
@@ -58,7 +65,7 @@ export class IglesiaService {
    * @returns iglesia actualizada
    */
   updateIglesia(iglesia: Iglesia): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, iglesia, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/update`, iglesia).pipe(tap(() => this.invalidateCache()));
   }
 
   /**
@@ -68,7 +75,7 @@ export class IglesiaService {
    */
   updateIglesia2(iglesia: Iglesia): Observable<ApiResponse<Iglesia>> {
     const url = `${this.apiUrl}/update2/${iglesia.id}`;
-    return this.http.put<ApiResponse<Iglesia>>(url, iglesia, { headers: this.getHeaders() });
+    return this.http.put<ApiResponse<Iglesia>>(url, iglesia).pipe(tap(() => this.invalidateCache()));
   }
 
   /**
@@ -76,9 +83,9 @@ export class IglesiaService {
    * @param id id de la iglesia
    * @returns true si se cambio el estado
    */
-  toggleEstado(id: number): Observable<boolean> {
+  toggleEstado(id: number): Observable<any> {
     const url = `${this.apiUrl}/estado/${id}`;
-    return this.http.put<boolean>(url, {}, { headers: this.getHeaders() });
+    return this.http.put<any>(url, {}).pipe(tap(() => this.invalidateCache()));
   }
 
   /**
@@ -87,7 +94,7 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   buscarNombreIglesia(nameIglesia: string): Observable<Iglesia> {
-    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesia/${nameIglesia}`, { headers: this.getHeaders() });
+    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesia/${nameIglesia}`);
   }
 
   /**
@@ -97,7 +104,26 @@ export class IglesiaService {
    * @returns iglesia encontrada
    */
   buscarNombreIglesiaExeptoId(nameIglesia: string, id: number): Observable<Iglesia> {
-    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesiaexceptoid/${nameIglesia}/${id}`, { headers: this.getHeaders() });
+    return this.http.get<Iglesia>(`${this.apiUrl}/showbynombreiglesiaexceptoid/${nameIglesia}/${id}`);
+  }
+
+  uploadFoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/foto`, formData).pipe(tap(() => this.invalidateCache()));
+  }
+
+  deleteFoto(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/foto`).pipe(tap(() => this.invalidateCache()));
+  }
+
+  updateOrden(ids: number[]): Observable<ApiResponse<void>> {
+    const url = `${this.apiUrl}/update-orden`;
+    return this.http.put<ApiResponse<void>>(url, ids).pipe(tap(() => this.invalidateCache()));
+  }
+
+  deleteIglesia(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/delete/${id}`).pipe(tap(() => this.invalidateCache()));
   }
 
 }

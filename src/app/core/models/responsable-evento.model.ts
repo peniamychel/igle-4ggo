@@ -11,6 +11,8 @@ export interface ResponsableEvento {
 
   eventoDto?: Evento;
   cargoDto?: Cargo;
+  nombreCompleto?: string;
+  nombreCargo?: string;
 }
 
 export interface ResponsableEventoResponse {

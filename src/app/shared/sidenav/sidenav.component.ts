@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -15,9 +16,16 @@ import { LoginModalComponent } from '../../components/auth/login/login-modal.com
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../core/services/user.service';
+import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
+import { NotificacionService } from '../../core/services/notificacion.service';
 import { CreateUserDto, SingleUserResponse, User, UserResponse } from '../../core/models/user.model';
 import { ThemeService } from '../../core/services/theme.service';
 import { ImageUrlPipe } from '../pipes/image-url.pipe';
+import { SolicitudListComponent } from '../../components/admin/miembro-iglesia/solicitud-list/solicitud-list.component';
+import { Subscription, interval } from 'rxjs';
+import { startWith } from 'rxjs/operators';
+import { ROUTE_VIEW_MAP } from '../../core/constants/privilegios.constants';
+import { MatBadgeModule } from '@angular/material/badge';
 
 
 export interface MenuItem {
@@ -28,6 +36,10 @@ export interface MenuItem {
   expanded?: boolean;
   /** Si true, el ítem solo se muestra a usuarios con rol ADMIN */
   adminOnly?: boolean;
+  /** Si true, el ítem se oculta para usuarios con rol ADMIN */
+  nonAdminOnly?: boolean;
+  /** Etiqueta del grupo. Si está presente, se renderiza un separador antes de este ítem */
+  groupLabel?: string;
 }
 
 @Component({
@@ -45,12 +57,13 @@ export interface MenuItem {
     MatDialogModule,
     RouterModule,
     MatTooltipModule,
-    ImageUrlPipe
+    ImageUrlPipe,
+    MatBadgeModule
   ],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']
 })
-export class SidenavComponent implements OnInit {
+export class SidenavComponent implements OnInit, OnDestroy {
   @ViewChild('drawer') sidenav!: MatSidenav;
   isSmallScreen = false;
   username: string = '';
@@ -59,13 +72,22 @@ export class SidenavComponent implements OnInit {
 
   user: CreateUserDto | null = null;
 
+  activeIglesiaNombre: string | null = null;
+  activeCargoNombre: string | null = null;
+  iglesiasDisponibles: any[] = [];
+  pendingSolicitudesCount: number = 0;
+
   private router = inject(Router);
   private breakpointObserver: BreakpointObserver = inject(BreakpointObserver);
-  private authService: AuthService = inject(AuthService);
+  public authService: AuthService = inject(AuthService);
   private dialog: MatDialog = inject(MatDialog);
   private usuarioService = inject(UserService);
+  private miembroIglesiaService = inject(MiembroIglesiaService);
+  private notificacionService = inject(NotificacionService);
   private datosUsuario: any = JSON.parse(localStorage.getItem("datosUsuario") || '{}');
   private themeService = inject(ThemeService);
+  private destroyRef = inject(DestroyRef);
+  private pollingSub?: Subscription;
 
   isDarkMode = this.themeService.isDarkMode;
   
@@ -73,134 +95,113 @@ export class SidenavComponent implements OnInit {
     this.themeService.toggleTheme();
   }
 
+  loadActiveContext(): void {
+    this.activeIglesiaNombre = this.authService.getCurrentIglesiaNombre();
+    this.activeCargoNombre = this.authService.getCurrentCargoNombre();
+    const storedIglesias = localStorage.getItem('user_iglesias');
+    if (storedIglesias) {
+      try {
+        this.iglesiasDisponibles = JSON.parse(storedIglesias);
+      } catch (e) {
+        this.iglesiasDisponibles = [];
+      }
+    } else {
+      this.iglesiasDisponibles = [];
+    }
+  }
+
   filteredMenuItems: MenuItem[] = [];
 
-
   menuItems: MenuItem[] = [
-    { label: 'Inicio', route: '/', icon: 'home' },
-    {
-      label: 'Obreros',
-      icon: 'work',
-      children: [
-        { label: 'Pastores', route: '/pastores', icon: 'person' },
-        { label: 'Encargados', route: '/encargados', icon: 'assignment' },
-        { label: 'Líderes', route: '/lideres', icon: 'star' },
-        { label: 'Tipo Cargo', route: '/tipocargo', icon: 'badge' },
-        { label: 'Cargos Miembros', route: '/cargo', icon: 'assignment_ind' }
-      ]
-    },
-    {
-      label: 'Miembros',
-      icon: 'people',
-      children: [
-        { label: 'Lista Miembros', route: '/miembro', icon: 'list' },
-        { label: 'Personas', route: '/persona', icon: 'person_outline' },
-        { label: 'Cambios iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
-        { label: 'Solicitudes', route: '/solicitudes', icon: 'mark_email_unread' }
-      ]
-    },
-    {
-      label: 'Iglesias',
-      icon: 'church',
-      children: [
-        { label: 'Lista Iglesias', route: '/iglesia', icon: 'list' },
-        { label: 'Iglesia Miembros', route: '/miembroiglesia', icon: 'recent_actors' },
-        { label: 'Iglesia Grafico', route: '/graficoiglesias', icon: 'bar_chart' }
-      ]
-    },
-    {
-      label: 'Eventos',
-      icon: 'event',
-      children: [
-        { label: 'Tipos de Evento', route: '/tipoevento', icon: 'category' },
-        { label: 'Eventos', route: '/eventos', icon: 'local_activity' },
-        { label: 'Responsables', route: '/responsable-evento', icon: 'assignment_ind' },
-        { label: 'Participaciones', route: '/participacion-evento', icon: 'group' },
-        { label: 'Bautizos', route: '/bautizos', icon: 'water_drop' },
-        { label: 'Talleres', route: '/talleres', icon: 'school' },
-        { label: 'Tipos de Certificado', route: '/tipocertificado', icon: 'badge' },
-        { label: 'Certificados', route: '/certificados', icon: 'workspace_premium' }
-      ]
-    },
-    { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on' },
+    // ── General ──
+    { label: 'Inicio', route: '/inicio', icon: 'home' },
+
+    // ── Miembros ──
+    { label: 'Miembros', route: '/miembro', icon: 'people', groupLabel: 'Miembros' },
+    { label: 'Mis Miembros', route: '/mi-iglesia', icon: 'people_alt', nonAdminOnly: true },
+    { label: 'Cambios Iglesia', route: '/cambios-iglesia', icon: 'swap_horiz' },
+
+    // ── Iglesias ──
+    { label: 'Iglesias', route: '/iglesia', icon: 'church', groupLabel: 'Iglesias' },
+    { label: 'Obreros', route: '/obreros', icon: 'work' },
+
+    // ── Eventos ──
+    { label: 'Eventos', route: '/eventos', icon: 'event', groupLabel: 'Eventos' },
+    { label: 'Certificaciones', route: '/certificados', icon: 'workspace_premium' },
+
+    // ── Recursos ──
+    { label: 'Ofrendas', route: '/ofrendas', icon: 'monetization_on', groupLabel: 'Recursos' },
+    { label: 'Inventario', route: '/activos', icon: 'inventory_2' },
+    { label: 'Informes', route: '/informes', icon: 'assessment' },
+
+    // ── Sistema ──
     {
       label: 'Administración',
       icon: 'admin_panel_settings',
       adminOnly: true,
+      groupLabel: 'Sistema',
       children: [
-        { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' },
-        { label: 'Privilegios', route: '/privilegios', icon: 'security' }
+        { label: 'Usuarios Sistema', route: '/usuariosistema', icon: 'switch_account' }
       ]
     },
-    { label: 'Perfil', route: '/perfil', icon: 'manage_accounts' },
-    { label: 'Configuración', route: '/configuracion', icon: 'settings' }
+    { label: 'Perfil', route: '/perfil', icon: 'manage_accounts', groupLabel: 'Sistema' },
+    { label: 'Configuración', route: '/configuracion', icon: 'settings' },
+    { label: 'Ayuda', route: '/ayuda', icon: 'help_outline' }
   ];
   constructor() {
   }
 
   /**
-   * Mapa explícito de ruta → palabra clave del privilegio en el JWT.
-   * Los privilegios del JWT tienen el formato "Gestionar X" o "Ver X".
-   * La palabra clave se busca (contains) en cada authority del usuario.
+   * Determina si el usuario tiene el privilegio de VISUALIZACIÓN necesario para
+   * que un ítem de menú sea visible.
+   *
+   * Delega en el mapa único {@link ROUTE_VIEW_MAP} y en
+   * {@link AuthService.hasPrivilegio}, de modo que menú y `privilegioGuard`
+   * consultan exactamente la misma fuente y nunca se contradicen.
+   *
+   * Reglas:
+   *  - Rutas siempre visibles para autenticados (`/`, `/inicio`, `/mi-iglesia`,
+   *    `/perfil`, `/configuracion`) → `true`.
+   *  - Rutas no listadas en el mapa → `false` (no se muestra el ítem salvo
+   *    decisión explícita del `filterMenu`).
+   *  - Rutas listadas → exige el privilegio `Ver <Entidad>` correspondiente.
    */
-  private readonly ROUTE_PRIVILEGE_MAP: Record<string, string> = {
-    '/miembro':          'Miembros',
-    '/persona':          'Personas',
-    '/iglesia':          'Iglesias',
-    '/miembroiglesia':   'MiembroIglesia',
-    '/graficoiglesias':  'Iglesias',
-    '/tipocargo':        'Tipos de Cargo',
-    '/cargo':            'Cargos',
-    '/pastores':         'Cargos',
-    '/encargados':       'Cargos',
-    '/lideres':          'Cargos',
-    '/cambios-iglesia':  'Iglesias',
-    '/solicitudes':      'Miembros',
-    '/tipoevento':           'Eventos',
-    '/eventos':              'Eventos',
-    '/responsable-evento':   'Eventos',
-    '/participacion-evento': 'Eventos',
-    '/bautizos':             'Eventos',
-    '/talleres':             'Eventos',
-    '/tipocertificado':      'Eventos',
-    '/certificados':         'Eventos',
-    '/ofrendas':         'Ofrendas',
-    '/usuariosistema':   'usuario',
-    '/privilegios':      'Privilegios',
-  };
-
-  /**
-   * Determina si el usuario tiene el privilegio necesario para una ruta.
-   * Usa el mapa explícito ROUTE_PRIVILEGE_MAP y compara contra las
-   * authorities guardadas en localStorage tras el login (provenientes del JWT).
-   */
-  private hasPrivilegeForRoute(route: string | undefined, _label: string, _parentLabel: string = ''): boolean {
+  private hasPrivilegeForRoute(route: string | undefined): boolean {
     if (!route) return false;
 
-    // Rutas siempre visibles para cualquier usuario autenticado
-    if (route === '/' || route === '/perfil' || route === '/configuracion') {
+    const role = localStorage.getItem('role');
+    const isPastorOrEncargado = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
+    if (isPastorOrEncargado && (route === '/cambios-iglesia' || route === '/solicitudes' || route === '/colaboradores')) {
       return true;
     }
 
-    const storedPrivilegios = localStorage.getItem('privilegios');
-    if (!storedPrivilegios) return false;
-
-    let userPrivileges: string[] = [];
-    try {
-      userPrivileges = JSON.parse(storedPrivilegios);
-    } catch (e) {
-      console.error('Error al parsear privilegios del localStorage', e);
-      return false;
+    if (route === '/configuracion') {
+      return isPastorOrEncargado;
     }
 
-    const keyword = this.ROUTE_PRIVILEGE_MAP[route];
-    if (!keyword) return false;
+    if (route === '/activos') {
+      return role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA' || role === 'ROLE_DIACONO';
+    }
 
-    const normalize = (str: string) =>
-      str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    // Rutas siempre visibles para cualquier usuario autenticado.
+    if (route === '/' || route === '/inicio' || route === '/mi-iglesia'
+        || route === '/perfil' || route === '/ayuda') {
+      return true;
+    }
 
-    const normalizedKeyword = normalize(keyword);
-    return userPrivileges.some(p => normalize(p).includes(normalizedKeyword));
+    // El mapa usa la ruta SIN barra inicial.
+    const key = route.startsWith('/') ? route.slice(1) : route;
+    const requerido = ROUTE_VIEW_MAP[key];
+    if (!requerido) {
+      // Ruta no controlada por privilegio: no mostrar (defensivo).
+      return false;
+    }
+    return this.authService.hasPrivilegio(requerido);
+  }
+
+  canViewConfig(): boolean {
+    const role = localStorage.getItem('role');
+    return role === 'ROLE_ADMIN' || role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
   }
 
   /**
@@ -215,6 +216,9 @@ export class SidenavComponent implements OnInit {
    * @param parentLabel Nombre del menú padre actual (para contexto).
    */
   private filterMenu(items: MenuItem[], isAdmin: boolean, parentLabel: string = ''): MenuItem[] {
+    const role = localStorage.getItem('role');
+    const isPastorOrEncargado = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA';
+
     return items
       .map(item => {
         if (item.children) {
@@ -224,8 +228,16 @@ export class SidenavComponent implements OnInit {
         return item;
       })
       .filter(item => {
+        // Hide entire Iglesia section/list for pastor or encargado
+        if (isPastorOrEncargado && (item.label === 'Iglesias' || item.route === '/iglesia')) {
+          return false;
+        }
+
         // Ocultar grupos/ítems marcados como adminOnly para no-admins
         if (item.adminOnly && !isAdmin) return false;
+
+        // Ocultar ítems marcados como nonAdminOnly para admins
+        if (item.nonAdminOnly && isAdmin) return false;
 
         if (item.children) {
           return item.children.length > 0;
@@ -233,7 +245,7 @@ export class SidenavComponent implements OnInit {
         // Admin ve todo
         if (isAdmin) return true;
 
-        return this.hasPrivilegeForRoute(item.route, item.label, parentLabel);
+        return this.hasPrivilegeForRoute(item.route);
       });
   }
 
@@ -248,8 +260,37 @@ export class SidenavComponent implements OnInit {
       return;
     }
     const isAdmin = this.authService.isLoggedRolAdmin();
+    let activeMenu: MenuItem[] = [];
 
-    this.filteredMenuItems = this.filterMenu(this.menuItems, isAdmin);
+    if (isAdmin) {
+      activeMenu = this.menuItems.map(item => {
+        let newItem = { ...item };
+        if (newItem.label === 'Administración') {
+          newItem.label = 'Administrador';
+        }
+        return newItem;
+      });
+    } else {
+      activeMenu = this.menuItems.reduce((acc: MenuItem[], item) => {
+        let newItem = { ...item };
+        if (newItem.route === '/miembro') {
+          // Omitir Miembros global para no-admins
+          return acc;
+        }
+        if (newItem.route === '/mi-iglesia') {
+          newItem.label = 'Miembros';
+        }
+        if (newItem.label === 'Obreros' || newItem.route === '/obreros') {
+          newItem.label = 'Colaboradores';
+          newItem.route = '/colaboradores';
+          newItem.icon = 'people';
+        }
+        acc.push(newItem);
+        return acc;
+      }, []);
+    }
+
+    this.filteredMenuItems = this.filterMenu(activeMenu, isAdmin);
 
     // Restaurar estado de los menús
     const savedState = sessionStorage.getItem('expandedMenus');
@@ -257,7 +298,7 @@ export class SidenavComponent implements OnInit {
       try {
         const expandedLabels: string[] = JSON.parse(savedState);
         this.filteredMenuItems.forEach(item => {
-          if (expandedLabels.includes(item.label)) {
+          if (expandedLabels.includes(item.label) || (item.label === 'Administrador' && expandedLabels.includes('Administración'))) {
             item.expanded = true;
           }
         });
@@ -295,7 +336,7 @@ export class SidenavComponent implements OnInit {
   ngOnInit() {
     this.configureSidenavResponsive();
     this.initializeUserState();
-    this.router.events.subscribe(event => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       if (event instanceof NavigationEnd && this.isSmallScreen && this.sidenav) {
         this.sidenav.close();
       }
@@ -311,6 +352,7 @@ export class SidenavComponent implements OnInit {
     // Observa cambios en el tamaño de pantalla para ajustar la visualización del sidenav
     this.breakpointObserver
       .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => this.toggleSidenav(result.matches));
   }
 
@@ -347,10 +389,83 @@ export class SidenavComponent implements OnInit {
    * en localStorage['privilegios'] por AuthService — no hace falta una llamada extra al API.
    */
   private initializeUserState() {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
       this.username = user?.username || '';
       this.isAuthenticated = !!user;
+      this.loadActiveContext();
       this.updateFilteredMenuItems();
+
+      if (this.isAuthenticated) {
+        this.startPolling();
+        // Escucha en tiempo real si hay mutaciones de traspasos para recargar el conteo
+        this.miembroIglesiaService.solicitudesChanged$
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.loadPendingSolicitudesCount();
+          });
+      } else {
+        this.stopPolling();
+        this.pendingSolicitudesCount = 0;
+      }
+    });
+  }
+
+  startPolling() {
+    this.stopPolling();
+    // Poll cada 60 segundos: el backend expone un endpoint de conteo liviano
+    // (unos pocos bytes) en vez de descargar traspasos/eventos/decisiones completos.
+    this.pollingSub = interval(60000).pipe(
+      startWith(0)
+    ).subscribe(() => {
+      this.loadPendingSolicitudesCount();
+    });
+  }
+
+  stopPolling() {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
+  }
+
+  loadPendingSolicitudesCount(): void {
+    if (!this.isAuthenticated) return;
+
+    if (!this.hasSolicitudesPrivilege()) {
+      this.pendingSolicitudesCount = 0;
+      return;
+    }
+
+    const iglesiaId = this.authService.getCurrentIglesiaId() || 0;
+
+    this.notificacionService.getBadge(iglesiaId).subscribe({
+      next: (res) => {
+        this.pendingSolicitudesCount = res.datos?.total || 0;
+      },
+      error: (error) => {
+        console.error('Error al cargar conteo de notificaciones unificadas:', error);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  onSwitchChurch(iglesiaId: number): void {
+    if (this.authService.getCurrentIglesiaId() === iglesiaId) return;
+
+    this.authService.switchChurch(iglesiaId).subscribe({
+      next: () => {
+        this.loadActiveContext();
+        this.router.navigate(['/inicio']).then(() => {
+          this.updateFilteredMenuItems();
+          window.location.reload();
+        });
+      },
+      error: (err) => {
+        console.error('Error al cambiar de iglesia:', err);
+      }
     });
   }
 
@@ -413,6 +528,23 @@ export class SidenavComponent implements OnInit {
         this.errorMessage = 'Error al obtener el usuario.';
         console.error('Error:', error);
       }
+    });
+  }
+
+  hasSolicitudesPrivilege(): boolean {
+    if (!this.isAuthenticated) return false;
+    const isAdmin = this.authService.isLoggedRolAdmin();
+    if (isAdmin) return true;
+    return this.hasPrivilegeForRoute('/solicitudes');
+  }
+
+  openSolicitudesModal(): void {
+    this.dialog.open(SolicitudListComponent, {
+      width: '420px',
+      maxHeight: '80vh',
+      position: { top: '65px', right: '16px' },
+      panelClass: 'solicitudes-popover-panel',
+      hasBackdrop: true
     });
   }
 

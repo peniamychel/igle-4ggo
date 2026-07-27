@@ -1,0 +1,64 @@
+.render-dialog {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  max-height: 90vh;
+}
+
+.canvas-wrapper {
+  overflow: auto;
+  margin: 16px 0;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  background-color: #f0f0f0;
+}
+
+.canvas {
+  background-color: white;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* simulate paper A4 at 96 DPI */
+}
+
+.canvas.horizontal {
+  width: 1123px;
+  height: 794px;
+}
+
+.canvas.vertical {
+  width: 794px;
+  height: 1123px;
+}
+
+.render-element {
+  position: absolute;
+  font-family: 'Arial', sans-serif;
+  white-space: nowrap;
+}
+
+.logo-preview, .firma-preview {
+  position: absolute;
+  max-width: 200px;
+  max-height: 200px;
+}
+
+.qr-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.loading-state, .error-state {
+  padding: 40px;
+  text-align: center;
+}

@@ -9,13 +9,26 @@
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Miembro</mat-label>
-        <mat-select formControlName="miembroId" (openedChange)="onMiembroSelectOpen($event)">
+        <mat-select #miembroSelect formControlName="miembroId" (openedChange)="onMiembroSelectOpen($event)">
           <div class="search-container">
             <input #searchMiembro matInput placeholder="Buscar miembro..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
           </div>
           <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
-            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.ci }})
           </mat-option>
+
+          <!-- El miembro no existe: se puede registrar desde aquí -->
+          <div class="sin-resultados" *ngIf="filteredMiembros.length === 0">
+            <mat-icon>person_search</mat-icon>
+            <span>No se encontró ningún miembro con esa búsqueda.</span>
+          </div>
+
+          <div class="crear-miembro-box" (click)="$event.stopPropagation()">
+            <button type="button" mat-stroked-button class="btn-crear-miembro" (click)="crearNuevoMiembro()">
+              <mat-icon>person_add</mat-icon>
+              <span>Registrar nuevo miembro</span>
+            </button>
+          </div>
         </mat-select>
         <mat-error>{{ getError('miembroId') }}</mat-error>
       </mat-form-field>
@@ -39,6 +52,7 @@
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-error>{{ getError('fecha') }}</mat-error>
       </mat-form-field>
     </div>
@@ -48,8 +62,8 @@
         <mat-label>Certificado (Opcional)</mat-label>
         <mat-select formControlName="certificadoId">
           <mat-option [value]="null">Sin certificado</mat-option>
-          <mat-option *ngFor="let cert of certificados" [value]="cert.id">
-            {{ cert.codigoCertificado }} - {{ cert.motivoCertificado }}
+          <mat-option *ngFor="let cert of filteredCertificados" [value]="cert.id">
+            {{ cert.motivoCertificado || 'Certificado' }}
           </mat-option>
         </mat-select>
       </mat-form-field>

@@ -1,28 +1,29 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { UserService } from '../../../../core/services/user.service';
-import { User } from '../../../../core/models/user.model';
-import { ImagePreviewDialogComponent } from '../imagen-preview-dialog/image-preview-dialog.component';
-import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-
-interface RoleDefinition {
-  key: string;
-  label: string;
-  description: string;
-  icon: string;
-  color: string;
-}
+import { UserService } from '../../../../core/services/user.service';
+import { CargoService } from '../../../../core/services/cargo.service';
+import { MiembroService } from '../../../../core/services/miembro.service';
+import { ServicioService } from '../../../../core/services/servicio.service';
+import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
+import { ServicioDto } from '../../../../core/models/interfaces/servicio.interface';
+import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
+import { User } from '../../../../core/models/user.model';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import { MiembroCargoOption } from '../create-user-dialog/create-user-dialog.component';
 
 @Component({
   selector: 'app-edit-user-dialog',
@@ -33,9 +34,12 @@ interface RoleDefinition {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatIconModule,
     MatSlideToggleModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatExpansionModule,
+    MatTooltipModule,
     FormsModule,
     ReactiveFormsModule,
     MatSnackBarModule,
@@ -44,174 +48,235 @@ interface RoleDefinition {
   templateUrl: './edit-user-dialog.component.html',
   styleUrls: ['./edit-user-dialog.component.css']
 })
-export class EditUserDialogComponent {
+export class EditUserDialogComponent implements OnInit {
   userForm: FormGroup;
   passwordForm: FormGroup;
-  selectedFile: File | null = null;
   hideNewPassword = true;
   changePassword = false;
-  previewUrl: string | null = null;
-  imageDeleted = false;
+  miembrosCargoOptions: MiembroCargoOption[] = [];
 
-  roleDefinitions: RoleDefinition[] = [
-    {
-      key: 'ADMIN',
-      label: 'Administrador',
-      description: 'Acceso total al sistema y configuración',
-      icon: 'shield',
-      color: '#f44336'
-    },
-    {
-      key: 'ENCARGADO_IGLESIA',
-      label: 'Encargado de Iglesia',
-      description: 'Gestión de miembros y actividades de la iglesia',
-      icon: 'church',
-      color: '#7c4dff'
-    },
-    {
-      key: 'ENCARGADO_EVENTO',
-      label: 'Encargado de Eventos',
-      description: 'Organización y gestión de eventos',
-      icon: 'event',
-      color: '#00bfa5'
-    },
-    {
-      key: 'TESORERO',
-      label: 'Tesorero',
-      description: 'Gestión financiera y donaciones',
-      icon: 'account_balance',
-      color: '#ff9800'
-    }
-  ];
-
-  get availableRoles(): string[] {
-    return this.roleDefinitions.map(r => r.key);
-  }
-
-  get hasChanges(): boolean {
-    const basicDetailsChanged =
-      this.userForm.value.username !== this.data.username ||
-      this.userForm.value.email !== this.data.email ||
-      this.userForm.value.name !== this.data.name ||
-      this.userForm.value.apellidos !== this.data.apellidos;
-
-    const originalRoles = this.data.roles.map(r => r.name);
-    const selectedRoles = this.availableRoles.filter((_, i) =>
-      this.userForm.get('roles')?.value[i]
-    );
-    const rolesChanged = selectedRoles.length !== originalRoles.length ||
-      selectedRoles.some(r => !originalRoles.includes(r));
-
-    const photoChanged = !!this.selectedFile;
-    const photoDeleted = this.imageDeleted && !!this.data.uriFoto;
-    const passwordChanged = this.changePassword && this.passwordForm.valid;
-
-    return basicDetailsChanged || rolesChanged || photoChanged || photoDeleted || passwordChanged;
-  }
+  // Servicios & Acciones
+  servicios: ServicioDto[] = [];
+  rolesDisponibles: TipoCargo[] = [];
+  selectedRolBaseKey: string = '';
+  selectedRolId: number | null = null;
+  selectedAccionIds: Set<number> = new Set<number>();
 
   constructor(
     private dialogRef: MatDialogRef<EditUserDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: User,
     private fb: FormBuilder,
     private userService: UserService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private cargoService: CargoService,
+    private miembroService: MiembroService,
+    private servicioService: ServicioService,
+    private tipoCargoService: TipoCargoService,
+    private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
+      miembroId: [data.miembroId || ''],
       username: [data.username, [Validators.required]],
       email: [data.email, [Validators.required, Validators.email]],
-      name: [data.name, Validators.required],
-      apellidos: [data.apellidos, Validators.required],
-      roles: this.fb.array(this.roleDefinitions.map(role =>
-        data.roles.some(userRole => userRole.name === role.key)
-      ))
+      name: [data.name || '', Validators.required],
+      apellidos: [data.apellidos || '', Validators.required]
     });
 
     this.passwordForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
-  }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      this.imageDeleted = false;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.previewUrl = e.target.result;
-      };
-      reader.readAsDataURL(file);
+    if (data.acciones) {
+      this.selectedAccionIds = new Set(data.acciones.map(a => a.id).filter((id): id is number => id !== undefined));
     }
   }
 
-  openImagePreview(): void {
-    const imageUrl = this.previewUrl || this.data.uriFoto;
-    if (imageUrl) {
-      this.dialog.open(ImagePreviewDialogComponent, {
-        data: { imageUrl, alt: this.data.username },
-        maxWidth: '100vw',
-        maxHeight: '100vh',
-        panelClass: 'image-preview-dialog'
+  ngOnInit(): void {
+    this.loadData();
+
+    this.userForm.get('miembroId')?.valueChanges.subscribe(miembroId => {
+      if (!miembroId) return;
+      const selected = this.miembrosCargoOptions.find(m => m.id === miembroId);
+      if (selected) {
+        this.userForm.patchValue({
+          name: selected.nombre,
+          apellidos: selected.apellido
+        });
+
+        if (selected.rolCargoId) {
+          const matchingRol = this.rolesDisponibles.find(r => r.id === selected.rolCargoId);
+          if (matchingRol) {
+            this.selectRol(matchingRol);
+          }
+        } else if (selected.nombreRol) {
+          const matchingRol = this.rolesDisponibles.find(
+            r => (r.nombreRol || r.nombre || '').toUpperCase() === selected.nombreRol?.toUpperCase()
+          );
+          if (matchingRol) {
+            this.selectRol(matchingRol);
+          }
+        }
+      }
+    });
+  }
+
+  loadData(): void {
+    forkJoin({
+      servicios: this.servicioService.getAll(),
+      roles: this.tipoCargoService.getTipoCargos(),
+      cargos: this.cargoService.getCargos(),
+      miembros: this.miembroService.getMiembros(),
+      users: this.userService.getAllUsers()
+    }).subscribe({
+      next: ({ servicios, roles, cargos, miembros, users }) => {
+        this.servicios = servicios;
+        this.rolesDisponibles = (roles.datos || []).filter(r => r.estado !== false);
+
+        if (this.data.roles && this.data.roles.length > 0) {
+          const firstRoleName = (this.data.roles[0].nombreRol || this.data.roles[0].name || this.data.roles[0].nombre || '').toUpperCase();
+          const match = this.rolesDisponibles.find(r => (r.nombreRol || r.nombre || '').toUpperCase() === firstRoleName);
+          if (match) {
+            this.selectRol(match);
+          }
+        }
+
+        if (!this.data.acciones || this.data.acciones.length === 0) {
+          this.selectAllAcciones();
+        }
+
+        const currentMiembroId = Number(this.data.miembroId);
+        const assignedMemberIds = new Set<number>(
+          (users.datos || [])
+            .map(u => Number(u.miembroId))
+            .filter(id => id !== null && id !== undefined && !isNaN(id) && id !== currentMiembroId)
+        );
+
+        // Mapa de miembros indexado por ID
+        const miembrosMap = new Map<number, any>();
+        (miembros.datos || []).forEach(m => {
+          if (m.id) miembrosMap.set(m.id, m);
+        });
+
+        const mapMiembrosOpciones = new Map<number, MiembroCargoOption>();
+        (cargos.datos || []).forEach((c: any) => {
+          const mId = c.idMiembro || c.miembro?.id || c.miembroDto?.id;
+          if (mId && c.estado !== false) {
+            if (!assignedMemberIds.has(mId) || mId === currentMiembroId) {
+              if (!mapMiembrosOpciones.has(mId)) {
+                const miembroInfo = c.miembro || c.miembroDto || miembrosMap.get(mId);
+                const nombre = miembroInfo?.nombre || '';
+                const apellido = miembroInfo?.apellido || '';
+                const ci = miembroInfo?.ci;
+                const cargoNombre = c.rolCargo?.nombre || c.tipoCargoDto?.nombre || c.tipoCargoDto?.nombreRol || c.detalle || 'Cargo Asignado';
+                const rolCargoId = c.rolCargoId || c.rolCargo?.id || c.tipoCargoDto?.id;
+                const nombreRol = c.rolCargo?.nombre || c.tipoCargoDto?.nombreRol || c.tipoCargoDto?.nombre;
+
+                mapMiembrosOpciones.set(mId, {
+                  id: mId,
+                  nombre: nombre,
+                  apellido: apellido,
+                  nombreCompleto: (nombre || apellido) ? `${nombre} ${apellido}`.trim() : `Miembro #${mId}`,
+                  ci: ci,
+                  cargoNombre: cargoNombre,
+                  rolCargoId: rolCargoId,
+                  nombreRol: nombreRol
+                });
+              }
+            }
+          }
+        });
+
+        this.miembrosCargoOptions = Array.from(mapMiembrosOpciones.values());
+      }
+    });
+  }
+
+  selectRol(rol: TipoCargo): void {
+    this.selectedRolBaseKey = rol.nombreRol || rol.nombre || 'ROL';
+    this.selectedRolId = rol.id || null;
+
+    if (rol.id) {
+      this.servicioService.getAccionesByRolCargo(rol.id).subscribe({
+        next: (acciones) => {
+          if (acciones && acciones.length > 0) {
+            this.selectedAccionIds = new Set(acciones.map(a => a.id).filter((id): id is number => id !== undefined));
+          } else if ((rol.nombreRol || rol.nombre || '').toUpperCase().includes('ADMIN')) {
+            this.selectAllAcciones();
+          } else {
+            this.selectedAccionIds.clear();
+          }
+        }
       });
+    } else {
+      this.selectedAccionIds.clear();
     }
   }
 
-  deletePhoto(): void {
-    this.imageDeleted = true;
-    this.selectedFile = null;
-    this.previewUrl = null;
+  isRolActive(rol: TipoCargo): boolean {
+    if (this.selectedRolId !== null && this.selectedRolId !== undefined) {
+      return rol.id === this.selectedRolId;
+    }
+    if (this.selectedRolBaseKey) {
+      const name = (rol.nombreRol || rol.nombre || '').toUpperCase();
+      return name.includes(this.selectedRolBaseKey.toUpperCase());
+    }
+    return false;
+  }
+
+  getRoleIcon(nombreRol: string = ''): string {
+    const key = nombreRol.toUpperCase();
+    if (key.includes('ADMIN')) return 'admin_panel_settings';
+    if (key.includes('PASTOR')) return 'auto_awesome';
+    if (key.includes('IGLESIA') || key.includes('ENCARGADO')) return 'church';
+    if (key.includes('TESORERO') || key.includes('FINANZA')) return 'account_balance';
+    if (key.includes('SECRETARIO')) return 'description';
+    if (key.includes('JOVEN') || key.includes('LIDER')) return 'groups';
+    return 'badge';
+  }
+
+  selectAllAcciones(): void {
+    const allIds = new Set<number>();
+    this.servicios.forEach(s => {
+      s.acciones?.forEach(a => {
+        if (a.id) allIds.add(a.id);
+      });
+    });
+    this.selectedAccionIds = allIds;
+  }
+
+  isAccionSelected(accionId: number | undefined): boolean {
+    if (!accionId) return false;
+    return this.selectedAccionIds.has(accionId);
+  }
+
+  hasServiceAccessForRole(servicio: ServicioDto): boolean {
+    if (!servicio.acciones) return false;
+    return servicio.acciones.some(a => this.isAccionSelected(a.id));
+  }
+
+  toggleAccion(accionId: number | undefined): void {
+    if (!accionId) return;
+    if (this.selectedAccionIds.has(accionId)) {
+      this.selectedAccionIds.delete(accionId);
+    } else {
+      this.selectedAccionIds.add(accionId);
+    }
   }
 
   onSubmit(): void {
     if (this.userForm.valid && (!this.changePassword || this.passwordForm.valid)) {
-      const selectedRoles = this.availableRoles.filter((_, i) =>
-        this.userForm.get('roles')?.value[i]
-      );
+      const formRaw = this.userForm.getRawValue();
+      const updateUserData = {
+        id: this.data.id!,
+        username: formRaw.username,
+        email: formRaw.email,
+        name: formRaw.name,
+        apellidos: formRaw.apellidos,
+        miembroId: formRaw.miembroId ? formRaw.miembroId : null
+      };
 
-      const basicDetailsChanged =
-        this.userForm.value.username !== this.data.username ||
-        this.userForm.value.email !== this.data.email ||
-        this.userForm.value.name !== this.data.name ||
-        this.userForm.value.apellidos !== this.data.apellidos;
+      let obs$ = this.userService.updateUser(updateUserData);
 
-      const originalRoles = this.data.roles.map(r => r.name);
-      const rolesChanged = selectedRoles.length !== originalRoles.length ||
-        selectedRoles.some(r => !originalRoles.includes(r));
-
-      const photoChanged = !!this.selectedFile;
-      const photoDeleted = this.imageDeleted && this.data.uriFoto && !this.selectedFile;
-      const passwordChanged = this.changePassword && this.passwordForm.valid;
-
-      let obs$ = of<any>(null);
-
-      if (basicDetailsChanged) {
-        const updateUserData = {
-          id: this.data.id,
-          username: this.userForm.value.username,
-          email: this.userForm.value.email,
-          name: this.userForm.value.name,
-          apellidos: this.userForm.value.apellidos
-        };
-        obs$ = obs$.pipe(switchMap(() => this.userService.updateUser(updateUserData)));
-      }
-
-      if (rolesChanged) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.updateUserRoles({
-          id: this.data.id!,
-          roles: selectedRoles
-        })));
-      }
-
-      if (photoDeleted) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.deleteUserPhoto(this.data.id!)));
-      }
-
-      if (photoChanged) {
-        obs$ = obs$.pipe(switchMap(() => this.userService.uploadUserPhoto(this.data.id!, this.selectedFile!)));
-      }
-
-      if (passwordChanged) {
+      if (this.changePassword && this.passwordForm.valid) {
         obs$ = obs$.pipe(switchMap(() => this.userService.resetPassword({
           id: this.data.id!,
           newPassword: this.passwordForm.value.newPassword

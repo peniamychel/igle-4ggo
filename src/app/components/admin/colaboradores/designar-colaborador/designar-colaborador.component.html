@@ -1,0 +1,106 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">assignment_ind</mat-icon>
+  Designar Colaborador
+</h2>
+
+<form [formGroup]="cargoForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    
+    <!-- Fixed Iglesia display -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="read-only-field">
+        <mat-label>Iglesia de Destino</mat-label>
+        <input matInput [value]="data.iglesiaNombre" readonly />
+        <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Cargo Select -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Cargo / Función</mat-label>
+        <mat-select formControlName="rolCargoId">
+          <mat-option *ngFor="let tipo of tiposCargo" [value]="tipo.id">
+            {{ tipo.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('rolCargoId') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Miembro Select -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Seleccionar Miembro de esta Iglesia</mat-label>
+        <mat-select formControlName="idMiembro" (openedChange)="onMiembroSelectOpen($event)">
+          <div class="search-container">
+            <input #searchMiembro matInput placeholder="Buscar miembro por nombre o CI..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
+          </div>
+          <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.ci }})
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ getError('idMiembro') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Dates -->
+    <div class="form-row dates-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Inicio</mat-label>
+        <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
+        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+        <mat-datepicker #pickerInicio></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
+        <mat-error>{{ getError('fechaInicio') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha Fin (Opcional)</mat-label>
+        <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
+        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFin></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Details -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Detalles / Observaciones</mat-label>
+        <textarea matInput formControlName="detalle" rows="3" placeholder="Información adicional sobre la designación..."></textarea>
+        <mat-error>{{ getError('detalle') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- File Upload -->
+    <div class="form-row">
+      <div class="file-upload-wrapper">
+        <label class="file-label">Acta de Asignación (Opcional)</label>
+        <div class="file-input-container">
+          <input type="file" id="actaAsignacionColaboradorInput" (change)="onFileSelected($event)" accept="image/*,application/pdf" style="display: none;" />
+          <button mat-stroked-button type="button" class="file-select-btn" onclick="document.getElementById('actaAsignacionColaboradorInput').click()">
+            <mat-icon>upload_file</mat-icon>
+            Seleccionar Acta
+          </button>
+          <span class="file-name" *ngIf="selectedFile">
+            {{ selectedFile.name }}
+            <button mat-icon-button type="button" class="file-remove-btn" (click)="removeFile()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close type="button" [disabled]="loading">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!cargoForm.valid || loading">
+      <mat-icon *ngIf="!loading">save</mat-icon>
+      <mat-icon *ngIf="loading" class="spinner">sync</mat-icon>
+      {{ loading ? 'Guardando...' : 'Designar' }}
+    </button>
+  </mat-dialog-actions>
+</form>

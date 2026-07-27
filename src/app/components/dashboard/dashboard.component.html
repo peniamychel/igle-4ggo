@@ -1,26 +1,288 @@
-<div class="grid-container">
-  <h1 class="mat-h1">Dashboard</h1>
-  <mat-grid-list cols="2" rowHeight="350px">
-    @for (card of cards | async; track card) {
-      <mat-grid-tile [colspan]="card.cols" [rowspan]="card.rows">
-        <mat-card class="dashboard-card">
-          <mat-card-header>
-            <mat-card-title>
-              {{card.title}}
-              <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #menu="matMenu" xPosition="before">
-                <button mat-menu-item>Expand</button>
-                <button mat-menu-item>Remove</button>
-              </mat-menu>
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content class="dashboard-card-content">
-            <div>Card Content Here</div>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    }
-  </mat-grid-list>
+<div class="dashboard-container">
+  
+  <!-- Cabecera Premium -->
+  <div class="dashboard-header-block">
+    <div class="header-info">
+      <div class="welcome-title">Bienvenido de nuevo</div>
+      <div class="welcome-subtitle">
+        <span *ngIf="isAdmin">Resumen General De La Comunidad De Fe · {{ currentDate }}</span>
+        <span *ngIf="!isAdmin">Sede Local: <strong>{{ currentChurchName }}</strong> · {{ currentDate }}</span>
+      </div>
+    </div>
+
+    <!-- Selector de Iglesia para Administrador -->
+    <div class="header-actions" *ngIf="isAdmin" style="display: flex; align-items: center; gap: 12px;">
+      <mat-form-field appearance="outline" style="min-width: 250px; margin-bottom: -1.25em;">
+        <mat-icon matPrefix style="margin-right: 8px; color: #7c4dff;">church</mat-icon>
+        <mat-select [(value)]="selectedIglesiaId" (selectionChange)="onIglesiaChange()">
+          <mat-option value="all">Todas las iglesias (Global)</mat-option>
+          <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- KPI Cards (Rejilla de 4 columnas) -->
+  <div class="kpi-grid">
+    <!-- Miembros Totales -->
+    <div class="kpi-card kpi-card-clickable" [routerLink]="isAdmin ? ['/miembro'] : ['/mi-iglesia']"
+         [matTooltip]="isAdmin ? 'Ir a Miembros' : 'Ir a Mis Miembros'">
+      <div class="kpi-content">
+        <span class="kpi-label">{{ isAdmin ? 'Miembros totales' : 'Miembros de la iglesia' }}</span>
+        <span class="kpi-value">{{ totalMembers | number:'1.0-0':'es-ES' }}</span>
+        <span class="kpi-subtext" *ngIf="isAdmin">Activos en {{ totalChurches }} iglesias</span>
+        <span class="kpi-subtext" *ngIf="!isAdmin">Registrados en {{ currentChurchName }}</span>
+        <div class="kpi-trend positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>Activo</span>
+        </div>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>people</mat-icon>
+      </div>
+    </div>
+
+    <!-- Iglesias / Sede -->
+    <div class="kpi-card kpi-card-clickable" [routerLink]="isAdmin ? ['/iglesia'] : ['/configuracion']"
+         [matTooltip]="isAdmin ? 'Ir a Iglesias' : 'Ir a Mi Iglesia'">
+      <div class="kpi-content">
+        <span class="kpi-label">{{ isAdmin ? 'Iglesias activas' : 'Sede activa' }}</span>
+        <span class="kpi-value">{{ totalChurches }}</span>
+        <span class="kpi-subtext" *ngIf="isAdmin">Filiales en el sistema</span>
+        <span class="kpi-subtext" *ngIf="!isAdmin">{{ currentChurchName }}</span>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>church</mat-icon>
+      </div>
+    </div>
+
+    <!-- Eventos del Mes -->
+    <div class="kpi-card kpi-card-clickable" [routerLink]="['/eventos']" matTooltip="Ir a Eventos">
+      <div class="kpi-content">
+        <span class="kpi-label">Eventos del mes</span>
+        <span class="kpi-value">{{ totalEventsMonth }}</span>
+        <span class="kpi-subtext">{{ upcomingEvents.length }} próximos programados</span>
+        <div class="kpi-trend positive">
+          <mat-icon>event_available</mat-icon>
+          <span>En agenda</span>
+        </div>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>event</mat-icon>
+      </div>
+    </div>
+
+    <!-- Certificados Emitidos -->
+    <div class="kpi-card kpi-card-clickable" [routerLink]="['/certificados']" matTooltip="Ir a Certificaciones">
+      <div class="kpi-content">
+        <span class="kpi-label">Certificados emitidos</span>
+        <span class="kpi-value">{{ totalCertificados }}</span>
+        <span class="kpi-subtext">{{ entregadosCertificados }} entregados · {{ pendientesCertificados }} pendientes</span>
+      </div>
+      <div class="kpi-icon-container purple-theme">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Gráficos (Grid de 2x2) -->
+  <div class="charts-section-grid">
+    <!-- 1. Crecimiento de membresía -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header chart-header-with-action">
+        <div class="chart-title-block">
+          <h3 class="chart-title">Crecimiento de membresía</h3>
+          <p class="chart-subtitle">Histórico y evolución de miembros</p>
+        </div>
+        <mat-form-field appearance="outline" class="growth-range-select" subscriptSizing="dynamic">
+          <mat-select [(ngModel)]="growthRange" (selectionChange)="onGrowthRangeChange()">
+            <mat-option *ngFor="let opt of growthRangeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="chart-body area-chart-wrapper">
+        <ngx-charts-area-chart
+          [view]="viewArea"
+          [scheme]="purpleScheme"
+          [results]="membresiaGrowthData"
+          [gradient]="true"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showGridLines]="true"
+          [autoScale]="true">
+        </ngx-charts-area-chart>
+      </div>
+    </div>
+
+    <!-- 2. Eventos por tipo -->
+    <div class="chart-card-wrapper">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Eventos por tipo</h3>
+        <p class="chart-subtitle">Distribución de actividades registradas</p>
+      </div>
+      <div class="chart-body donut-chart-flex">
+        <div class="donut-chart-container">
+          <ngx-charts-pie-chart
+            [view]="viewDonut"
+            [scheme]="donutScheme"
+            [results]="eventosTipoData"
+            [doughnut]="true"
+            [gradient]="false"
+            [legend]="false"
+            [labels]="false">
+          </ngx-charts-pie-chart>
+        </div>
+        <div class="donut-legend-container">
+          <div class="legend-item" *ngFor="let item of eventosTipoData; let idx = index">
+            <span class="legend-color-dot" [style.background-color]="donutScheme.domain[idx % donutScheme.domain.length]"></span>
+            <span class="legend-name">{{ item.name }}</span>
+            <span class="legend-value">{{ item.value }}</span>
+            <span class="legend-percent">{{ item.percentage }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Top iglesias por miembros (Sólo para Admin) o Ficha Local -->
+    <div class="chart-card-wrapper" *ngIf="isAdmin">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Top iglesias por miembros</h3>
+        <p class="chart-subtitle">Iglesias con mayor membresía activa</p>
+      </div>
+      <div class="chart-body">
+        <ngx-charts-bar-horizontal
+          [view]="viewHorizontalBar"
+          [scheme]="purpleScheme"
+          [results]="topIglesiasData"
+          [gradient]="false"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showGridLines]="true"
+          [barPadding]="12">
+        </ngx-charts-bar-horizontal>
+      </div>
+    </div>
+
+    <!-- 4. Certificados emitidos -->
+    <div class="chart-card-wrapper" [class.full-width]="!isAdmin">
+      <div class="chart-card-header">
+        <h3 class="chart-title">Certificados emitidos</h3>
+        <p class="chart-subtitle">Emitidos vs. entregados</p>
+      </div>
+      <div class="chart-body">
+        <div style="display: flex; gap: 24px; align-items: center; justify-content: center; padding: 30px 0;">
+          <div class="cert-stats-box">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #7c4dff;">workspace_premium</mat-icon>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">{{ totalCertificados }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Total Registrados</div>
+          </div>
+          <div class="cert-stats-box delivered-box">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #00bfa5;">check_circle</mat-icon>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">{{ entregadosCertificados }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Entregados</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📌 SECCIÓN DEL CALENDARIO DE EVENTOS (INTEGRADO EN DASHBOARD) -->
+  <div class="calendar-dashboard-section" *ngIf="canViewEvents">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(124, 77, 255, 0.1); color: #7c4dff; display: flex; align-items: center; justify-content: center;">
+        <mat-icon style="font-size: 24px;">calendar_month</mat-icon>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">Calendario de Eventos y Aniversarios</h3>
+        <p style="margin: 2px 0 0 0; font-size: 0.88rem; color: var(--text-secondary); font-weight: 500;">
+          Agenda interactiva de actividades {{ isAdmin ? 'nacionales y locales' : 'de la iglesia' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Componente del Calendario -->
+    <app-evento-calendario></app-evento-calendario>
+  </div>
+
+  <!-- Fila Inferior: Actividad Reciente y Próximos Eventos -->
+  <div class="bottom-widgets-row" [class.has-events]="canViewEvents">
+    <!-- Panel de Actividad Reciente (Izquierda) -->
+    <div class="bottom-widget-card activity-panel">
+      <div class="widget-header">
+        <h3 class="widget-title">Actividad reciente</h3>
+      </div>
+      
+      <div class="widget-body tab-content-scroll">
+        <!-- Lista unificada de actividad reciente (certificados + eventos + traspasos) -->
+        <div class="activity-list">
+          <div class="no-activity-placeholder" *ngIf="recentActivities.length === 0">
+            <mat-icon>history</mat-icon>
+            <p>No hay actividad reciente</p>
+          </div>
+
+          <div class="activity-item" *ngFor="let a of actividadesVisibles">
+            <div class="activity-icon-box" [ngClass]="a.iconClass">
+              <mat-icon>{{ a.icon }}</mat-icon>
+            </div>
+            <div class="activity-info">
+              <div class="activity-member-header">
+                <span class="member-name">{{ a.titulo }}</span>
+                <span class="activity-type-tag">{{ a.type === 'certificado' ? 'Certificado' : a.type === 'evento' ? 'Evento' : 'Traspaso' }}</span>
+              </div>
+              <div class="activity-reason">{{ a.descripcion }}</div>
+              <div class="activity-footer">
+                <span class="status-badge" *ngIf="a.estado" [ngClass]="a.estadoClass">{{ a.estado }}</span>
+                <span class="activity-date">{{ a.fecha }}</span>
+              </div>
+            </div>
+            <div class="activity-actions" *ngIf="a.accionable">
+              <button class="btn-approve" (click)="aprobarTraspaso(a.raw)">Aprobar</button>
+              <button class="btn-reject" (click)="rechazarTraspaso(a.raw)">Rechazar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control: cuántas actividades mostrar -->
+      <div class="activity-more-bar" *ngIf="recentActivities.length > activityOptions[0]">
+        <span class="activity-more-label">Mostrar:</span>
+        <button *ngFor="let n of activityOptions" class="activity-more-chip"
+                [class.active]="activityLimit === n" (click)="setActivityLimit(n)">
+          {{ n }}
+        </button>
+        <span class="activity-more-total">de {{ recentActivities.length }}</span>
+      </div>
+    </div>
+
+    <!-- Panel de Próximos Eventos (Derecha) -->
+    <div class="bottom-widget-card upcoming-panel" *ngIf="canViewEvents">
+      <div class="widget-header">
+        <h3 class="widget-title">Próximos eventos</h3>
+      </div>
+      <div class="widget-body events-list-scroll">
+        <div class="no-activity-placeholder" *ngIf="upcomingEvents.length === 0">
+          <mat-icon>event_available</mat-icon>
+          <p>No hay eventos próximos agendados</p>
+        </div>
+        <div class="event-row-card" *ngFor="let ev of upcomingEvents">
+          <div class="event-date-card">
+            <span class="day-number">{{ ev.fechaInicio | date:'d' }}</span>
+            <span class="month-label">{{ ev.fechaInicio | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="event-details-card">
+            <span class="event-name-title">{{ ev.nombre }}</span>
+            <span class="event-location-text">{{ ev.ubicacion }}</span>
+            <div class="event-meta-line">
+              <span class="event-type-pill">{{ ev.tipo }}</span>
+              <span class="event-time-text">
+                <mat-icon>schedule</mat-icon>
+                {{ ev.fechaInicio | date:'hh:mm a' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

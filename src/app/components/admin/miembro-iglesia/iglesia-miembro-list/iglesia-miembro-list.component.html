@@ -1,119 +1,296 @@
 <div class="container">
-  <div class="grid-container">
-    <!-- Iglesias Table -->
-    <div class="iglesias-section">
-      <div class="header-actions">
-        <h2>Iglesias</h2>
-        <mat-form-field appearance="outline">
-          <mat-label>Buscar Iglesia</mat-label>
-          <input matInput (keyup)="applyIglesiaFilter($event)" placeholder="Ej. Primera Iglesia">
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">send</mat-icon>
+        <span>Traspasos</span>
+      </h2>
+      <p class="subtitle-text" *ngIf="!isLoading">
+        {{totalRequests}} solicitud(es) • {{pendingCount}} pendientes • {{approvedCount}} aprobadas • {{rejectedCount}} rechazadas • {{cancelledCount}} canceladas
+      </p>
+      <p class="subtitle-text" *ngIf="isLoading">Cargando solicitudes...</p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button class="btn-action-primary" (click)="openNuevaSolicitud()">
+        <mat-icon>add</mat-icon>
+        Nueva solicitud
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Panel de KPIs -->
+  <div class="kpis-grid-layout" *ngIf="!isLoading">
+    <!-- Tarjeta Pendientes -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-purple">
+        <mat-icon>hourglass_empty</mat-icon>
       </div>
-
-      <mat-table [dataSource]="iglesiasDataSource" matSort #iglesiaSort="matSort" class="mat-elevation-z8">
-        <ng-container matColumnDef="nombre">
-          <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
-          <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="direccion">
-          <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
-          <mat-cell *matCellDef="let iglesia"> {{iglesia.direccion}} </mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="acciones">
-          <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-          <mat-cell *matCellDef="let iglesia">
-            <button mat-icon-button color="primary" (click)="loadMiembros(iglesia)">
-              <mat-icon>group</mat-icon>
-            </button>
-            <button mat-icon-button color="primary" (click)="addNewMiembro(iglesia)">
-              <mat-icon>add</mat-icon>
-            </button>
-          </mat-cell>
-        </ng-container>
-
-        <mat-header-row *matHeaderRowDef="iglesiaColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: iglesiaColumns;"
-                 [class.selected]="selectedIglesia?.id === row.id"
-                 (click)="loadMiembros(row)"></mat-row>
-      </mat-table>
-
-
-      <mat-paginator #iglesiaPaginator
-                     [pageSizeOptions]="[5, 10, 25, 100]"
-                     (page)="onPageSizeChange()"
-                     aria-label="Seleccionar página de iglesias">
-      </mat-paginator>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{pendingCount}}</span>
+        <span class="kpi-desc-label">Pendientes</span>
+      </div>
     </div>
 
-    <!-- Miembros Table -->
-    <div class="miembros-section" *ngIf="selectedIglesia">
-      <div class="header-actions">
-        <h2>Miembros de {{selectedIglesia.nombre}}</h2>
-        <div class="action-buttons">
-          <mat-form-field appearance="outline">
-            <mat-label>Buscar Miembro</mat-label>
-            <input matInput (keyup)="applyMiembroFilter($event)" placeholder="Ej. Juan Pérez">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+    <!-- Tarjeta Aprobadas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-teal">
+        <mat-icon>check_circle_outline</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{approvedCount}}</span>
+        <span class="kpi-desc-label">Aprobadas</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta Rechazadas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-blue">
+        <mat-icon>highlight_off</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{rejectedCount}}</span>
+        <span class="kpi-desc-label">Rechazadas</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta Canceladas -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-amber">
+        <mat-icon>block</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{cancelledCount}}</span>
+        <span class="kpi-desc-label">Canceladas</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta Tasa Aprobación -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-purple">
+        <mat-icon>description</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{approvalRate}}%</span>
+        <span class="kpi-desc-label">Tasa de aprob.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Barra de Filtros y Búsqueda -->
+  <div class="filters-bar" *ngIf="!isLoading">
+    <!-- Pestañas de filtrado (Pills) -->
+    <div class="tab-pills">
+      <button class="pill-btn" [class.active]="activeTab === 'pendientes'" (click)="onTabChange('pendientes')">
+        <mat-icon class="pill-icon">hourglass_empty</mat-icon>
+        <span>Pendientes</span>
+        <span class="pill-badge" *ngIf="pendingCount > 0">{{pendingCount}}</span>
+      </button>
+      <button class="pill-btn" [class.active]="activeTab === 'historial'" (click)="onTabChange('historial')">
+        <mat-icon class="pill-icon">history</mat-icon>
+        <span>Historial</span>
+      </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" [value]="searchQuery" (keyup)="onSearchChange($event)" placeholder="Buscar miembro, CI o iglesia...">
+    </div>
+
+    <!-- Alternador de Vista (Cuadros / Tabla) -->
+    <div class="view-toggle-group">
+      <button class="view-toggle-btn" [class.active]="viewMode === 'grid'" (click)="setViewMode('grid')" matTooltip="Vista Cuadros">
+        <mat-icon>grid_view</mat-icon>
+      </button>
+      <button class="view-toggle-btn" [class.active]="viewMode === 'table'" (click)="setViewMode('table')" matTooltip="Vista Tabla">
+        <mat-icon>table_chart</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div class="loading-container" *ngIf="isLoading">
+    <app-loading-spinner message="Cargando información del dashboard..."></app-loading-spinner>
+  </div>
+
+  <!-- Grid de tarjetas de traspaso -->
+  <div class="transfers-grid" *ngIf="!isLoading && filteredTransfers.length > 0 && viewMode === 'grid'">
+    <div class="transfer-card" *ngFor="let solicitud of filteredTransfers" [id]="'transfer-card-' + solicitud.id" [class.highlight-bounce]="solicitud.id === selectedTransferId">
+      <!-- Cabecera de la Tarjeta -->
+      <div class="card-header">
+        <div class="member-profile">
+          <div class="avatar-circle" *ngIf="!solicitud.miembroFoto">
+            {{solicitud.miembroInitials}}
+          </div>
+          <img [src]="solicitud.miembroFoto" class="avatar-image" *ngIf="solicitud.miembroFoto" loading="lazy" />
+          <div class="member-details">
+            <h3 class="member-name">{{solicitud.miembroName}}</h3>
+            <p class="member-ci-cargo">CI: {{solicitud.miembroCi || 'Sin CI'}} • {{solicitud.miembroCargo || 'Miembro'}}</p>
+          </div>
+        </div>
+        <!-- Badge de Estado -->
+        <span class="status-badge" [ngClass]="solicitud.estadoTraspaso?.toLowerCase()">
+          <span class="status-dot"></span>
+          {{ solicitud.estadoTraspaso | titlecase }}
+        </span>
+      </div>
+
+      <!-- Flujo del Traspaso -->
+      <div class="transfer-flow">
+        <div class="flow-step">
+          <span class="flow-label">ORIGEN</span>
+          <span class="flow-church" [matTooltip]="solicitud.origenNombre">{{solicitud.origenNombre}}</span>
+        </div>
+        <div class="flow-arrow">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+        <div class="flow-step">
+          <span class="flow-label">DESTINO</span>
+          <span class="flow-church" [matTooltip]="solicitud.destinoNombre">{{solicitud.destinoNombre}}</span>
         </div>
       </div>
 
-      <mat-table [dataSource]="miembrosDataSource" matSort #miembroSort="matSort" class="mat-elevation-z8">
-        <ng-container matColumnDef="nombre">
-          <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
-          <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.nombre}} </mat-cell>
-        </ng-container>
+      <!-- Motivo -->
+      <div class="transfer-reason" *ngIf="solicitud.motivoTraspaso">
+        <span class="reason-label">
+          <mat-icon>chat_bubble_outline</mat-icon>
+          MOTIVO
+        </span>
+        <p class="reason-text">{{solicitud.motivoTraspaso}}</p>
+      </div>
 
-        <ng-container matColumnDef="apellido">
-          <mat-header-cell *matHeaderCellDef mat-sort-header> Apellido</mat-header-cell>
-          <mat-cell *matCellDef="let miembro"> {{miembro.personaDto?.apellido}} </mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="fechaConvercion">
-          <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Conversión</mat-header-cell>
-          <mat-cell *matCellDef="let miembro"> {{miembro.fechaConvercion | date}} </mat-cell>
-        </ng-container>
-
-        <ng-container matColumnDef="acciones">
-          <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-          <mat-cell *matCellDef="let miembro">
-            <button mat-icon-button color="primary" (click)="openMiembroIglesiaDetail(miembro)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            <button mat-icon-button color="accent" (click)="openTraspasoDialog(miembro)">
-              <mat-icon>transfer_within_a_station</mat-icon>
-            </button>
-          </mat-cell>
-        </ng-container>
-
-
-        <mat-header-row *matHeaderRowDef="miembroColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: miembroColumns;"></mat-row>
-      </mat-table>
-
-      <div class="miembros-count">
-
-        Total de Miembros: {{miembrosCount}}
-        <div class="footer-actions">
-          <button mat-raised-button color="primary" (click)="generatePDF()">
-            <mat-icon>print</mat-icon>
-            Imprimir
-          </button>
-          <button mat-raised-button color="accent" (click)="exportToExcel()">
-            <mat-icon>download</mat-icon>
-          </button>
+      <!-- Footer de la Tarjeta -->
+      <div class="card-footer">
+        <div class="footer-item">
+          <mat-icon>person_outline</mat-icon>
+          <span>{{solicitud.pastorOrigen}}</span>
+        </div>
+        <div class="footer-item">
+          <mat-icon>calendar_today</mat-icon>
+          <span>{{solicitud.fechaRelativa}}</span>
         </div>
       </div>
 
-
-      <mat-paginator #miembroPaginator
-                     [pageSizeOptions]="[5, 10, 25, 100]"
-                     (page)="onPageSizeChange()"
-                     aria-label="Seleccionar página de miembros">
-      </mat-paginator>
+      <!-- Acciones de la Tarjeta -->
+      <div class="card-actions" *ngIf="solicitud.estadoTraspaso === 'PENDIENTE'">
+        <div class="action-buttons-group">
+          <!-- Aprobación y Rechazo (sólo para destino o admin) -->
+          <ng-container *ngIf="canAction(solicitud, 'aprobar_rechazar')">
+            <button mat-icon-button class="mac-mini-btn mac-btn-reactivate" (click)="aprobar(solicitud)" matTooltip="Aprobar traspaso">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button class="mac-mini-btn mac-btn-delete" (click)="rechazar(solicitud)" matTooltip="Rechazar traspaso">
+              <mat-icon>close</mat-icon>
+            </button>
+          </ng-container>
+          
+          <!-- Cancelación (sólo para origen o admin) -->
+          <ng-container *ngIf="canAction(solicitud, 'cancelar')">
+            <button mat-icon-button class="mac-mini-btn mac-btn-archive" (click)="cancelar(solicitud)" matTooltip="Cancelar solicitud">
+              <mat-icon>block</mat-icon>
+            </button>
+          </ng-container>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Vista en Tabla -->
+  <div class="table-container mat-elevation-z8" *ngIf="!isLoading && filteredTransfers.length > 0 && viewMode === 'table'">
+    <mat-table [dataSource]="filteredTransfers" class="transfers-table">
+      <!-- Miembro Column -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef> Miembro </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <div class="table-member-profile">
+            <div class="avatar-circle-sm" *ngIf="!row.miembroFoto">
+              {{row.miembroInitials}}
+            </div>
+            <img [src]="row.miembroFoto" class="avatar-image-sm" *ngIf="row.miembroFoto" loading="lazy" />
+            <div class="member-meta-sm">
+              <span class="member-name-sm">{{row.miembroName}}</span>
+              <span class="member-sub-sm">CI: {{row.miembroCi || 'Sin CI'}} • {{row.miembroCargo || 'Miembro'}}</span>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Iglesia Origen Column -->
+      <ng-container matColumnDef="origen">
+        <mat-header-cell *matHeaderCellDef> Iglesia Origen </mat-header-cell>
+        <mat-cell *matCellDef="let row"> {{row.origenNombre}} </mat-cell>
+      </ng-container>
+
+      <!-- Iglesia Destino Column -->
+      <ng-container matColumnDef="destino">
+        <mat-header-cell *matHeaderCellDef> Iglesia Destino </mat-header-cell>
+        <mat-cell *matCellDef="let row"> {{row.destinoNombre}} </mat-cell>
+      </ng-container>
+
+      <!-- Fecha Column -->
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef> Fecha Solicitud </mat-header-cell>
+        <mat-cell *matCellDef="let row"> {{row.fechaRelativa}} </mat-cell>
+      </ng-container>
+
+      <!-- Motivo Column -->
+      <ng-container matColumnDef="motivo">
+        <mat-header-cell *matHeaderCellDef> Motivo </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="motivo-table-cell" [matTooltip]="row.motivoTraspaso"> 
+          {{row.motivoTraspaso || 'Ninguno'}} 
+        </mat-cell>
+      </ng-container>
+
+      <!-- Estado Column -->
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef> Estado </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="status-badge-sm" [ngClass]="row.estadoTraspaso?.toLowerCase()">
+            {{row.estadoTraspaso | titlecase}}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <div class="mac-actions-right">
+            <!-- Aprobación y Rechazo (sólo para destino o admin y si está PENDIENTE) -->
+            <ng-container *ngIf="row.estadoTraspaso === 'PENDIENTE' && canAction(row, 'aprobar_rechazar')">
+              <button mat-icon-button class="mac-mini-btn mac-btn-reactivate" (click)="aprobar(row)" matTooltip="Aprobar traspaso">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button class="mac-mini-btn mac-btn-delete" (click)="rechazar(row)" matTooltip="Rechazar traspaso">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ng-container>
+            
+            <!-- Cancelación (sólo para origen o admin y si está PENDIENTE) -->
+            <ng-container *ngIf="row.estadoTraspaso === 'PENDIENTE' && canAction(row, 'cancelar')">
+              <button mat-icon-button class="mac-mini-btn mac-btn-archive" (click)="cancelar(row)" matTooltip="Cancelar solicitud">
+                <mat-icon>block</mat-icon>
+              </button>
+            </ng-container>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" [id]="'transfer-row-' + row.id" [class.highlight-bounce]="row.id === selectedTransferId"></mat-row>
+    </mat-table>
+  </div>
+
+  <!-- Estado vacío (no hay solicitudes que coincidan con los filtros) -->
+  <div class="empty-state" *ngIf="!isLoading && filteredTransfers.length === 0">
+    <div class="empty-icon-circle">
+      <mat-icon>inbox</mat-icon>
+    </div>
+    <h3>No se encontraron solicitudes</h3>
+    <p>No hay traspasos registrados que coincidan con la pestaña activa o la búsqueda actual.</p>
+    <button mat-flat-button class="btn-new-solicitud" (click)="openNuevaSolicitud()">
+      Crear primera solicitud
+    </button>
   </div>
 </div>

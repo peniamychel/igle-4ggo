@@ -1,0 +1,122 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">group</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Participantes del Evento</h2>
+      <p class="header-subtitle">{{ evento.nombre }}</p>
+      <p class="responsables-subtitle">Responsables: <span [ngClass]="{'not-assigned': responsablesText === 'No designados', 'assigned': responsablesText !== 'No designados'}">{{ responsablesText || 'Cargando...' }}</span></p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <!-- Sección Agregar Participante -->
+  <div class="add-section">
+    <mat-form-field appearance="outline" class="select-field">
+      <mat-label>Seleccionar Miembro</mat-label>
+      <mat-select #miembroSelect [(value)]="selectedMiembroId" (openedChange)="onSelectOpened($event)">
+        <!-- Input de búsqueda -->
+        <div class="select-search-container">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input type="text"
+                 placeholder="Buscar por nombre o apellido..."
+                 (input)="onSearchInput($event)"
+                 class="select-search-input"
+                 (keydown)="$event.stopPropagation()">
+        </div>
+        <mat-option *ngIf="availableMiembros.length === 0" disabled>No hay miembros disponibles para agregar</mat-option>
+        <mat-option *ngIf="availableMiembros.length > 0 && filteredMiembros.length === 0" disabled>No hay coincidencias</mat-option>
+        <mat-option *ngFor="let m of filteredMiembros" [value]="m.id">
+          {{ m.nombre }} {{ m.apellido }} {{ m.ci ? '(CI: ' + m.ci + ')' : '' }}
+        </mat-option>
+
+        <!-- El miembro no existe: se registra desde aquí -->
+        <div class="crear-miembro-box" (click)="$event.stopPropagation()">
+          <button type="button" mat-stroked-button class="btn-crear-miembro" (click)="crearNuevoMiembro()">
+            <mat-icon>person_add</mat-icon>
+            <span>Registrar nuevo miembro</span>
+          </button>
+        </div>
+      </mat-select>
+    </mat-form-field>
+    
+    <button mat-flat-button class="btn-action-primary add-btn" [disabled]="!selectedMiembroId" (click)="addParticipant()">
+      <mat-icon>add</mat-icon>
+      Agregar
+    </button>
+  </div>
+
+  <!-- Listado de Participantes -->
+  <div class="list-section">
+    <h3 class="section-title">Asistencia Registrada ({{ participantes.length }})</h3>
+
+    <div class="table-container">
+      <mat-table [dataSource]="dataSource">
+        <!-- Columna Miembro (Avatar + Nombre + CI) -->
+        <ng-container matColumnDef="miembro">
+          <mat-header-cell *matHeaderCellDef> Miembro </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="miembro-profile">
+              <div class="miembro-avatar-container">
+                <img *ngIf="item.miembroDto?.uriFoto"
+                     [src]="item.miembroDto.uriFoto | imageUrl"
+                     [alt]="item.miembroDto.nombre"
+                     loading="lazy"
+                     (error)="onImageError($event)">
+                <div class="miembro-avatar-fallback" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
+                  {{ item.miembroDto?.nombre?.charAt(0) || '?' }}
+                </div>
+              </div>
+              <div class="miembro-meta">
+                <span class="nombre">{{ item.miembroDto?.nombre }} {{ item.miembroDto?.apellido }}</span>
+                <span class="ci" *ngIf="item.miembroDto?.ci">CI: {{ item.miembroDto.ci }}</span>
+              </div>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Contacto -->
+        <ng-container matColumnDef="contacto">
+          <mat-header-cell *matHeaderCellDef> Contacto </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="contacto-text" *ngIf="item.miembroDto?.celular">
+              <mat-icon class="inline-icon">phone</mat-icon>
+              {{ item.miembroDto.celular }}
+            </span>
+            <span class="no-contacto" *ngIf="!item.miembroDto?.celular">Sin número</span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Acciones -->
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef class="acciones-header"> Acciones </mat-header-cell>
+          <mat-cell *matCellDef="let item" class="acciones-cell">
+            <button mat-icon-button color="warn" (click)="deleteParticipant(item)" matTooltip="Quitar del evento">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+        <!-- Hilera para cuando no hay resultados -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data-cell" colspan="3">
+            <div class="no-results">
+              <mat-icon>group_remove</mat-icon>
+              <span>No hay participantes registrados en este evento.</span>
+            </div>
+          </td>
+        </tr>
+      </mat-table>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

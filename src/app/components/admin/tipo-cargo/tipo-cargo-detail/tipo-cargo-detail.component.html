@@ -1,8 +1,8 @@
 <div class="dialog-header">
   <div class="header-title">
-    <mat-icon class="header-icon">badge</mat-icon>
+    <mat-icon class="header-icon">church</mat-icon>
     <div>
-      <h2 mat-dialog-title>Detalle del Tipo de Cargo</h2>
+      <h2 mat-dialog-title>Detalle del Tipo Ministerio</h2>
       <p class="header-subtitle">{{ data.nombre }}</p>
     </div>
   </div>
@@ -18,8 +18,12 @@
       <span class="val">{{ data.tipo }}</span>
     </div>
     <div class="summary-item">
-      <span class="label">Nombre</span>
+      <span class="label">Nombre del Ministerio</span>
       <span class="val">{{ data.nombre }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Rol del Sistema</span>
+      <span class="val">{{ data.nombreRol || '—' }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Estado</span>

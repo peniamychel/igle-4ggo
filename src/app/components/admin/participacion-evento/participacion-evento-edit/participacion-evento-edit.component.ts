@@ -41,6 +41,7 @@ export class ParticipacionEventoEditComponent implements OnInit {
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
   certificados: Certificado[] = [];
+  filteredCertificados: Certificado[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -68,6 +69,15 @@ export class ParticipacionEventoEditComponent implements OnInit {
       this.miembros = this.data.miembros;
       this.filteredMiembros = [...this.miembros];
       this.certificados = this.data.certificados;
+
+      if (this.participacion.eventoId) {
+        this.filteredCertificados = this.certificados.filter(c => c.eventoId === this.participacion.eventoId);
+      }
+
+      this.participacionForm.get('eventoId')?.valueChanges.subscribe(eventoId => {
+        this.updateFilteredCertificados(eventoId);
+      });
+
       this.participacionForm.patchValue({
         miembroId: this.participacion.miembroId,
         eventoId: this.participacion.eventoId,
@@ -77,11 +87,24 @@ export class ParticipacionEventoEditComponent implements OnInit {
     }
   }
 
+  updateFilteredCertificados(eventoId: number) {
+    if (eventoId) {
+      this.filteredCertificados = this.certificados.filter(c => c.eventoId === eventoId);
+    } else {
+      this.filteredCertificados = [];
+    }
+
+    const currentCertId = this.participacionForm.get('certificadoId')?.value;
+    if (currentCertId && !this.filteredCertificados.some(c => c.id === currentCertId)) {
+      this.participacionForm.get('certificadoId')?.setValue(null);
+    }
+  }
+
   filterMiembros(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
     this.filteredMiembros = this.miembros.filter(miembro => {
       const nombreCompleto = this.getMiembroNombreCompleto(miembro).toLowerCase();
-      const ci = (miembro.personaDto?.ci?.toString() || '').toLowerCase();
+      const ci = (miembro.ci?.toString() || '').toLowerCase();
       return nombreCompleto.includes(filterValue) || ci.includes(filterValue);
     });
   }
@@ -97,8 +120,8 @@ export class ParticipacionEventoEditComponent implements OnInit {
   }
 
   getMiembroNombreCompleto(miembro: Miembro): string {
-    if (!miembro || !miembro.personaDto) return 'N/A';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return 'N/A';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 
   onSubmit() {

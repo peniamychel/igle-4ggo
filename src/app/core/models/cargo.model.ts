@@ -4,13 +4,15 @@ import { Miembro } from './miembro.model';
 
 export interface Cargo {
   id?: number;
-  tipoCargoId: number;
+  rolCargoId: number;
   iglesiaId: number;
   idMiembro: number;
   detalle: string;
   fechaInicio: Date;
   fechaFin: Date;
   estado?: boolean;
+  uriActaAsignacion?: string;
+  uriActaDeslindacion?: string;
   createdAt?: Date;
   updatedAt?: Date;
   

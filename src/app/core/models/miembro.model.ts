@@ -1,13 +1,19 @@
-import { Persona } from './persona.model';
-
 export interface Miembro {
   id?: number;
   fechaConvercion?: Date;
   lugarConvercion: string;
   interventores: string;
   detalles: string;
-  personaId: number;
-  personaDto?: Persona;
+  nombre: string;
+  apellido: string;
+  ci?: number;
+  fechaNac: Date;
+  celular: string;
+  sexo: string;
+  direccion: string;
+  uriFoto: string;
+  iglesiaNombre?: string;
+  cargoNombre?: string;
   estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -16,6 +22,26 @@ export interface Miembro {
 export interface MiembroResponse {
   message: string;
   datos: Miembro[];
+  nombreModelo: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: any;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  size: number;
+  number: number;
+  sort: any;
+  numberOfElements: number;
+  first: boolean;
+  empty: boolean;
+}
+
+export interface MiembroPaginatedResponse {
+  message: string;
+  datos: PaginatedResponse<Miembro>;
   nombreModelo: string;
 }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Miembro, MiembroResponse, MiembroDetail } from '../models/miembro.model';
+import { Miembro, MiembroResponse, MiembroDetail, MiembroPaginatedResponse } from '../models/miembro.model';
 import {environment} from '../../../environments/environment';
 
 @Injectable({
@@ -12,28 +12,85 @@ export class MiembroService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  getMiembros(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(`${this.apiUrl}/findall`);
   }
 
-  getMiembros(): Observable<MiembroResponse> {
-    return this.http.get<MiembroResponse>(`${this.apiUrl}/findall`, { headers: this.getHeaders() });
+  getMiembrosPaged(
+    page: number = 0, 
+    size: number = 10, 
+    searchText: string = '', 
+    estado?: boolean, 
+    iglesiaNombre: string = 'all'
+  ): Observable<MiembroPaginatedResponse> {
+    let url = `${this.apiUrl}/findall/paged?page=${page}&size=${size}`;
+    if (searchText) {
+      url += `&searchText=${encodeURIComponent(searchText)}`;
+    }
+    if (estado !== undefined) {
+      url += `&estado=${estado}`;
+    }
+    if (iglesiaNombre && iglesiaNombre !== 'all') {
+      url += `&iglesiaNombre=${encodeURIComponent(iglesiaNombre)}`;
+    }
+    return this.http.get<MiembroPaginatedResponse>(url);
+  }
+
+  getMiembrosSinIglesia(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(`${this.apiUrl}/sin-iglesia`);
+  }
+
+  /** Obtiene miembros disponibles para asignar a una iglesia (excluye pastores, seguro en backend) */
+  getMiembrosSinIglesiaParaAsignacion(): Observable<MiembroResponse> {
+    return this.http.get<MiembroResponse>(`${this.apiUrl}/sin-iglesia-asignacion`);
   }
 
   getMiembroById(id: number): Observable<MiembroDetail> {
-    return this.http.get<MiembroDetail>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<MiembroDetail>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   createMiembro(miembro: Partial<Miembro>): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, miembro, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/create`, miembro);
   }
 
   updateMiembro(miembro: Partial<Miembro>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, miembro, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/update`, miembro);
   }
 
   toggleEstado(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/estado/${id}`,{}, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/estado/${id}`,{});
+  }
+
+  uploadPhoto(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/foto`, formData);
+  }
+
+  deletePhoto(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/foto`);
+  }
+
+  buscarCi(ci: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/buscarci/${ci}`);
+  }
+
+  deleteMiembro(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
+  }
+
+  importExcel(file: File, iglesiaId?: number): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    let url = `${this.apiUrl}/importar`;
+    if (iglesiaId) {
+      url += `?iglesiaId=${iglesiaId}`;
+    }
+    return this.http.post(url, formData);
+  }
+
+  downloadTemplate(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/plantilla`, { responseType: 'blob' });
   }
 }
+

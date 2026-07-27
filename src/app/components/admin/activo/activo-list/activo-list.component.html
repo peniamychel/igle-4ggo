@@ -1,0 +1,661 @@
+<div class="container">
+  
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">inventory_2</mat-icon>
+        <span>Inventario de Activos y Bienes</span>
+      </h2>
+      <p class="subtitle-text">
+        Gestión y control del inventario oficial de la iglesia
+      </p>
+    </div>
+  </div>
+
+  <mat-tab-group class="modern-tabs" animationDuration="200ms">
+
+    <!-- PANEL 1: REGISTRO DE BIENES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">checklist</mat-icon>
+        <span>{{ isAdmin ? 'Gestión Bienes' : 'Registro de Bienes' }}</span>
+      </ng-template>
+      <div class="tab-content">
+
+        <div class="filters-bar">
+          <div class="search-box" *ngIf="!isAdmin">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, descripción o código..." #searchInput>
+          </div>
+          
+          <div class="select-filters">
+            <!-- Iglesia (Visible solo para ADMIN) -->
+            <div *ngIf="isAdmin" class="filter-select">
+              <mat-form-field appearance="outline">
+                <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                  <mat-option value="all" disabled>Seleccione una iglesia</mat-option>
+                  <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- Acciones de impresión de códigos (aparecen al seleccionar bienes) -->
+            <button mat-flat-button class="btn-action-primary" *ngIf="selectedPrintCount > 0" (click)="printSelectedLabels()">
+              <mat-icon>qr_code_2</mat-icon>
+              Imprimir códigos ({{ selectedPrintCount }})
+            </button>
+            <button mat-stroked-button class="btn-tools-menu" *ngIf="selectedPrintCount > 0" (click)="clearPrintSelection()">
+              <mat-icon>clear</mat-icon>
+              Limpiar selección
+            </button>
+
+            <!-- Botón de Registro (Oculto para ADMIN) -->
+            <button mat-flat-button class="btn-action-primary" (click)="openCreateDialog()" *ngIf="!isAdmin">
+              <mat-icon>add</mat-icon>
+              Nuevo Activo
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin sin iglesia seleccionada: no se muestran bienes mezclados -->
+        <div class="report-select-alert-card" *ngIf="!canVerListaPrincipal()">
+          <div class="alert-icon-circle">
+            <mat-icon>church</mat-icon>
+          </div>
+          <h3>Seleccione una Iglesia Sede</h3>
+          <p>
+            Los bienes no pueden mostrarse mezclados entre todas las iglesias. Por favor, elija una sede en el filtro de arriba para ver y gestionar su inventario.
+          </p>
+        </div>
+
+        <ng-container *ngIf="canVerListaPrincipal()">
+
+        <!-- Grid de KPIs / Resumen de Inventario en el Registro de Bienes -->
+        <div class="report-kpis-grid">
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-purple">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainTotalCount }}</span>
+              <span class="rkpi-label">Bienes</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-green">
+              <mat-icon>thumb_up</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainBuenoQty }}</span>
+              <span class="rkpi-label">Buenos</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-orange">
+              <mat-icon>thumbs_up_down</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainRegularQty }}</span>
+              <span class="rkpi-label">Regulares</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-red">
+              <mat-icon>thumb_down</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainMaloQty }}</span>
+              <span class="rkpi-label">Malos</span>
+            </div>
+          </div>
+
+          <div class="rkpi-card">
+            <div class="rkpi-circle icon-slate">
+              <mat-icon>cancel</mat-icon>
+            </div>
+            <div class="rkpi-info">
+              <span class="rkpi-number">{{ mainBajaQty }}</span>
+              <span class="rkpi-label">Dados de Baja</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA ESCRITORIO: Tabla -->
+        <div class="table-container" *ngIf="!isMobile">
+          <mat-table [dataSource]="dataSource" matSort #mainSort="matSort">
+
+            <!-- Selección (para imprimir códigos) -->
+            <ng-container matColumnDef="select">
+              <mat-header-cell *matHeaderCellDef class="select-col">
+                <mat-checkbox (change)="toggleSelectAllVisible($event.checked)"
+                              [checked]="allVisibleSelected()"
+                              [indeterminate]="someVisibleSelected()"
+                              matTooltip="Seleccionar todos"></mat-checkbox>
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="select-col" (click)="$event.stopPropagation()">
+                <mat-checkbox [checked]="isSelectedForPrint(row)"
+                              (change)="toggleSelectForPrint(row, $event.checked)"></mat-checkbox>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Foto -->
+            <ng-container matColumnDef="foto">
+              <mat-header-cell *matHeaderCellDef> Imagen </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <div class="thumbnail-container">
+                  <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" class="thumbnail-img" alt="Foto bien" loading="lazy">
+                  <div *ngIf="!row.uriFoto" class="thumbnail-fallback">
+                    <mat-icon style="font-size: 20px; width: 20px; height: 20px;">inventory_2</mat-icon>
+                  </div>
+                </div>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Código Único -->
+            <ng-container matColumnDef="codigo">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="code-badge">{{ row.codigo || 'S/C' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-name">{{ row.nombre }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Descripcion -->
+            <ng-container matColumnDef="descripcion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-desc">{{ row.descripcion || 'Sin descripción' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Cantidad -->
+            <ng-container matColumnDef="cantidad">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Cantidad </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-qty">{{ row.cantidad }} uds.</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Estado Conservacion -->
+            <ng-container matColumnDef="estadoConservacion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+                  {{ row.estadoConservacion }}
+                </span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Valor Estimado -->
+            <ng-container matColumnDef="valorEstimado">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="asset-val">{{ row.valorEstimado ? (row.valorEstimado + ' Bs.') : 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Fecha Adquisicion -->
+            <ng-container matColumnDef="fechaAdquisicion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Registro </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Iglesia -->
+            <ng-container matColumnDef="iglesiaNombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span>{{ row.iglesiaNombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+              <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="acciones-cell">
+                <button mat-icon-button class="mac-mini-btn mac-btn-print"
+                        (click)="printLabel(row); $event.stopPropagation()"
+                        matTooltip="Imprimir Código Único">
+                  <mat-icon>print</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                        (click)="openEditDialog(row); $event.stopPropagation()"
+                        matTooltip="Editar"
+                        *ngIf="!isAdmin">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn"
+                        [class.mac-btn-reactivate]="row.estadoConservacion === 'BAJA'"
+                        [class.mac-btn-archive]="row.estadoConservacion !== 'BAJA'"
+                        (click)="toggleBaja(row); $event.stopPropagation()"
+                        [matTooltip]="row.estadoConservacion === 'BAJA' ? 'Reactivar Activo' : 'Dar de Baja'"
+                        *ngIf="!isAdmin">
+                  <mat-icon>{{ row.estadoConservacion === 'BAJA' ? 'check_circle' : 'archive' }}</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-delete"
+                        (click)="deleteActivo(row); $event.stopPropagation()"
+                        matTooltip="Eliminar"
+                        *ngIf="!isAdmin">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell no-data-cell" colspan="5">
+                <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+                <div class="no-results" *ngIf="!isLoading">
+                  <mat-icon>search_off</mat-icon>
+                  <span>No se encontraron activos que coincidan con la búsqueda.</span>
+                </div>
+              </td>
+            </tr>
+          </mat-table>
+
+          <mat-paginator #mainPaginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de activos"></mat-paginator>
+        </div>
+
+        <!-- VISTA MÓVIL: Cards -->
+        <div class="mobile-cards-list" *ngIf="isMobile">
+          <!-- Sin resultados -->
+          <div class="no-results mobile-no-results" *ngIf="dataSource.filteredData.length === 0">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron activos que coincidan con la búsqueda.</span>
+          </div>
+
+          <!-- Card por cada activo -->
+          <div class="mobile-asset-card clickable-card" *ngFor="let row of dataSource.filteredData" (click)="openDetailDialog(row)">
+            <!-- Header de la card: imagen + nombre + badge -->
+            <div class="mac-header">
+              <mat-checkbox class="mac-select" (click)="$event.stopPropagation()"
+                            [checked]="isSelectedForPrint(row)"
+                            (change)="toggleSelectForPrint(row, $event.checked)"></mat-checkbox>
+              <div class="mac-avatar">
+                <img *ngIf="row.uriFoto" [src]="row.uriFoto | imageUrl" alt="Foto bien" class="mac-img" loading="lazy">
+                <mat-icon *ngIf="!row.uriFoto" class="mac-icon-placeholder">inventory_2</mat-icon>
+              </div>
+              <div class="mac-title-block">
+                <span class="mac-name">{{ row.nombre }}</span>
+                <span class="mac-code">{{ row.codigo || 'Sin código' }}</span>
+              </div>
+              <span class="mac-state-pill state-pill" [ngClass]="row.estadoConservacion?.toLowerCase()">
+                {{ row.estadoConservacion }}
+              </span>
+            </div>
+
+            <!-- Cuerpo: detalles en grid -->
+            <div class="mac-body">
+              <div class="mac-detail-item" *ngIf="row.descripcion">
+                <mat-icon class="mac-detail-icon">notes</mat-icon>
+                <span class="mac-detail-text">{{ row.descripcion }}</span>
+              </div>
+              <div class="mac-meta-row">
+                <div class="mac-meta-item">
+                  <mat-icon class="mac-detail-icon">tag</mat-icon>
+                  <span>{{ row.cantidad }} uds.</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="row.valorEstimado">
+                  <mat-icon class="mac-detail-icon">payments</mat-icon>
+                  <span>{{ row.valorEstimado }} Bs.</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="row.fechaAdquisicion">
+                  <mat-icon class="mac-detail-icon">event</mat-icon>
+                  <span>{{ formatDate(row.fechaAdquisicion) }}</span>
+                </div>
+                <div class="mac-meta-item" *ngIf="isAdmin && row.iglesiaNombre">
+                  <mat-icon class="mac-detail-icon">church</mat-icon>
+                  <span>{{ row.iglesiaNombre }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer: acciones en miniatura -->
+            <div class="mac-footer" (click)="$event.stopPropagation()">
+              <div class="mac-actions-right">
+                <button mat-icon-button class="mac-mini-btn mac-btn-print" (click)="printLabel(row)" matTooltip="Imprimir Código">
+                  <mat-icon>print</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-edit" (click)="openEditDialog(row)" *ngIf="!isAdmin" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        class="mac-mini-btn" 
+                        [class.mac-btn-reactivate]="row.estadoConservacion === 'BAJA'"
+                        [class.mac-btn-archive]="row.estadoConservacion !== 'BAJA'"
+                        (click)="toggleBaja(row)" 
+                        *ngIf="!isAdmin"
+                        [matTooltip]="row.estadoConservacion === 'BAJA' ? 'Reactivar' : 'Dar de Baja'">
+                  <mat-icon>{{ row.estadoConservacion === 'BAJA' ? 'check_circle' : 'archive' }}</mat-icon>
+                </button>
+                <button mat-icon-button class="mac-mini-btn mac-btn-delete" (click)="deleteActivo(row)" *ngIf="!isAdmin" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </ng-container>
+      </div>
+    </mat-tab>
+
+
+    <!-- PANEL 2: INFORMES DE INVENTARIO -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">summarize</mat-icon>
+        <span>Informes de Inventario</span>
+      </ng-template>
+      <div class="tab-content">
+
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">summarize</mat-icon>
+              <span>Informes de Inventario</span>
+            </h2>
+            <p class="subtitle-text">{{ reportTotalCount }} bienes registrados</p>
+          </div>
+          <div class="header-actions">
+            <button mat-stroked-button class="btn-preview" (click)="imprimirVistaPrevia()"
+                    [disabled]="!canPrintReport() || reportDataSource.data.length === 0" matTooltip="Vista previa del informe">
+              <mat-icon>visibility</mat-icon>
+              <span>Vista previa</span>
+            </button>
+            <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLoteInventario()"
+                    [disabled]="!iglesias.length" matTooltip="Generar un PDF por cada sede">
+              <mat-icon>print</mat-icon>
+              <span>Varias iglesias</span>
+            </button>
+            <button mat-stroked-button class="btn-tools-menu" [matMenuTriggerFor]="reportToolsMenu" matTooltip="Herramientas del informe">
+              <mat-icon>tune</mat-icon>
+              <span>Herramientas</span>
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-menu #reportToolsMenu="matMenu">
+              <button mat-menu-item (click)="descargarPDF()" [disabled]="!canPrintReport() || reportDataSource.data.length === 0">
+                <mat-icon>picture_as_pdf</mat-icon>
+                <span>Descargar PDF</span>
+              </button>
+              <button mat-menu-item (click)="descargarExcel()" [disabled]="!canPrintReport() || reportDataSource.data.length === 0">
+                <mat-icon>grid_on</mat-icon>
+                <span>Exportar a Excel</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="limpiarFiltrosInforme()" [disabled]="!canPrintReport()">
+                <mat-icon>filter_alt_off</mat-icon>
+                <span>Limpiar filtros</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        <!-- 2. Filtros (SIEMPRE visibles: el admin elige aquí la sede del reporte) -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" [(ngModel)]="reportSearchText" (keyup)="generarInforme()" placeholder="Buscar por nombre, código o descripción...">
+          </div>
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+              <mat-select [(value)]="reportSelectedIglesiaId" (selectionChange)="generarInforme()">
+                <mat-option value="all" disabled>Seleccione una iglesia</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id?.toString()">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="reportEstadoConservacion" (selectionChange)="generarInforme()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="BUENO">Bueno</mat-option>
+                <mat-option value="REGULAR">Regular</mat-option>
+                <mat-option value="MALO">Malo</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- CASO 1: Admin no ha seleccionado una iglesia -->
+        <div class="report-select-alert-card" *ngIf="!canPrintReport()">
+          <div class="alert-icon-circle">
+            <mat-icon>church</mat-icon>
+          </div>
+          <h3>Seleccione una Iglesia Sede</h3>
+          <p>
+            Para garantizar la consistencia en el control y firmas del inventario, los reportes solo pueden generarse por una iglesia a la vez. Por favor, elija una sede en el filtro de arriba.
+          </p>
+        </div>
+
+        <!-- CASO 2: Reporte generado -->
+        <ng-container *ngIf="canPrintReport()">
+
+          <!-- 3. Tabla -->
+          <div class="table-container">
+            <mat-table [dataSource]="reportDataSource" matSort #reportSort="matSort">
+
+              <!-- Columna Código -->
+              <ng-container matColumnDef="codigo">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Código </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="code-badge">{{ act.codigo || 'S/C' }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Bien / Activo -->
+              <ng-container matColumnDef="nombre">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Bien / Activo </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <div class="act-profile">
+                    <div class="act-thumb">
+                      <img *ngIf="act.uriFoto" [src]="act.uriFoto | imageUrl" [alt]="act.nombre" class="act-thumb-img" loading="lazy" (error)="onImageError($event)">
+                      <mat-icon class="act-thumb-icon" [style.display]="act.uriFoto ? 'none' : 'flex'">inventory_2</mat-icon>
+                    </div>
+                    <div class="act-info-text">
+                      <span class="act-name">{{ act.nombre }}</span>
+                      <span class="act-iglesia">{{ act.iglesiaNombre || 'Sin sede' }}</span>
+                    </div>
+                  </div>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Descripción -->
+              <ng-container matColumnDef="descripcion">
+                <mat-header-cell *matHeaderCellDef> Descripción </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="act-desc">{{ act.descripcion || 'Sin descripción' }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Cantidad -->
+              <ng-container matColumnDef="cantidad">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Cant. </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="qty-badge">{{ act.cantidad }} uds.</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Estado Conservación -->
+              <ng-container matColumnDef="estadoConservacion">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Conservación </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="state-pill" [ngClass]="(act.estadoConservacion || 'bueno') | lowercase">
+                    {{ act.estadoConservacion || 'N/A' }}
+                  </span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Valor Estimado -->
+              <ng-container matColumnDef="valorEstimado">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Valor Est. </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="act-value">{{ act.valorEstimado ? (act.valorEstimado + ' Bs.') : 'N/A' }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Columna Fecha -->
+              <ng-container matColumnDef="fechaAdquisicion">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Reg. </mat-header-cell>
+                <mat-cell *matCellDef="let act">
+                  <span class="act-date">{{ formatDate(act.fechaAdquisicion) }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Encabezados y filas -->
+              <mat-header-row *matHeaderRowDef="reportDisplayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: reportDisplayedColumns;"></mat-row>
+
+              <!-- Sin resultados -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data-cell" [attr.colspan]="reportDisplayedColumns.length">
+                  <div class="no-results">
+                    <mat-icon>search_off</mat-icon>
+                    <span>No se encontraron bienes con los filtros seleccionados.</span>
+                  </div>
+                </td>
+              </tr>
+            </mat-table>
+
+            <mat-paginator #reportPaginator
+                           [pageSizeOptions]="[10, 25, 50, 100]"
+                           aria-label="Seleccionar página del reporte">
+            </mat-paginator>
+          </div>
+
+        </ng-container>
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>
+
+<!-- Modal de vista previa del informe (reemplaza el diálogo de impresión del navegador) -->
+<ng-template #previewDialogTpl>
+  <div class="preview-dialog">
+    <div class="preview-dialog-toolbar">
+      <span class="preview-dialog-title">
+        <mat-icon>visibility</mat-icon>
+        <span>Vista previa del informe</span>
+      </span>
+      <span class="preview-dialog-spacer"></span>
+      <button mat-flat-button class="preview-btn-pdf" (click)="descargarPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <span>Descargar PDF</span>
+      </button>
+      <button mat-icon-button mat-dialog-close matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="preview-dialog-body">
+      <div class="print-paper-sheet preview-visible">
+        <div class="pps-header">
+              <img src="/logo.png" class="pps-logo" alt="Logo MCMM">
+              <div class="pps-header-text">
+                <h1 class="pps-org-name">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</h1>
+                <p class="pps-doc-title">REPORTE DETALLADO DE INVENTARIO Y BIENES MATERIALES</p>
+              </div>
+            </div>
+            <hr class="pps-divider">
+            <div class="pps-meta-grid">
+              <div class="pps-meta-item"><strong>Iglesia Sede:</strong> <span>{{ getNombreIglesiaReporte() }}</span></div>
+              <div class="pps-meta-item"><strong>Fecha de Generación:</strong> <span>{{ formatDate(todayDate) }}</span></div>
+              <div class="pps-meta-item"><strong>Estado Filtro:</strong> <span>{{ reportEstadoConservacion === 'all' ? 'Todos los estados' : reportEstadoConservacion }}</span></div>
+              <div class="pps-meta-item"><strong>Total Registros:</strong> <span>{{ reportTotalCount }} bienes</span></div>
+            </div>
+            <div class="pps-formal-summary">
+              <div class="pps-summary-title">RESUMEN GENERAL DEL INVENTARIO</div>
+              <table class="pps-summary-table">
+                <tr>
+                  <td><strong>Bienes:</strong> {{ reportTotalCount }}</td>
+                  <td><strong>Buenos:</strong> {{ reportBuenoQty }}</td>
+                  <td><strong>Regulares:</strong> {{ reportRegularQty }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Malos:</strong> {{ reportMaloQty }}</td>
+                  <td><strong>Dados de Baja:</strong> {{ reportBajaQty }}</td>
+                  <td></td>
+                </tr>
+              </table>
+            </div>
+            <table class="pps-table">
+              <thead>
+                <tr>
+                  <th>Código</th><th>Bien / Activo</th><th>Descripción</th>
+                  <th class="text-center">Cant.</th><th>Conservación</th>
+                  <th class="text-right">Valor Est.</th><th>Fecha Reg.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of reportDataSource.data">
+                  <td class="code-col">{{ item.codigo || 'S/C' }}</td>
+                  <td class="name-col">{{ item.nombre }}</td>
+                  <td class="desc-col">{{ item.descripcion || 'Sin descripción' }}</td>
+                  <td class="qty-col text-center">{{ item.cantidad }} uds.</td>
+                  <td class="state-col"><span class="pps-badge" [ngClass]="item.estadoConservacion?.toLowerCase()">{{ item.estadoConservacion }}</span></td>
+                  <td class="val-col text-right">{{ item.valorEstimado ? (item.valorEstimado + ' Bs.') : 'N/A' }}</td>
+                  <td class="date-col">{{ formatDate(item.fechaAdquisicion) }}</td>
+                </tr>
+                <tr *ngIf="reportDataSource.data.length === 0">
+                  <td colspan="7" class="pps-empty-row">No se encontraron bienes con los filtros seleccionados.</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pps-signatures-row">
+              <div class="pps-sig-box"><div class="pps-sig-line"></div><span class="pps-sig-name">Tesorero / Diácono Responsable</span><span class="pps-sig-desc">Inventariador</span></div>
+              <div class="pps-sig-box"><div class="pps-sig-line"></div><span class="pps-sig-name">Visto Bueno - Pastor Sede</span><span class="pps-sig-desc">Firma Autorizada</span></div>
+            </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal de vista previa de códigos de activos (uno o varios) -->
+<ng-template #labelsDialogTpl>
+  <div class="preview-dialog">
+    <div class="preview-dialog-toolbar">
+      <span class="preview-dialog-title">
+        <mat-icon>qr_code_2</mat-icon>
+        <span>{{ labelsToPrint.length === 1 ? 'Código del activo' : 'Códigos de activos (' + labelsToPrint.length + ')' }}</span>
+      </span>
+      <span class="preview-dialog-spacer"></span>
+      <button mat-flat-button class="preview-btn-pdf" (click)="descargarLabelsPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <span>Descargar PDF</span>
+      </button>
+      <button mat-icon-button mat-dialog-close matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="preview-dialog-body labels-body">
+      <div class="label-print-card" *ngFor="let a of labelsToPrint">
+        <div class="lpc-title">MOVIMIENTO CRISTIANO MISIONERO MARANATHA</div>
+        <div class="lpc-subtitle">{{ a.iglesiaNombre || 'Iglesia Responsable' }}</div>
+        <div class="lpc-divider"></div>
+        <div class="lpc-code">{{ a.codigo || 'SIN CODIGO' }}</div>
+        <div class="lpc-name">{{ a.nombre }}</div>
+        <div class="lpc-meta">Cantidad: {{ a.cantidad }} uds. | Estado: {{ a.estadoConservacion }}</div>
+        <div class="lpc-divider"></div>
+        <div class="lpc-details">
+          <strong>Fecha de Reg:</strong> {{ formatDate(a.fechaAdquisicion) }}<br/>
+          <strong>Descripción:</strong> {{ a.descripcion || 'Sin descripción' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

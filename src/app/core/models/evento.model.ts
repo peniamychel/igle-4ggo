@@ -3,6 +3,7 @@ import { TipoEvento } from './tipo-evento.model';
 export interface Evento {
   id?: number;
   tipoEventoId: number;
+  iglesiaId?: number;
   nombre: string;
   motivo: string;
   uriFoto: string | null;
@@ -10,8 +11,18 @@ export interface Evento {
   fechaInicio: string;
   fechaFin: string;
   estado?: boolean;
+  alcance?: string;
+  mostrarEnCalendario?: boolean;
+  habilitarInscripciones?: boolean;
+  iglesiasInvitadas?: string;
   createdAt?: Date;
   updatedAt?: Date;
+
+  // Entrada: al crear/editar, indica si el evento genera certificado.
+  generaCertificado?: boolean;
+  // Solo respuesta.
+  archivado?: boolean;
+  tieneCertificado?: boolean;
 
   tipoEventoDto?: TipoEvento;
 }

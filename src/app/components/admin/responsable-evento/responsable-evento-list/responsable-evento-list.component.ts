@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { ResponsableEventoService } from '../../../../core/services/responsable-evento.service';
 import { EventoService } from '../../../../core/services/evento.service';
 import { CargoService } from '../../../../core/services/cargo.service';
@@ -29,6 +30,9 @@ import { ResponsableEventoDetailComponent } from '../responsable-evento-detail/r
 import { ResponsableEventoEditComponent } from '../responsable-evento-edit/responsable-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-responsable-evento-list',
@@ -47,11 +51,15 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule,
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './responsable-evento-list.component.html',
   styleUrls: ['./responsable-evento-list.component.css']
 })
 export class ResponsableEventoListComponent implements OnInit {
+  isLoading = true;
   displayedColumns: string[] = ['evento', 'responsable', 'estado', 'acciones'];
   dataSource: MatTableDataSource<ResponsableEvento>;
   eventos: Evento[] = [];
@@ -105,14 +113,15 @@ export class ResponsableEventoListComponent implements OnInit {
 
   private resolveCargos() {
     this.cargos.forEach(cargo => {
-      cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.tipoCargoId);
+      cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.rolCargoId);
       cargo.miembroDto = this.miembros.find(m => m.id === cargo.idMiembro);
       cargo.iglesiaDto = this.iglesias.find(i => i.id === cargo.iglesiaId);
     });
   }
 
   loadResponsables() {
-    this.responsableService.getResponsables().subscribe(response => {
+    this.isLoading = true;
+    this.responsableService.getResponsables().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let responsables = Array.isArray(response.datos) ? response.datos : [];
       responsables.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
@@ -128,8 +137,8 @@ export class ResponsableEventoListComponent implements OnInit {
   }
 
   getResponsableNombre(item: ResponsableEvento): string {
-    if (!item.cargoDto || !item.cargoDto.miembroDto || !item.cargoDto.miembroDto.personaDto) return 'N/A';
-    const p = item.cargoDto.miembroDto.personaDto;
+    if (!item.cargoDto || !item.cargoDto.miembroDto) return 'N/A';
+    const p = item.cargoDto.miembroDto;
     const tipo = item.cargoDto.tipoCargoDto?.nombre || '';
     const iglesia = item.cargoDto.iglesiaDto?.nombre || '';
     const nombreBase = `${p.nombre} ${p.apellido}${tipo ? ` (${tipo})` : ''}`;
@@ -217,6 +226,35 @@ export class ResponsableEventoListComponent implements OnInit {
           this.responsableService.toggleEstado(responsable.id).subscribe(newEstado => {
             responsable.estado = newEstado;
             this.messageSnackBar(`Responsable ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteResponsable(responsable: ResponsableEvento) {
+    if (responsable.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: '¿Está seguro que desea eliminar?',
+          message: `Está a punto de eliminar permanentemente este responsable de evento. Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && responsable.id) {
+          this.responsableService.deleteResponsable(responsable.id).subscribe({
+            next: () => {
+              this.loadResponsables(); // Let's check if loadResponsables exists in this class!
+              this.messageSnackBar('Responsable de evento eliminado exitosamente.');
+            },
+            error: (err) => {
+              const errMsg = err.error?.message || 'No se pudo eliminar el responsable de evento. Verifique si tiene dependencias asociadas.';
+              this.messageSnackBar(errMsg, 'error');
+            }
           });
         }
       });

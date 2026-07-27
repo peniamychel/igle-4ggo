@@ -4,97 +4,152 @@
   </div>
 
   <ng-container *ngIf="!loading && user">
-    <div class="page-header">
-      <div class="header-info">
-        <h1 class="page-title">Perfil</h1>
-        <p class="page-subtitle">Gestiona tu información personal y configuración de cuenta</p>
+    <!-- ── Profile Banner & Identity Header ── -->
+    <div class="profile-hero">
+      <div class="hero-banner"></div>
+      <div class="hero-content">
+        <div class="avatar-container">
+          <div class="avatar" (click)="openImagePreview()">
+            <img *ngIf="user.uriFoto"
+                 [src]="user.uriFoto | imageUrl"
+                 [alt]="user.username" class="avatar-img">
+            <div class="avatar-placeholder" *ngIf="!user.uriFoto">
+              <span>{{ getInitials() }}</span>
+            </div>
+            <div class="avatar-overlay">
+              <mat-icon>zoom_in</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="user-meta">
+          <div class="user-meta-left">
+            <h1 class="user-fullname">{{ user.name }} {{ user.apellidos }}</h1>
+            <p class="user-username-tag">&#64;{{ user.username }}</p>
+          </div>
+          <div class="user-meta-right">
+            <button mat-flat-button class="btn-edit" (click)="openEditDialog()">
+              <mat-icon>edit</mat-icon>
+              Editar Perfil
+            </button>
+          </div>
+        </div>
       </div>
-      <button mat-flat-button color="primary" (click)="openEditDialog()">
-        <mat-icon>edit</mat-icon>
-        Editar Perfil
-      </button>
     </div>
 
-    <div class="content-grid">
-      <!-- Card: Foto + Info básica -->
-      <div class="profile-card">
-        <div class="profile-card-header">
-          <div class="avatar-section">
-            <div class="avatar" (click)="openImagePreview()">
-              <img *ngIf="user.uriFoto"
-                   [src]="user.uriFoto | imageUrl"
-                   [alt]="user.username" class="avatar-img">
-              <div class="avatar-placeholder" *ngIf="!user.uriFoto">
-                <span>{{ getInitials() }}</span>
+    <!-- ── Profile Content Layout ── -->
+    <div class="profile-grid">
+      
+      <!-- Left Column: Quick Stats & Roles -->
+      <div class="profile-left-col">
+        <div class="side-card roles-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">verified_user</mat-icon>
+            <h4>Roles Asignados</h4>
+          </div>
+          <div class="roles-list">
+            @for (role of user.roles; track role) {
+              <div class="role-badge-row" [ngClass]="role">
+                <mat-icon class="role-badge-icon">
+                  {{ role === 'ADMIN' ? 'security' : role === 'ENCARGADO_IGLESIA' ? 'church' : role === 'ENCARGADO_EVENTO' ? 'event' : 'monetization_on' }}
+                </mat-icon>
+                <span class="role-badge-name">{{ formatRole(role) }}</span>
               </div>
-              <div class="avatar-overlay">
-                <mat-icon>zoom_in</mat-icon>
-              </div>
-            </div>
-            <div class="user-identity">
-              <h2 class="user-name">{{ user.name }} {{ user.apellidos }}</h2>
-              <p class="user-username">&#64;{{ user.username }}</p>
-              <div class="role-chips">
-                <span class="role-chip" *ngFor="let role of user.roles">{{ formatRole(role) }}</span>
-              </div>
+            }
+          </div>
+        </div>
+
+        <div class="side-card stats-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">info</mat-icon>
+            <h4>Estado de Cuenta</h4>
+          </div>
+          <div class="status-indicator">
+            <div class="indicator-dot active"></div>
+            <div class="indicator-text">
+              <span class="indicator-title">Cuenta Activa</span>
+              <span class="indicator-desc">Acceso concedido al sistema</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Card: Información Personal -->
-      <div class="info-card">
-        <div class="card-header-row">
-          <h3 class="card-title">
-            <mat-icon>person</mat-icon>
-            Información Personal
-          </h3>
-          <button mat-icon-button (click)="openEditDialog()" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-        </div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Nombres</span>
-            <span class="info-value">{{ user.name }}</span>
+      <!-- Right Column: Detail Information Cards -->
+      <div class="profile-right-col">
+        
+        <!-- Card: Información Personal -->
+        <div class="details-card">
+          <div class="card-header-with-action">
+            <div class="card-title-group">
+              <mat-icon class="card-title-icon">person</mat-icon>
+              <h3>Información Personal</h3>
+            </div>
+            <button mat-icon-button class="btn-card-edit" (click)="openEditDialog()" matTooltip="Editar información">
+              <mat-icon>edit</mat-icon>
+            </button>
           </div>
-          <div class="info-item">
-            <span class="info-label">Apellidos</span>
-            <span class="info-value">{{ user.apellidos }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Nombre de Usuario</span>
-            <span class="info-value">{{ user.username }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Correo Electrónico</span>
-            <span class="info-value">{{ user.email }}</span>
+          
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Nombres</span>
+              <span class="detail-value">{{ user.name || '—' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Apellidos</span>
+              <span class="detail-value">{{ user.apellidos || '—' }}</span>
+            </div>
           </div>
         </div>
+
+        <!-- Card: Configuración de la Cuenta -->
+        <div class="details-card">
+          <div class="card-header-with-action">
+            <div class="card-title-group">
+              <mat-icon class="card-title-icon">settings</mat-icon>
+              <h3>Datos de la Cuenta</h3>
+            </div>
+            <button mat-icon-button class="btn-card-edit" (click)="openEditDialog()" matTooltip="Editar cuenta">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </div>
+          
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Nombre de Usuario</span>
+              <span class="detail-value highlight-text">&#64;{{ user.username }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Correo Electrónico</span>
+              <span class="detail-value">{{ user.email }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Seguridad -->
+        <div class="details-card">
+          <div class="card-header-with-action">
+            <div class="card-title-group">
+              <mat-icon class="card-title-icon">lock</mat-icon>
+              <h3>Seguridad</h3>
+            </div>
+            <button mat-icon-button class="btn-card-edit" (click)="openEditDialog()" matTooltip="Cambiar contraseña">
+              <mat-icon>lock_open</mat-icon>
+            </button>
+          </div>
+          
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Contraseña</span>
+              <span class="detail-value masked">••••••••</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Autenticación</span>
+              <span class="detail-value">Token JWT Activo</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Card: Seguridad -->
-      <div class="info-card">
-        <div class="card-header-row">
-          <h3 class="card-title">
-            <mat-icon>lock</mat-icon>
-            Seguridad
-          </h3>
-          <button mat-icon-button (click)="openEditDialog()" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-        </div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Contraseña</span>
-            <span class="info-value masked">••••••••</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Último cambio</span>
-            <span class="info-value">—</span>
-          </div>
-        </div>
-      </div>
     </div>
   </ng-container>
 </div>

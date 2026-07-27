@@ -14,7 +14,7 @@
             <input #searchMiembro matInput placeholder="Buscar miembro..." (keyup)="filterMiembros($event)" (keydown)="$event.stopPropagation()" class="search-input" autocomplete="off" />
           </div>
           <mat-option *ngFor="let miembro of filteredMiembros" [value]="miembro.id">
-            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.personaDto?.ci }})
+            {{ getMiembroNombreCompleto(miembro) }} (CI: {{ miembro.ci }})
           </mat-option>
         </mat-select>
         <mat-error>{{ getError('miembroId') }}</mat-error>
@@ -39,6 +39,7 @@
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-error>{{ getError('fecha') }}</mat-error>
       </mat-form-field>
     </div>
@@ -48,8 +49,8 @@
         <mat-label>Certificado (Opcional)</mat-label>
         <mat-select formControlName="certificadoId">
           <mat-option [value]="null">Sin certificado</mat-option>
-          <mat-option *ngFor="let cert of certificados" [value]="cert.id">
-            {{ cert.codigoCertificado }} - {{ cert.motivoCertificado }}
+          <mat-option *ngFor="let cert of filteredCertificados" [value]="cert.id">
+            {{ cert.motivoCertificado || 'Certificado' }}
           </mat-option>
         </mat-select>
       </mat-form-field>

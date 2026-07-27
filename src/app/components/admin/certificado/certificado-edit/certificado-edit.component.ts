@@ -10,7 +10,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { CertificadoService } from '../../../../core/services/certificado.service';
 import { Certificado } from '../../../../core/models/certificado.model';
 import { Evento } from '../../../../core/models/evento.model';
-import { TipoCertificado } from '../../../../core/models/tipo-certificado.model';
 
 @Component({
   selector: 'app-certificado-edit',
@@ -32,19 +31,16 @@ export class CertificadoEditComponent implements OnInit {
   certificadoForm: FormGroup;
   certificado: Certificado;
   eventos: Evento[] = [];
-  tiposCertificado: TipoCertificado[] = [];
 
   constructor(
     private fb: FormBuilder,
     private certificadoService: CertificadoService,
     private dialogRef: MatDialogRef<CertificadoEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { certificado: Certificado, eventos: Evento[], tiposCertificado: TipoCertificado[] }
+    @Inject(MAT_DIALOG_DATA) public data: { certificado: Certificado, eventos: Evento[] }
   ) {
     this.certificadoForm = this.fb.group({
       eventoId: ['', Validators.required],
-      tipoCertificadoId: ['', Validators.required],
       motivoCertificado: ['', [Validators.required, Validators.maxLength(500)]],
-      codigoCertificado: ['', [Validators.required, Validators.maxLength(50)]],
     });
     this.certificado = data.certificado;
   }
@@ -52,12 +48,9 @@ export class CertificadoEditComponent implements OnInit {
   ngOnInit() {
     if (this.data) {
       this.eventos = this.data.eventos;
-      this.tiposCertificado = this.data.tiposCertificado;
       this.certificadoForm.patchValue({
         eventoId: this.certificado.eventoId,
-        tipoCertificadoId: this.certificado.tipoCertificadoId,
         motivoCertificado: this.certificado.motivoCertificado,
-        codigoCertificado: this.certificado.codigoCertificado,
       });
     }
   }

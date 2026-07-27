@@ -1,0 +1,145 @@
+<div class="container">
+
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">work</mat-icon>
+        <span>Colaboradores</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ dataSource.filteredData.length }} colaboradores registrados en {{ currentChurchNombre }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button class="btn-action-primary" (click)="designarColaborador()">
+        <mat-icon>add</mat-icon>
+        Designar Colaborador
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. KPIs -->
+  <div class="kpis-grid-layout">
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-blue">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ totalColaboradores }}</span>
+        <span class="kpi-desc-label">Total Colaboradores</span>
+      </div>
+    </div>
+
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-teal">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ activosColaboradores }}</span>
+        <span class="kpi-desc-label">Colaboradores Activos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar colaborador por nombre, rol/cargo..." #input>
+    </div>
+  </div>
+
+  <!-- Contenedor de la Tabla -->
+  <div class="table-container">
+    <mat-table [dataSource]="dataSource" matSort>
+
+      <!-- Columna Miembro (Avatar + Nombre + Edad/CI) -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Miembro </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="miembro-profile">
+            <div class="miembro-avatar-container">
+              <img *ngIf="item.miembroDto?.uriFoto"
+                   [src]="item.miembroDto.uriFoto | imageUrl"
+                   [alt]="item.miembroDto.nombre"
+                   (error)="onImageError($event)">
+              <div class="miembro-avatar-fallback" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
+                {{ item.miembroDto?.nombre?.charAt(0) || '?' }}
+              </div>
+            </div>
+            <div class="miembro-meta">
+              <span class="nombre">{{ item.miembroDto?.nombre }} {{ item.miembroDto?.apellido }}</span>
+              <span class="ci" *ngIf="item.miembroDto?.ci">CI: {{ item.miembroDto.ci }}</span>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Tipo Cargo (Cargo/Ministerio) -->
+      <ng-container matColumnDef="tipoCargo">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Cargo / Ministerio </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="tipo-cargo-badge">{{ item.tipoCargoDto?.nombre || 'General' }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Fecha Inicio -->
+      <ng-container matColumnDef="fechaInicio">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Inicio </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{ item.fechaInicio | date:'dd/MM/yyyy' }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Fecha Fin -->
+      <ng-container matColumnDef="fechaFin">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Fin </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{ item.fechaFin ? (item.fechaFin | date:'dd/MM/yyyy') : 'Activo actualmente' }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="status-pill" [ngClass]="item.estado ? 'status-activo' : 'status-inactivo'">
+            {{ item.estado ? 'Activo' : 'Baja' }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones de colaborador" class="action-btn" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu" class="modern-action-menu">
+            <button mat-menu-item (click)="openDetail(item)">
+              <mat-icon class="icon-info">visibility</mat-icon>
+              <span>Ver Detalles</span>
+            </button>
+            <button mat-menu-item (click)="openEdit(item)" *ngIf="item.estado">
+              <mat-icon class="icon-edit">edit</mat-icon>
+              <span>Modificar Cargo</span>
+            </button>
+            <button mat-menu-item (click)="openDarBaja(item)" *ngIf="item.estado">
+              <mat-icon class="icon-baja">person_off</mat-icon>
+              <span>Dar de Baja</span>
+            </button>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Fila de cabecera y contenido -->
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetail(row)" class="clickable-row"></mat-row>
+    </mat-table>
+
+    <!-- Paginador -->
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </div>
+</div>

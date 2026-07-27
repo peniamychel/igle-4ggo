@@ -5,59 +5,58 @@
 
 /* ── Dialog Container — Rounded corners ── */
 .cdk-overlay-pane .mat-mdc-dialog-container .mdc-dialog__surface {
-  border-radius: 16px !important;
+  border-radius: 16px;
 }
 
 /* ── Dialog Title ── */
-[mat-dialog-title] {
-  font-size: 1.35rem !important;
-  font-weight: 600 !important;
-  color: var(--text-primary) !important;
-  padding: 24px 24px 4px 24px !important;
-  margin: 0 !important;
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 24px 24px 4px 24px;
+  margin: 0;
   transition: color 0.25s ease;
 }
 
 /* ── Title Icon ── */
-[mat-dialog-title] .title-icon,
-.mat-mdc-dialog-title .title-icon {
-  color: var(--mat-tab-header-active-label-text-color, #7c4dff) !important;
+.mat-mdc-dialog-container .mat-mdc-dialog-title .title-icon {
+  color: var(--mat-tab-header-active-label-text-color, #7c4dff);
 }
 
 /* ── Dialog Content ── */
-.mdc-dialog__content {
-  padding: 8px 24px 16px 24px !important;
+.mat-mdc-dialog-container .mdc-dialog__content {
+  padding: 8px 24px 16px 24px;
 }
 
 /* ── Dialog Actions ── */
-.mdc-dialog__actions {
-  padding: 8px 16px 16px 16px !important;
-  display: flex !important;
-  justify-content: flex-end !important;
-  gap: 8px !important;
+.mat-mdc-dialog-container .mdc-dialog__actions {
+  padding: 8px 16px 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* ── Cancel button — outline style ── */
-.mdc-dialog__actions button[mat-dialog-close] {
-  border: 1px solid var(--border-color) !important;
-  border-radius: 8px !important;
-  color: var(--text-primary) !important;
-  background: transparent !important;
-  padding: 6px 20px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+.mat-mdc-dialog-container .mdc-dialog__actions button[mat-dialog-close].mat-mdc-button {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: transparent;
+  padding: 6px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.mdc-dialog__actions button[mat-dialog-close]:hover {
-  background-color: rgba(124, 77, 255, 0.05) !important;
-  border-color: var(--text-secondary) !important;
+.mat-mdc-dialog-container .mdc-dialog__actions button[mat-dialog-close].mat-mdc-button:hover {
+  background-color: rgba(124, 77, 255, 0.05);
+  border-color: var(--text-secondary);
 }
 
 /* ── Submit button — filled style ── */
-.mdc-dialog__actions button[type="submit"] {
-  border-radius: 8px !important;
-  padding: 6px 24px !important;
-  font-weight: 500 !important;
+.mat-mdc-dialog-container .mdc-dialog__actions button[type="submit"].mat-mdc-button {
+  border-radius: 8px;
+  padding: 6px 24px;
+  font-weight: 500;
 }
 
 /* ── Form Row (side-by-side fields) ── */

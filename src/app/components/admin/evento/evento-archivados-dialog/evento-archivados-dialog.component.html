@@ -1,0 +1,54 @@
+<div class="archivados-dialog">
+  <!-- Encabezado -->
+  <div class="dialog-header">
+    <div class="header-title">
+      <mat-icon class="header-icon">inventory_2</mat-icon>
+      <div>
+        <h2 mat-dialog-title>Eventos Archivados</h2>
+        <p class="header-subtitle">{{ eventos.length }} evento(s) archivado(s)</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+    <div class="empty-state" *ngIf="!isLoading && eventos.length === 0">
+      <mat-icon>inventory_2</mat-icon>
+      <span>No hay eventos archivados.</span>
+    </div>
+
+    <table class="archivados-table" *ngIf="!isLoading && eventos.length > 0">
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Tipo</th>
+          <th *ngIf="data.isAdmin">Iglesia</th>
+          <th>Fecha</th>
+          <th class="col-accion">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ev of eventos">
+          <td class="col-nombre">{{ ev.nombre }}</td>
+          <td>{{ getTipoNombre(ev.tipoEventoId) }}</td>
+          <td *ngIf="data.isAdmin">{{ getIglesiaNombre(ev.iglesiaId) }}</td>
+          <td class="col-fecha">{{ ev.fechaInicio | date:'dd/MM/yyyy' }}</td>
+          <td class="col-accion">
+            <button mat-stroked-button class="btn-desarchivar" *appHasPrivilegio="'Escribir Eventos'" (click)="desarchivar(ev)">
+              <mat-icon>unarchive</mat-icon>
+              Desarchivar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-flat-button class="btn-close" [mat-dialog-close]="true">Cerrar</button>
+  </mat-dialog-actions>
+</div>

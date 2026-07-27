@@ -1,0 +1,233 @@
+<div class="container" [class.dialog-mode]="dialogRef">
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <!-- En modo Diálogo / Popover -->
+      <ng-container *ngIf="dialogRef">
+        <h2 class="page-title">
+          <mat-icon class="icon-primary">notifications</mat-icon>
+          <span>Notificaciones</span>
+        </h2>
+        <p class="subtitle-text">Avisos y novedades de su iglesia</p>
+      </ng-container>
+
+      <!-- En modo Página Completa -->
+      <ng-container *ngIf="!dialogRef">
+        <h2 class="page-title">
+          <mat-icon class="icon-primary">swap_horiz</mat-icon>
+          <span>Solicitudes de Traspaso Pendientes</span>
+        </h2>
+        <p class="subtitle-text" *ngIf="currentIglesiaNombre">
+          Iglesia Destino: <strong>{{currentIglesiaNombre}}</strong>
+        </p>
+      </ng-container>
+    </div>
+    <button mat-icon-button *ngIf="dialogRef" (click)="dialogRef.close()" class="close-btn" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="loading-shade" *ngIf="loading">
+    <app-loading-spinner message="Cargando solicitudes..."></app-loading-spinner>
+  </div>
+
+  <div class="no-requests" *ngIf="!loading && dataSource.data.length === 0">
+    <mat-icon class="info-icon">info</mat-icon>
+    <p>No hay solicitudes de traspaso pendientes {{ currentIglesiaId ? 'para esta iglesia' : 'en el sistema' }} en este momento.</p>
+  </div>
+
+  <!-- Popover Notifications List (Solo modo Diálogo/Campanita) -->
+  <div class="popover-notifications-list" *ngIf="!loading && dataSource.data.length > 0 && dialogRef">
+    <div class="popover-notification-item" *ngFor="let row of dataSource.data" (click)="onRowClick(row)">
+      <!-- Caso 1: Solicitud de Traspaso -->
+      <ng-container *ngIf="row.tipo === 'TRASPASO'">
+        <div class="notification-icon-wrapper notification-traspaso">
+          <mat-icon>swap_horiz</mat-icon>
+        </div>
+        <div class="notification-text-content">
+          <p class="notification-message">
+            <strong>{{row.miembroNombre}}</strong> solicita traspaso a la iglesia <strong>{{row.iglesiaDestinoNombre}}</strong>, en la fecha {{formatDate(row.fechaTraspaso)}}
+          </p>
+          <span class="notification-meta-info">
+            Origen: {{row.iglesiaOrigenNombre}}
+          </span>
+        </div>
+      </ng-container>
+
+      <!-- Caso 2: Invitación a Evento -->
+      <ng-container *ngIf="row.tipo === 'EVENTO_INVITACION'">
+        <div class="notification-icon-wrapper notification-evento">
+          <mat-icon>event</mat-icon>
+        </div>
+        <div class="notification-text-content">
+          <p class="notification-message">
+            Invitación: Inscribe a tus miembros en el evento <strong>{{row.titulo}}</strong> (Ubicación: {{row.mensaje}})
+          </p>
+          <span class="notification-meta-info">
+            Fecha de inicio: {{formatDate(row.fecha)}}
+          </span>
+          <div class="notification-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+            <button mat-flat-button color="primary" style="height: 32px; line-height: 32px; padding: 0 12px; font-size: 13px;" (click)="aceptarInvitacion(row); $event.stopPropagation();">
+              <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">done</mat-icon> Aceptar
+            </button>
+            <button mat-stroked-button color="accent" style="height: 32px; line-height: 32px; padding: 0 12px; font-size: 13px;" (click)="archivarInvitacion(row); $event.stopPropagation();">
+              <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">archive</mat-icon> Archivar
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Desktop View (Solo modo página completa) -->
+  <div class="table-container mat-elevation-z8 desktop-view" *ngIf="!loading && dataSource.data.length > 0 && !dialogRef">
+    <mat-table [dataSource]="dataSource">
+      <!-- Miembro Column -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef>Miembro</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.miembroNombre}}</mat-cell>
+      </ng-container>
+
+      <!-- Origen Column -->
+      <ng-container matColumnDef="origen">
+        <mat-header-cell *matHeaderCellDef>Iglesia Origen</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{row.iglesiaOrigenNombre}}</mat-cell>
+      </ng-container>
+
+      <!-- Fecha Column -->
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef>Fecha de Solicitud</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{formatDate(row.fechaTraspaso)}}</mat-cell>
+      </ng-container>
+
+      <!-- Motivo Column -->
+      <ng-container matColumnDef="motivo">
+        <mat-header-cell *matHeaderCellDef>Motivo</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="motivo-cell">{{row.motivoTraspaso || 'No especificado'}}</mat-cell>
+      </ng-container>
+
+      <!-- Carta / Documento Column -->
+      <ng-container matColumnDef="documento">
+        <mat-header-cell *matHeaderCellDef>Documento</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <a *ngIf="row.uriCartaTraspaso" [href]="row.uriCartaTraspaso" target="_blank" class="doc-link">
+            <mat-icon>description</mat-icon> Ver Carta
+          </a>
+          <span *ngIf="!row.uriCartaTraspaso" class="text-muted">Ninguno</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef class="actions-header">Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="actions-cell">
+          <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
+          <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+            <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
+                    (click)="aceptar(row); $event.stopPropagation()"
+                    matTooltip="Aceptar Traspaso"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button class="mac-mini-btn mac-btn-delete"
+                    (click)="rechazar(row); $event.stopPropagation()"
+                    matTooltip="Rechazar Traspaso"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>close</mat-icon>
+            </button>
+          </ng-container>
+
+          <!-- Solicitó el traspaso: Modificar / Cancelar -->
+          <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+            <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                    (click)="modificar(row); $event.stopPropagation()"
+                    matTooltip="Modificar Solicitud"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="mac-mini-btn mac-btn-archive"
+                    (click)="cancelar(row); $event.stopPropagation()"
+                    matTooltip="Cancelar Solicitud"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>block</mat-icon>
+            </button>
+          </ng-container>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" [class.clickable-row]="dialogRef" (click)="dialogRef && onRowClick(row)"></mat-row>
+    </mat-table>
+  </div>
+
+  <!-- Mobile View (solo si no es modo diálogo) -->
+  <div class="mobile-view" *ngIf="!loading && dataSource.data.length > 0 && !dialogRef">
+    <div class="mobile-cards">
+      <div class="mobile-card" *ngFor="let row of dataSource.data">
+        <div class="card-header">
+          <span class="member-name">{{row.miembroNombre}}</span>
+          <span class="member-ci">CI: {{row.miembroCI}}</span>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="info-label">Origen:</span>
+            <span class="info-value">{{row.iglesiaOrigenNombre}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Destino:</span>
+            <span class="info-value">{{row.iglesiaDestinoNombre}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Fecha:</span>
+            <span class="info-value">{{formatDate(row.fechaTraspaso)}}</span>
+          </div>
+          <div class="info-row" *ngIf="row.motivoTraspaso">
+            <span class="info-label">Motivo:</span>
+            <span class="info-value motive-text">{{row.motivoTraspaso}}</span>
+          </div>
+          <div class="info-row align-items-center" *ngIf="row.uriCartaTraspaso">
+            <span class="info-label">Documento:</span>
+            <a [href]="row.uriCartaTraspaso" target="_blank" class="doc-link">
+              <mat-icon>description</mat-icon> Ver Carta
+            </a>
+          </div>
+        </div>
+        <div class="card-actions" (click)="$event.stopPropagation()">
+          <div class="mac-actions-right">
+            <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
+            <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+              <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
+                      (click)="aceptar(row)"
+                      matTooltip="Aceptar"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button class="mac-mini-btn mac-btn-delete"
+                      (click)="rechazar(row)"
+                      matTooltip="Rechazar"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ng-container>
+
+            <!-- Solicitó el traspaso: Modificar / Cancelar -->
+            <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+              <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                      (click)="modificar(row)"
+                      matTooltip="Modificar"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button class="mac-mini-btn mac-btn-archive"
+                      (click)="cancelar(row)"
+                      matTooltip="Cancelar"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>block</mat-icon>
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

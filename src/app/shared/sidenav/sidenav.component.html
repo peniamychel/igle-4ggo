@@ -8,51 +8,110 @@
     <span class="app-title">Movimiento Cristiano Misionero Maranatha</span>
     <span class="toolbar-spacer"></span>
 
+    <!-- Solicitudes Notification Button -->
+    <button mat-icon-button *ngIf="isAuthenticated && hasSolicitudesPrivilege()" (click)="openSolicitudesModal()" matTooltip="Solicitudes de Traspaso" style="margin-right: 8px;">
+      <mat-icon [class.bell-active]="pendingSolicitudesCount > 0"
+                [matBadge]="pendingSolicitudesCount"
+                [matBadgeHidden]="pendingSolicitudesCount === 0"
+                matBadgeColor="warn"
+                matBadgeSize="small">notifications</mat-icon>
+    </button>
+
     <!-- Theme Toggle Button -->
     <button mat-icon-button (click)="toggleTheme()" matTooltip="Alternar modo oscuro/claro" style="margin-right: 8px;">
       <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
     </button>
 
-    <span class="username-display" [matMenuTriggerFor]="userMenu">{{user?.name}} {{user?.apellidos}}</span>
-
-    <!-- Botón para Desktop -->
+    <!-- Botón para Desktop (no autenticado) -->
     <button mat-fab extended *ngIf="!isAuthenticated && !isSmallScreen" (click)="openLoginModal()">
       <mat-icon>person</mat-icon>
       Iniciar sesión
     </button>
 
-    <!-- Botón para Mobile -->
+    <!-- Botón para Mobile (no autenticado) -->
     <button mat-icon-button *ngIf="!isAuthenticated && isSmallScreen" (click)="openLoginModal()">
       <mat-icon>person</mat-icon>
     </button>
 
-    <button mat-icon-button *ngIf="isAuthenticated" [matMenuTriggerFor]="userMenu" class="user-profile-button">
-      <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="user-profile-image">
-      <mat-icon *ngIf="!user?.uriFoto">account_circle</mat-icon>
-    </button>
-
-    <mat-menu #userMenu="matMenu">
-      <div class="user-menu-header" mat-menu-item disabled>
-        <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="user-menu-image">
-        <mat-icon *ngIf="!user?.uriFoto">person</mat-icon>
-        <span>{{username}}</span>
+    <!-- User Menu Trigger -->
+    <div class="user-trigger" *ngIf="isAuthenticated" [matMenuTriggerFor]="userMenu" matTooltip="{{user?.email}}">
+      <div class="user-avatar-wrapper">
+        <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="user-avatar">
+        <div *ngIf="!user?.uriFoto" class="user-avatar user-avatar-fallback">
+          <mat-icon>person</mat-icon>
+        </div>
       </div>
-      <mat-divider></mat-divider>
-      <button mat-menu-item [routerLink]="'/perfil'">
-        <mat-icon>settings</mat-icon>
-        <span>Mi Perfil</span>
-      </button>
-      <mat-divider></mat-divider>
-      <span mat-menu-item>Roles:</span>
-      <ul>
-        <li *ngFor="let role of user?.roles">
-          {{ role }}
-        </li>
-      </ul>
-      <mat-divider></mat-divider>
-      <button mat-menu-item (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        <span>Cerrar Sesión</span>
+      <div class="user-info">
+        <span class="user-name">{{user?.name}} {{user?.apellidos}}</span>
+        <span class="user-email" *ngIf="activeIglesiaNombre">{{activeIglesiaNombre}} ({{activeCargoNombre}})</span>
+        <span class="user-email" *ngIf="!activeIglesiaNombre">{{user?.email}}</span>
+      </div>
+      <mat-icon class="user-chevron">expand_more</mat-icon>
+    </div>
+
+    <!-- User Dropdown Menu -->
+    <mat-menu #userMenu="matMenu" class="user-dropdown-menu">
+      <!-- Menu Header -->
+      <div class="menu-user-header" mat-menu-item disabled>
+        <div class="menu-avatar-wrapper">
+          <img *ngIf="user?.uriFoto" [src]="user?.uriFoto | imageUrl" alt="Foto de perfil" class="menu-avatar">
+          <div *ngIf="!user?.uriFoto" class="menu-avatar menu-avatar-fallback">
+            <mat-icon>person</mat-icon>
+          </div>
+        </div>
+        <div class="menu-user-details">
+          <span class="menu-user-name">{{user?.name}} {{user?.apellidos}}</span>
+          <span class="menu-user-email">{{user?.email}}</span>
+        </div>
+      </div>
+
+      <!-- Menu Actions -->
+      <div class="menu-actions">
+        <button mat-menu-item [routerLink]="'/perfil'" class="menu-item-perfil">
+          <mat-icon>person_outline</mat-icon>
+          <span>Mi Perfil</span>
+        </button>
+
+        <button *ngIf="canViewConfig()" mat-menu-item [routerLink]="'/configuracion'" class="menu-item-config">
+          <mat-icon>tune</mat-icon>
+          <span>Configuración</span>
+        </button>
+
+        <button mat-menu-item *ngIf="hasSolicitudesPrivilege()" (click)="openSolicitudesModal()" class="menu-item-solicitudes">
+          <mat-icon>mark_email_unread</mat-icon>
+          <span>Solicitudes de Traspaso</span>
+        </button>
+
+        <button mat-menu-item *ngIf="iglesiasDisponibles.length > 1" [matMenuTriggerFor]="churchSwitchMenu" class="menu-item-switch">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Cambiar Congregación</span>
+        </button>
+      </div>
+
+      <!-- Roles Section -->
+      <div class="menu-roles-section" *ngIf="user?.roles?.length">
+        <div class="menu-roles-label">Rol</div>
+        <div class="menu-role-chips">
+          <span *ngFor="let role of user?.roles" class="role-chip">
+            {{ role }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="menu-footer">
+        <button mat-menu-item (click)="logout()" class="menu-item-logout">
+          <mat-icon>logout</mat-icon>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </mat-menu>
+
+    <!-- Sub-menu de cambio de iglesia -->
+    <mat-menu #churchSwitchMenu="matMenu" class="user-dropdown-menu">
+      <button mat-menu-item *ngFor="let igl of iglesiasDisponibles" (click)="onSwitchChurch(igl.iglesiaId)" [disabled]="igl.iglesiaId === authService.getCurrentIglesiaId()">
+        <mat-icon>{{ igl.iglesiaId === authService.getCurrentIglesiaId() ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        <span>{{ igl.iglesiaNombre }}</span>
       </button>
     </mat-menu>
   </mat-toolbar>
@@ -77,6 +136,10 @@
     <mat-sidenav #drawer mode="side" [opened]="!isSmallScreen" class="sidenav">
       <mat-nav-list>
         <ng-container *ngFor="let item of filteredMenuItems">
+
+          <!-- Separador de grupo -->
+          <div *ngIf="item.groupLabel" class="menu-group-divider"></div>
+
           <!-- Ítem principal sin hijos -->
           <a mat-list-item *ngIf="!item.children" (click)="isSmallScreen && drawer.close()" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{exact: item.route === '/'}">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
@@ -103,7 +166,12 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="content">
-      <router-outlet></router-outlet>
+      <div class="main-content-area">
+        <router-outlet></router-outlet>
+      </div>
+      <footer class="app-footer">
+        <span>© 2026 Iglesia Movimiento Cristiano Misionero Maranatha (MCMMaranatha). Todos los derechos reservados.</span>
+      </footer>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

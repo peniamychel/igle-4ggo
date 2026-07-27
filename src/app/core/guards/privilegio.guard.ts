@@ -1,76 +1,77 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/security/auth.service';
+import { ROUTE_VIEW_MAP } from '../constants/privilegios.constants';
 
-export const privilegioGuard: CanActivateFn = (route, state) => {
+/**
+ * Guard de autorización por privilegio de VISUALIZACIÓN.
+ *
+ * Usa el mapa único {@link ROUTE_VIEW_MAP} (ruta → `Ver <Entidad>`) en lugar
+ * del fuzzy matching anterior. Así menú y guard consultan la misma fuente y
+ * nunca se contradicen.
+ *
+ * Reglas:
+ *  1. ADMIN → bypass, acceso total.
+ *  2. Ruta no listada en el mapa (p. ej. `/inicio`, `/perfil`) → acceso libre
+ *     para autenticados (el `authGuard` de la ruta padre ya validó el token).
+ *  3. Ruta listada → exige el privilegio `Ver <Entidad>` correspondiente.
+ *     Si el usuario no lo tiene → redirige a `/`.
+ */
+export const privilegioGuard: CanActivateFn = (route, _state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // If user is admin, allow all routes
+  // 1. Admin: acceso total.
   if (authService.isLoggedRolAdmin()) {
     return true;
   }
 
-  // Get current path
+  // 2. Resolver la ruta.
   const path = route.routeConfig?.path;
-  if (!path) return true; // allow empty or wildcard if not matched
-
-  // Get privileges from localStorage
-  const storedPrivilegios = localStorage.getItem('privilegios');
-  if (!storedPrivilegios) {
-    router.navigate(['/']);
-    return false;
-  }
-
-  let userPrivileges: string[] = [];
-  try {
-    userPrivileges = JSON.parse(storedPrivilegios);
-  } catch (e) {
-    router.navigate(['/']);
-    return false;
-  }
-
-  // Helper to normalize strings for comparison
-  const normalize = (str: string): string => {
-    return str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
-  };
-
-  const getKeywords = (str: string): string[] => {
-    const normalized = normalize(str);
-    return normalized
-      .split(/[\s/_\-]+/)
-      .map(word => {
-        if (word.length > 3 && word.endsWith('s')) {
-          return word.slice(0, -1);
-        }
-        return word;
-      })
-      .filter(word => word.length > 2);
-  };
-
-  const routeKeywords = getKeywords(path);
-  const title = route.title || '';
-  const titleKeywords = title ? getKeywords(title as string) : [];
-  const allKeywords = [...new Set([...routeKeywords, ...titleKeywords])];
-
-  if (allKeywords.length === 0) return true;
-
-  // Check if user has privilege
-  const hasPrivilege = userPrivileges.some(privilege => {
-    const normalizedPrivilege = normalize(privilege);
-    return allKeywords.some(keyword => {
-      return normalizedPrivilege.includes(keyword);
-    });
-  });
-
-  if (hasPrivilege) {
+  if (!path) {
     return true;
-  } else {
-    router.navigate(['/']);
+  }
+  if (path === 'activos') {
+    const role = localStorage.getItem('role');
+    const isAuthorized = role === 'ROLE_PASTOR' || role === 'ROLE_ENCARGADO_IGLESIA' || role === 'ROLE_DIACONO';
+    if (isAuthorized) {
+      return true;
+    } else {
+      router.navigate(['/no-autorizado']);
+      return false;
+    }
+  }
+
+  // Rutas de servicios globales estrictamente reservadas para el Administrador
+  const globalRoutes = [
+    'miembro',
+    'obreros',
+    'cargo',
+    'iglesia',
+    'miembroiglesia',
+    'tipocargo',
+    'usuariosistema',
+    'bitacora'
+  ];
+
+  if (globalRoutes.includes(path)) {
+    router.navigate(['/no-autorizado']);
     return false;
   }
+
+  // 3. Privilegio requerido para VER la página.
+  const requerido = ROUTE_VIEW_MAP[path];
+  if (!requerido) {
+    // Ruta pública: no requiere privilegio de visualización.
+    return true;
+  }
+
+  // 4. ¿El usuario lo tiene?
+  if (authService.hasPrivilegio(requerido)) {
+    return true;
+  }
+
+  // 5. Sin privilegio: al inicio.
+  router.navigate(['/']);
+  return false;
 };

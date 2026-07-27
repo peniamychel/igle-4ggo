@@ -27,7 +27,7 @@
     </div>
     <div class="summary-item">
       <span class="label">Certificado</span>
-      <span class="val">{{ data.certificadoDto?.codigoCertificado || 'Sin certificado' }}</span>
+      <span class="val">{{ data.certificadoDto ? (data.certificadoDto.motivoCertificado || 'Certificado') : 'Sin certificado' }}</span>
     </div>
     <div class="summary-item">
       <span class="label">Estado</span>

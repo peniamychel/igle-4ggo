@@ -4,7 +4,6 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { LoginResponse, LoginRequest } from '../../models/interfaces/auth.interface';
-import { LIVE_ANNOUNCER_DEFAULT_OPTIONS } from '@angular/cdk/a11y';
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +28,48 @@ export class AuthService {
     }
   }
 
+  private handleSuccessfulLogin(response: LoginResponse): void {
+    if (response.token) {
+      localStorage.setItem(this.TOKEN_KEY, response.token);
+      
+      try {
+        const payloadBase64 = response.token.split('.')[1];
+        const payloadDecoded = JSON.parse(atob(payloadBase64));
+        const authorities: string[] = payloadDecoded.authorities || [];
+        
+        const roleAuthority = authorities.find(a => a.startsWith('ROLE_'));
+        localStorage.setItem(this.ROLE, roleAuthority || 'ROLE_USER');
+        
+        const privilegios = authorities.filter(a => !a.startsWith('ROLE_'));
+        localStorage.setItem('privilegios', JSON.stringify(privilegios));
+      } catch (err) {
+        console.error('Error parsing authorities from JWT token', err);
+      }
+    }
+    localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+    if (response.iglesias) {
+      localStorage.setItem('user_iglesias', JSON.stringify(response.iglesias));
+    }
+    if (!response.token && response.roles) {
+      // Fallback fallback if token is not parsed but roles exist
+      const normalizedRoles = response.roles.map((r: any) => {
+        if (typeof r === 'string') {
+          return { authority: r };
+        }
+        return r;
+      });
+
+      const roleAuthority = normalizedRoles.find(r => r.authority && r.authority.startsWith('ROLE_'));
+      localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : (normalizedRoles[0]?.authority || ''));
+      const privilegios = normalizedRoles
+        .filter(r => r.authority && !r.authority.startsWith('ROLE_'))
+        .map(r => r.authority);
+      localStorage.setItem('privilegios', JSON.stringify(privilegios));
+    }
+    localStorage.setItem("nombreuser", response.username);
+    this.currentUserSubject.next(response);
+  }
+
   //Login de usuario
   /**
    * Inicia sesión en el sistema
@@ -39,18 +80,79 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${environment.apiUrl}/login`, credentials)
       .pipe(
         tap(response => {
-          localStorage.setItem(this.TOKEN_KEY, response.token);
-          localStorage.setItem(this.USER_KEY, JSON.stringify(response));
-          const roleAuthority = response.roles.find(r => r.authority.startsWith('ROLE_'));
-          localStorage.setItem(this.ROLE, roleAuthority ? roleAuthority.authority : response.roles[0].authority);
-          const privilegios = response.roles
-            .filter(r => !r.authority.startsWith('ROLE_'))
-            .map(r => r.authority);
-          localStorage.setItem('privilegios', JSON.stringify(privilegios));
-          localStorage.setItem("nombreuser", response.username)
-          this.currentUserSubject.next(response);
+          if (!response.requiresSelection) {
+            this.handleSuccessfulLogin(response);
+          }
         })
       );
+  }
+
+  /**
+   * Selecciona el cargo/iglesia para el inicio de sesión
+   * @param preAuthToken token de pre-autenticación
+   * @param iglesiaId ID de la iglesia seleccionada
+   * @returns respuesta del inicio de sesión final
+   */
+  selectCargo(preAuthToken: string, iglesiaId: number): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/select-cargo`, { preAuthToken, iglesiaId })
+      .pipe(
+        tap(response => {
+          this.handleSuccessfulLogin(response);
+        })
+      );
+  }
+
+  /**
+   * Cambia la iglesia/cargo activa de forma dinámica
+   * @param iglesiaId ID de la iglesia a la cual cambiar
+   * @returns respuesta del inicio de sesión con el nuevo token
+   */
+  switchChurch(iglesiaId: number): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/switch-church`, { iglesiaId })
+      .pipe(
+        tap(response => {
+          this.handleSuccessfulLogin(response);
+        })
+      );
+  }
+
+  /**
+   * Obtiene la decodificación del token actual
+   */
+  getDecodedToken(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decodedJson = atob(payloadBase64);
+      return JSON.parse(decodedJson);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene el nombre de la iglesia del contexto del token actual
+   */
+  getCurrentIglesiaNombre(): string | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.iglesiaNombre : null;
+  }
+
+  /**
+   * Obtiene el nombre del cargo del contexto del token actual
+   */
+  getCurrentCargoNombre(): string | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.cargoNombre : null;
+  }
+
+  /**
+   * Obtiene el ID de la iglesia del contexto del token actual
+   */
+  getCurrentIglesiaId(): number | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.iglesiaId : null;
   }
 
 
@@ -64,6 +166,7 @@ export class AuthService {
     localStorage.removeItem("nombreuser");
     localStorage.removeItem("datosUsuario");
     localStorage.removeItem("privilegios");
+    localStorage.removeItem("user_iglesias");
     this.currentUserSubject.next(null);
   }
 
@@ -115,8 +218,8 @@ export class AuthService {
    * @returns true si el usuario está autenticado, false en caso contrario
    */
   isAuth() {
-    const authToken = localStorage.getItem('auth_token');
-    return authToken !== null && authToken.length > 0 && !this.isTokenExpired();
+    // Delegado en isAuthenticated() para mantener una sola implementación
+    return this.isAuthenticated();
   }
 
   /**
@@ -124,9 +227,7 @@ export class AuthService {
    * @returns true si el rol del usuario es administrador, false en caso contrario
    */
   isLoggedRolAdmin() {
-    // localStorage.get('role');
     return localStorage.getItem('role') === 'ROLE_ADMIN';
-    // return localStorage.getItem(user_data[1]) === 'ROLE_ADMIN';
   }
 
   /**
@@ -135,5 +236,73 @@ export class AuthService {
    */
   isLoggedRolEncargado() {
     return localStorage.getItem('role') === 'ROLE_ENCARGADO_IGLESIA';
+  }
+
+  /**
+   * Verifica si el usuario posee un privilegio (o alguno de varios).
+   *
+   * Modelo de 2 niveles: los privilegios son strings del tipo
+   * `Ver <Entidad>` / `Escribir <Entidad>` que viajan en el JWT y se guardan
+   * en `localStorage['privilegios']` (array de strings) tras el login.
+   *
+   * - El rol ADMIN tiene bypass: siempre devuelve `true` (el backend le
+   *   asigna TODOS los privilegios por código, pero reforzamos acá).
+   * - La comparación es EXACTA (sensible a mayúsculas/acentos): los nombres
+   *   deben coincidir con `privilegio.nombre` en la BD.
+   *
+   * @param privilegio Nombre del privilegio, o lista de nombres (basta con
+   *                   tener uno solo de la lista).
+   * @returns `true` si el usuario tiene el privilegio (o es admin).
+   */
+  private readonly PRIVILEGE_MAPPING: Record<string, string[]> = {
+    'Ver Miembros': ['MIEMBROS:VER'],
+    'Escribir Miembros': ['MIEMBROS:CREAR', 'MIEMBROS:EDITAR', 'MIEMBROS:ELIMINAR', 'MIEMBROS:SUBIR_FOTO'],
+    'Ver Iglesias': ['IGLESIAS:VER'],
+    'Escribir Iglesias': ['IGLESIAS:CREAR', 'IGLESIAS:EDITAR', 'IGLESIAS:ELIMINAR', 'IGLESIAS:ASIGNAR_PASTOR'],
+    'Ver Cargos': ['OBREROS:VER'],
+    'Escribir Cargos': ['OBREROS:DESIGNAR', 'OBREROS:EDITAR', 'OBREROS:DESVINCULAR', 'OBREROS:SUBIR_ACTA'],
+    'Ver Eventos': ['EVENTOS:VER'],
+    'Escribir Eventos': ['EVENTOS:CREAR', 'EVENTOS:EDITAR', 'EVENTOS:ELIMINAR'],
+    'Ver Certificados': ['CERTIFICADOS:VER'],
+    'Escribir Certificados': ['CERTIFICADOS:GENERAR', 'CERTIFICADOS:IMPRIMIR'],
+    'Ver Usuarios': ['USUARIOS:VER'],
+    'Escribir Usuarios': ['USUARIOS:CREAR', 'USUARIOS:EDITAR', 'USUARIOS:CAMBIAR_PASSWORD'],
+    'Ver Privilegios': ['USUARIOS:VER'],
+    'Escribir Privilegios': ['USUARIOS:EDITAR'],
+    'Ver Dashboard': ['DASHBOARD:VER'],
+    'Ver Bitácora': ['BITACORA:VER'],
+    'Ver MiembroIglesia': ['MIEMBROS:VER'],
+    'Escribir MiembroIglesia': ['MIEMBROS:CREAR', 'MIEMBROS:EDITAR', 'MIEMBROS:ELIMINAR']
+  };
+
+  hasPrivilegio(privilegio: string | string[]): boolean {
+    if (this.isLoggedRolAdmin()) return true;
+
+    const raw = localStorage.getItem('privilegios');
+    if (!raw) return false;
+
+    let userPrivileges: string[];
+    try {
+      userPrivileges = JSON.parse(raw);
+    } catch {
+      return false;
+    }
+    if (!Array.isArray(userPrivileges)) return false;
+
+    const buscados = Array.isArray(privilegio) ? privilegio : [privilegio];
+    const resolvedBuscados: string[] = [];
+    for (const b of buscados) {
+      resolvedBuscados.push(b);
+      const mapped = this.PRIVILEGE_MAPPING[b];
+      if (mapped) {
+        resolvedBuscados.push(...mapped);
+      }
+    }
+
+    return resolvedBuscados.some(p => userPrivileges.includes(p));
+  }
+
+  hasAccion(accion: string | string[]): boolean {
+    return this.hasPrivilegio(accion);
   }
 }

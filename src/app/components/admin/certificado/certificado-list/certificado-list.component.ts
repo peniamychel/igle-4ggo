@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -12,17 +12,25 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { CertificadoService } from '../../../../core/services/certificado.service';
 import { EventoService } from '../../../../core/services/evento.service';
-import { TipoCertificadoService } from '../../../../core/services/tipo-certificado.service';
+import { IglesiaService } from '../../../../core/services/iglesia.service';
+import { AuthService } from '../../../../core/services/security/auth.service';
 import { Certificado } from '../../../../core/models/certificado.model';
 import { Evento } from '../../../../core/models/evento.model';
-import { TipoCertificado } from '../../../../core/models/tipo-certificado.model';
-import { CertificadoCreateComponent } from '../certificado-create/certificado-create.component';
+import { Iglesia } from '../../../../core/models/iglesia.model';
 import { CertificadoDetailComponent } from '../certificado-detail/certificado-detail.component';
 import { CertificadoEditComponent } from '../certificado-edit/certificado-edit.component';
+import { CertificadoPrintDialogComponent } from '../certificado-print-dialog/certificado-print-dialog.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { CertificadoDesignerComponent } from '../certificado-designer/certificado-designer.component';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
+import { CertificadoVerificarDialogComponent } from '../certificado-verificar-dialog/certificado-verificar-dialog.component';
 
 @Component({
   selector: 'app-certificado-list',
@@ -41,15 +49,33 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatSelectModule,
+    MatMenuModule,
+    HasPrivilegioDirective,
+    CertificadoPrintDialogComponent,
+    CertificadoVerificarDialogComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './certificado-list.component.html',
   styleUrls: ['./certificado-list.component.css']
 })
 export class CertificadoListComponent implements OnInit {
-  displayedColumns: string[] = ['codigo', 'evento', 'tipoCertificado', 'motivo', 'estado', 'acciones'];
+  isLoading = true;
+  // All possible columns per role
+  private allColumnsAdmin:  string[] = ['evento', 'iglesia', 'motivo', 'diseno', 'estado', 'acciones'];
+  private allColumnsLocal:  string[] = ['evento', 'motivo', 'diseno', 'estado', 'acciones'];
+
+  displayedColumns: string[] = ['evento', 'motivo', 'diseno', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Certificado>;
   eventos: Evento[] = [];
-  tiposCertificado: TipoCertificado[] = [];
+  iglesias: Iglesia[] = [];
+
+  selectedEstado: string = 'all';
+  selectedIglesiaId: any = 'all';
+  searchText: string = '';
+
+  isAdmin = false;
+  currentChurchId: number | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -57,7 +83,8 @@ export class CertificadoListComponent implements OnInit {
   constructor(
     private certificadoService: CertificadoService,
     private eventoService: EventoService,
-    private tipoCertificadoService: TipoCertificadoService,
+    private iglesiaService: IglesiaService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
@@ -65,7 +92,71 @@ export class CertificadoListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isAdmin = this.authService.isLoggedRolAdmin();
+    if (this.isAdmin) {
+      this.loadIglesias();
+    } else {
+      this.currentChurchId = this.authService.getCurrentIglesiaId();
+    }
+    this.updateDisplayedColumns(window.innerWidth);
+    this.setupTableModifiers();
     this.loadInitialData();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent) {
+    this.updateDisplayedColumns((event.target as Window).innerWidth);
+  }
+
+  /**
+   * Adjusts visible columns based on viewport width.
+   * Breakpoints:
+   *   ≥ 960px  → all columns
+   *   600–959  → hide motivo (admin: hide iglesia too)
+   *   < 600px  → only evento + estado + acciones
+   */
+  private updateDisplayedColumns(width: number) {
+    const base = this.isAdmin ? this.allColumnsAdmin : this.allColumnsLocal;
+
+    if (width >= 960) {
+      this.displayedColumns = [...base];
+    } else if (width >= 600) {
+      // Remove motivo (and iglesia for admin to save space)
+      this.displayedColumns = base.filter(
+        col => !['motivo', 'iglesia'].includes(col)
+      );
+    } else {
+      // Minimal: evento + diseño + estado + acciones
+      this.displayedColumns = base.filter(
+        col => ['evento', 'diseno', 'estado', 'acciones'].includes(col)
+      );
+    }
+  }
+
+  private setupTableModifiers() {
+    this.dataSource.filterPredicate = (data: Certificado, filter: string) => {
+      const textQuery = this.searchText.trim().toLowerCase();
+      
+      const matchesText = !textQuery || (
+        (data.motivoCertificado || '') + ' ' +
+        (data.eventoDto?.nombre || '')
+      ).toLowerCase().includes(textQuery);
+
+      const matchesEstado = this.selectedEstado === 'all' ||
+        (this.selectedEstado === 'active' && data.estado) ||
+        (this.selectedEstado === 'inactive' && !data.estado);
+
+      let matchesIglesia = true;
+      const certIglesiaId = data.eventoDto?.iglesiaId;
+      if (this.isAdmin) {
+        matchesIglesia = this.selectedIglesiaId === 'all' || 
+          (certIglesiaId !== undefined && certIglesiaId === this.selectedIglesiaId);
+      } else if (this.currentChurchId) {
+        matchesIglesia = certIglesiaId !== undefined && certIglesiaId === this.currentChurchId;
+      }
+        
+      return matchesText && matchesEstado && matchesIglesia;
+    };
   }
 
   ngAfterViewInit() {
@@ -73,78 +164,85 @@ export class CertificadoListComponent implements OnInit {
     this.dataSource.sort = this.sort;
   }
 
+  loadIglesias() {
+    this.iglesiaService.getIglesias().subscribe(res => {
+      this.iglesias = (res.datos || []).filter(i => i.estado);
+    });
+  }
+
+  getIglesiaNombre(id?: number): string {
+    if (!id) return 'General';
+    const ig = this.iglesias.find(i => i.id === id);
+    return ig ? ig.nombre : `Iglesia #${id}`;
+  }
+
   loadInitialData() {
-    forkJoin({
-      eventos: this.eventoService.getEventos(),
-      tiposCertificado: this.tipoCertificadoService.getTipoCertificados()
-    }).subscribe(results => {
-      this.eventos = results.eventos.datos || [];
-      this.tiposCertificado = results.tiposCertificado.datos || [];
+    this.eventoService.getEventos().subscribe(res => {
+      this.eventos = res.datos || [];
       this.loadCertificados();
     });
   }
 
   loadCertificados() {
-    this.certificadoService.getCertificados().subscribe(response => {
+    this.isLoading = true;
+    this.certificadoService.getCertificados().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let certificados = Array.isArray(response.datos) ? response.datos : [];
       certificados.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
         return dateB - dateA;
       });
+      const eventosMap = new Map<number, Evento>();
+      this.eventos.forEach(e => { if (e.id !== undefined) eventosMap.set(e.id, e); });
+
       certificados.forEach(cert => {
-        cert.eventoDto = this.eventos.find(e => e.id === cert.eventoId);
-        cert.tipoCertificadoDto = this.tiposCertificado.find(tc => tc.id === cert.tipoCertificadoId);
+        cert.eventoDto = cert.eventoId !== undefined ? eventosMap.get(cert.eventoId) : undefined;
       });
       this.dataSource.data = certificados;
+      this.applyFilters();
     });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filterPredicate = (data: Certificado, filter: string) => {
-      const searchTerms = [
-        data.codigoCertificado,
-        data.motivoCertificado,
-        data.eventoDto?.nombre,
-        data.tipoCertificadoDto?.nombre
-      ].map(v => (v || '').toLowerCase()).join(' ');
-      return searchTerms.includes(filter);
-    };
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  applyFilters() {
+    this.dataSource.filter = '' + Math.random();
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
   }
 
-  openCreateDialog() {
-    const dialogRef = this.dialog.open(CertificadoCreateComponent, {
-      width: '600px',
-      maxWidth: '95vw',
-      panelClass: 'dialog-fullscreen-mobile',
-      data: {
-        eventos: this.eventos,
-        tiposCertificado: this.tiposCertificado
-      }
-    });
+  onSearchChange(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadCertificados();
-        this.messageSnackBar('Certificado creado exitosamente');
-      }
+  openVerifyDialog() {
+    this.dialog.open(CertificadoVerificarDialogComponent, {
+      width: '500px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile'
     });
   }
 
   openEditDialog(certificado: Certificado) {
+    let availableEvents = this.eventos;
+    if (!this.isAdmin && this.currentChurchId) {
+      availableEvents = this.eventos.filter(e => !e.iglesiaId || e.iglesiaId === this.currentChurchId);
+    }
+
+    // Excluir eventos que ya tienen un certificado (excepto el actual de este certificado)
+    const certEventIds = this.dataSource.data
+      .filter(c => c.id !== certificado.id)
+      .map(c => c.eventoId)
+      .filter((id): id is number => id !== undefined);
+    availableEvents = availableEvents.filter(e => e.id !== undefined && !certEventIds.includes(e.id));
+
     const dialogRef = this.dialog.open(CertificadoEditComponent, {
       width: '600px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: {
         certificado,
-        eventos: this.eventos,
-        tiposCertificado: this.tiposCertificado
+        eventos: availableEvents
       }
     });
 
@@ -152,6 +250,40 @@ export class CertificadoListComponent implements OnInit {
       if (result) {
         this.loadCertificados();
         this.messageSnackBar('Certificado modificado exitosamente');
+      }
+    });
+  }
+
+  openDesignerDialog(certificado: Certificado) {
+    const dialogRef = this.dialog.open(CertificadoDesignerComponent, {
+      width: '100vw',
+      maxWidth: '100vw',
+      height: '100vh',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: { plantillaId: certificado.plantillaCertificadoId }
+    });
+
+    dialogRef.afterClosed().subscribe((savedPlantillaId: number) => {
+      console.log('Dialog closed. savedPlantillaId:', savedPlantillaId, 'current:', certificado.plantillaCertificadoId, 'certId:', certificado.id);
+      if (savedPlantillaId && savedPlantillaId !== certificado.plantillaCertificadoId && certificado.id) {
+        // Link the new/updated template to this certificate
+        certificado.plantillaCertificadoId = savedPlantillaId;
+        console.log('Updating certificado:', certificado);
+        this.certificadoService.updateCertificado(certificado).subscribe({
+          next: (res) => {
+            console.log('Update success:', res);
+            this.loadCertificados();
+            this.messageSnackBar('Diseño guardado y vinculado exitosamente');
+          },
+          error: (err) => {
+            console.error('Update error:', err);
+            this.messageSnackBar('Error al vincular el diseño al certificado', 'error');
+          }
+        });
+      } else if (savedPlantillaId) {
+        console.log('No update needed, or already linked.');
+        this.loadCertificados();
+        this.messageSnackBar('Diseño actualizado exitosamente');
       }
     });
   }
@@ -165,6 +297,15 @@ export class CertificadoListComponent implements OnInit {
     });
   }
 
+  openPrintDialog(certificado: Certificado) {
+    this.dialog.open(CertificadoPrintDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: certificado
+    });
+  }
+
   toggleEstado(certificado: Certificado) {
     if (certificado.id) {
       const action = certificado.estado ? 'desactivar' : 'activar';
@@ -172,7 +313,7 @@ export class CertificadoListComponent implements OnInit {
         width: '400px',
         data: {
           title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} el certificado <strong>${certificado.codigoCertificado}</strong>.`,
+          message: `Está a punto de ${action} el certificado del evento <strong>${certificado.eventoDto?.nombre || 'N/A'}</strong>.`,
           confirmText: certificado.estado ? 'Desactivar' : 'Activar',
           type: 'warning'
         }
@@ -183,6 +324,35 @@ export class CertificadoListComponent implements OnInit {
           this.certificadoService.toggleEstado(certificado.id).subscribe(newEstado => {
             certificado.estado = newEstado;
             this.messageSnackBar(`Certificado ${newEstado ? 'activado' : 'desactivado'}`);
+          });
+        }
+      });
+    }
+  }
+
+  deleteCertificado(certificado: Certificado) {
+    if (certificado.id) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: `¿Está seguro que desea eliminar este certificado?`,
+          message: `Está a punto de eliminar el certificado del evento <strong>${certificado.eventoDto?.nombre || 'N/A'}</strong>.<br><br>Esta acción también eliminará permanentemente la plantilla de diseño y sus imágenes asociadas. No se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result && certificado.id) {
+          this.certificadoService.deleteCertificado(certificado.id).subscribe({
+            next: () => {
+              this.loadCertificados();
+              this.messageSnackBar('Certificado y plantilla eliminados exitosamente');
+            },
+            error: (err) => {
+              console.error('Error al eliminar certificado', err);
+              this.messageSnackBar('Error al eliminar el certificado', 'error');
+            }
           });
         }
       });

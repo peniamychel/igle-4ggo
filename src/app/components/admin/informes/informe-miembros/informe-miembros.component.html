@@ -1,0 +1,78 @@
+<!-- Configuración -->
+<div class="config-bar">
+  <div class="config-filters">
+    <span class="config-title"><mat-icon>tune</mat-icon> Configurar informe de miembros</span>
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin">
+      <mat-label>Iglesia</mat-label>
+      <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="onFiltroChange()">
+        <mat-option value="all">Todas las sedes (consolidado)</mat-option>
+        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="config-actions">
+    <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLote()" [disabled]="isLoading || isGenerating || !iglesias.length">
+      <mat-icon>print</mat-icon>
+      Varias iglesias
+    </button>
+    <button mat-flat-button class="btn-pdf" (click)="descargarPDF()" [disabled]="isLoading || isGenerating || !totalMiembros">
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
+    </button>
+  </div>
+</div>
+
+<app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+<ng-container *ngIf="!isLoading">
+  <!-- KPIs -->
+  <div class="kpis-row">
+    <div class="kpi-card">
+      <div class="kpi-circle icon-purple"><mat-icon>groups</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ totalMiembros }}</span><span class="kpi-label">Miembros</span></div>
+    </div>
+    <div class="kpi-card" *ngFor="let g of generoData">
+      <div class="kpi-circle" [ngClass]="g.name === 'Hombres' ? 'icon-blue' : 'icon-pink'">
+        <mat-icon>{{ g.name === 'Hombres' ? 'male' : 'female' }}</mat-icon>
+      </div>
+      <div class="kpi-info"><span class="kpi-number">{{ g.value }}</span><span class="kpi-label">{{ g.name }}</span></div>
+    </div>
+    <div class="kpi-card" *ngFor="let e of edadesData">
+      <div class="kpi-circle icon-teal"><mat-icon>cake</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ e.value }}</span><span class="kpi-label">{{ e.name }}</span></div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <p class="chart-title"><mat-icon>wc</mat-icon> Distribución por género</p>
+      <div class="chart-canvas" #chartGenero>
+        <ngx-charts-pie-chart [view]="view" [scheme]="schemeGenero" [results]="generoData"
+          [labels]="true" [doughnut]="true" [arcWidth]="0.35" [animations]="false">
+        </ngx-charts-pie-chart>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <p class="chart-title"><mat-icon>cake</mat-icon> Grupos etarios</p>
+      <div class="chart-canvas" #chartEdades>
+        <ngx-charts-bar-vertical [view]="view" [scheme]="schemeEdades" [results]="edadesData"
+          [xAxis]="true" [yAxis]="true" [showDataLabel]="true" [roundEdges]="true" [animations]="false">
+        </ngx-charts-bar-vertical>
+      </div>
+    </div>
+
+    <div class="chart-card full">
+      <p class="chart-title"><mat-icon>trending_up</mat-icon> Crecimiento de miembros</p>
+      <div class="chart-canvas" #chartCrecimiento *ngIf="crecimientoData.length; else sinCrecimiento">
+        <ngx-charts-area-chart [view]="viewWide" [scheme]="schemeCrecimiento" [results]="crecimientoData"
+          [xAxis]="true" [yAxis]="true" [gradient]="true" [autoScale]="true" [animations]="false">
+        </ngx-charts-area-chart>
+      </div>
+      <ng-template #sinCrecimiento>
+        <div class="empty-chart">No hay datos de fecha de registro para graficar el crecimiento.</div>
+      </ng-template>
+    </div>
+  </div>
+</ng-container>

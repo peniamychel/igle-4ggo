@@ -1,193 +1,189 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { InicioComponent } from './components/inicio/inicio.component';
-import { PersonaListComponent } from './components/admin/persona/persona-list/persona-list.component';
+
 import { MiembroListComponent } from './components/admin/miembro/miembro-list/miembro-list.component';
 import { IglesiaListComponent } from './components/admin/iglesia/iglesia-list/iglesia-list.component';
 import { IglesiaMiembroListComponent } from './components/admin/miembro-iglesia/iglesia-miembro-list/iglesia-miembro-list.component';
-import { ChartsComponent } from './components/graficos/charts/charts.component';
 import { authGuard } from './core/guards/auth.guard';
-import { LoginComponent } from './components/auth/login2/login.component';
 import { UserTableComponent } from './components/admin/usuario-sistema/user-table/user-table.component';
 import { TipoCargoListComponent } from './components/admin/tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { CargoListComponent } from './components/admin/cargo/cargo-list/cargo-list.component';
 import { PrivilegioListComponent } from './components/admin/privilegio/privilegio-list/privilegio-list.component';
-import { adminGuard } from './core/guards/admin.guard';
-import { encIglesiaGuard } from './core/guards/enc-iglesia.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { privilegioGuard } from './core/guards/privilegio.guard';
 import { TipoEventoListComponent } from './components/admin/tipo-evento/tipo-evento-list/tipo-evento-list.component';
-import { TipoCertificadoListComponent } from './components/admin/tipo-certificado/tipo-certificado-list/tipo-certificado-list.component';
 import { EventoListComponent } from './components/admin/evento/evento-list/evento-list.component';
 import { CertificadoListComponent } from './components/admin/certificado/certificado-list/certificado-list.component';
 import { ResponsableEventoListComponent } from './components/admin/responsable-evento/responsable-evento-list/responsable-evento-list.component';
 import { ParticipacionEventoListComponent } from './components/admin/participacion-evento/participacion-evento-list/participacion-evento-list.component';
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
+import { LoginPageComponent } from './components/auth/login-page/login-page.component';
+
+import { MiIglesiaComponent } from './components/admin/mi-iglesia/mi-iglesia.component';
+import { NoAutorizadoComponent } from './components/auth/no-autorizado/no-autorizado.component';
+import { OfrendaListComponent } from './components/admin/ofrenda/ofrenda-list/ofrenda-list.component';
+import { ActivoListComponent } from './components/admin/activo/activo-list/activo-list.component';
+import { ColaboradoresComponent } from './components/admin/colaboradores/colaboradores.component';
+import { AyudaComponent } from './components/ayuda/ayuda.component';
+
 
 export const routes: Routes = [
   {
     path: '',
+    component: LoginPageComponent,
+    title: 'Iniciar Sesión',
+  },
+  {
+    path: '',
     component: SidenavComponent,
+    canActivate: [authGuard],
     children: [
       {
-        path: '',
+        path: 'inicio',
         component: DashboardComponent,
         title: 'Inicio',
       },
       {
-        path: 'miembro',
-        component: MiembroListComponent,
-        title: 'Mimembro',
-        canActivate: [authGuard, privilegioGuard]
+        path: 'no-autorizado',
+        component: NoAutorizadoComponent,
+        title: 'Acceso Restringido',
       },
       {
-        path: 'persona',
-        component: PersonaListComponent,
-        title: 'Persona',
-        canActivate: [authGuard, privilegioGuard]
+        path: 'miembro',
+        component: MiembroListComponent,
+        title: 'Miembro',
+        canActivate: [privilegioGuard]
       },
+
       {
         path: 'iglesia',
         component: IglesiaListComponent,
         title: 'Iglesia',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
       },
       {
         path: 'miembroiglesia',
         component: IglesiaMiembroListComponent,
         title: 'Iglesia',
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'graficoiglesias',
-        component: ChartsComponent,
-        title: 'Grafico',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
       },
       {
         path: 'tipocargo',
         component: TipoCargoListComponent,
-        title: 'Tipo de Cargo',
-        canActivate: [authGuard, privilegioGuard]
+        title: 'Tipo Ministerio',
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'obreros',
+        component: CargoListComponent,
+        title: 'Obreros',
+        canActivate: [privilegioGuard]
       },
       {
         path: 'cargo',
-        component: CargoListComponent,
-        title: 'Cargos Miembros',
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'pastores',
-        component: CargoListComponent,
-        title: 'Pastores',
-        data: { filterRole: 'pastor' },
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'encargados',
-        component: CargoListComponent,
-        title: 'Encargados',
-        data: { filterRole: 'encargado' },
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'lideres',
-        component: CargoListComponent,
-        title: 'Líderes',
-        data: { filterRole: 'lider' },
-        canActivate: [authGuard, privilegioGuard]
+        redirectTo: 'obreros',
+        pathMatch: 'full'
       },
       {
         path: 'cambios-iglesia',
-        component: DashboardComponent,
+        component: IglesiaMiembroListComponent,
         title: 'Cambios Iglesia',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
       },
       {
-        path: 'solicitudes',
-        component: DashboardComponent,
-        title: 'Solicitudes',
-        canActivate: [authGuard, privilegioGuard]
+        path: 'mi-iglesia',
+        component: MiIglesiaComponent,
+        title: 'Mis Miembros',
+        canActivate: [privilegioGuard]
       },
       {
-        path: 'tipoevento',
-        component: TipoEventoListComponent,
-        title: 'Tipos de Evento',
-        canActivate: [authGuard, privilegioGuard]
+        path: 'colaboradores',
+        component: ColaboradoresComponent,
+        title: 'Colaboradores',
+        canActivate: [privilegioGuard]
       },
       {
         path: 'eventos',
         component: EventoListComponent,
         title: 'Eventos',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'tipoevento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
         path: 'bautizos',
-        component: DashboardComponent,
-        title: 'Bautizos',
-        canActivate: [authGuard, privilegioGuard]
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
         path: 'talleres',
-        component: DashboardComponent,
-        title: 'Talleres',
-        canActivate: [authGuard, privilegioGuard]
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
-        path: 'tipocertificado',
-        component: TipoCertificadoListComponent,
-        title: 'Tipos de Certificado',
-        canActivate: [authGuard, privilegioGuard]
+        path: 'responsable-evento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'participacion-evento',
+        redirectTo: 'eventos',
+        pathMatch: 'full'
       },
       {
         path: 'certificados',
         component: CertificadoListComponent,
         title: 'Certificados',
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'responsable-evento',
-        component: ResponsableEventoListComponent,
-        title: 'Responsables de Evento',
-        canActivate: [authGuard, privilegioGuard]
-      },
-      {
-        path: 'participacion-evento',
-        component: ParticipacionEventoListComponent,
-        title: 'Participaciones de Evento',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
       },
       {
         path: 'ofrendas',
-        component: DashboardComponent,
+        component: OfrendaListComponent,
         title: 'Ofrendas',
-        canActivate: [authGuard, privilegioGuard]
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'activos',
+        component: ActivoListComponent,
+        title: 'Inventario',
+        canActivate: [privilegioGuard]
+      },
+      {
+        path: 'informes',
+        loadComponent: () => import('./components/admin/informes/informes.component').then(m => m.InformesComponent),
+        title: 'Informes',
+        canActivate: [privilegioGuard]
       },
       {
         path: 'perfil',
         component: PerfilComponent,
         title: 'Perfil',
-        canActivate: [authGuard]
       },
       {
         path: 'configuracion',
         component: ConfiguracionComponent,
         title: 'Configuración',
-        canActivate: [authGuard]
+      },
+      {
+        path: 'ayuda',
+        component: AyudaComponent,
+        title: 'Ayuda',
       },
       {
         path: 'privilegios',
-        component: PrivilegioListComponent,
-        title: 'Privilegios',
-        canActivate: [authGuard, adminGuard]
+        redirectTo: 'usuariosistema',
+        pathMatch: 'full'
       },
       {
         path: 'usuariosistema',
         component: UserTableComponent,
         title: 'Usuario Sistema',
-        canActivate: [authGuard, adminGuard]
+        canActivate: [privilegioGuard]
       },
     ]
   },

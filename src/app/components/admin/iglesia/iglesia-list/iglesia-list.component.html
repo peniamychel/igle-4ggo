@@ -1,64 +1,186 @@
-<div class="container">
-  <div class="nuevo-buscar">
+<div class="iglesias-container">
 
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+  <!-- Header -->
+  <div class="header-section-premium">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">church</mat-icon>
+        <span>Iglesias</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ activasCount }} de {{ totalCount }} activas · {{ totalMembersCount }} miembros en total
+      </p>
+    </div>
+    <button mat-flat-button class="btn-action-primary" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Iglesias'">
       <mat-icon>add</mat-icon>
-      Crear Iglesia
+      Nueva iglesia
     </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Primera Iglesia" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
   </div>
 
-  <div class="table-container">
-  <mat-table [dataSource]="dataSource" matSort>
-    <ng-container matColumnDef="nombre">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.nombre}} </mat-cell>
-    </ng-container>
+  <!-- KPIs -->
+  <div class="kpis-grid-layout">
+    <!-- Active Churches -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-purple">
+        <mat-icon>church</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ activasCount }}<span class="kpi-denom">/{{ totalCount }}</span></span>
+        <span class="kpi-desc-label">Iglesias activas</span>
+      </div>
+    </div>
 
-    <ng-container matColumnDef="direccion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Dirección</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.direccion}} </mat-cell>
-    </ng-container>
+    <!-- Members count -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-teal">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ totalMembersCount }}</span>
+        <span class="kpi-desc-label">Miembros totales</span>
+      </div>
+    </div>
 
-    <ng-container matColumnDef="telefono">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{iglesia.telefono}} </mat-cell>
-    </ng-container>
+    <!-- Monthly events -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-blue">
+        <mat-icon>event</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ totalEventsCount }}</span>
+        <span class="kpi-desc-label">Eventos del mes</span>
+      </div>
+    </div>
 
-    <ng-container matColumnDef="fechaFundacion">
-      <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Fundación</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia"> {{formatDate(iglesia.fechaFundacion)}} </mat-cell>
-    </ng-container>
+    <!-- Certificates count -->
+    <div class="kpi-box-card">
+      <div class="kpi-circle-icon icon-amber">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+      <div class="kpi-values-meta">
+        <span class="kpi-num">{{ totalCertificatesCount }}</span>
+        <span class="kpi-desc-label">Certificados</span>
+      </div>
+    </div>
+  </div>
 
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef> Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let iglesia">
-        <button mat-icon-button color="primary" matTooltip="Editar: {{iglesia.nombre}}" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(iglesia)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="iglesia.estado ? 'accent' : 'warn'"
-                (click)="$event.stopPropagation(); toggleEstado(iglesia)">
-          <mat-icon>{{iglesia.estado ? 'check_circle' : 'cancel'}}</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="search" 
+        (input)="applyFilters()" 
+        placeholder="Buscar por nombre, ciudad o dirección..."
+      />
+    </div>
+    
+    <div class="select-filters">
+      <mat-form-field appearance="outline" class="filter-select">
+        <mat-select [(ngModel)]="departamento" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let depto of departamentos" [value]="depto">
+            {{ depto }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+      <mat-form-field appearance="outline" class="filter-select w-estado">
+        <mat-select [(ngModel)]="estado" (selectionChange)="applyFilters()">
+          <mat-option value="all">Todos los estados</mat-option>
+          <mat-option value="true">Activas</mat-option>
+          <mat-option value="false">Inactivas</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="5">No se encontraron datos que coincidan con el filtro "{{input.value}}"</td>
-    </tr>
-  </mat-table>
+  <!-- Map and Directory Grid -->
+  <div class="map-directory-grid">
+    <!-- Left Column: Leaflet Map Container -->
+    <div class="map-card-wrapper">
+      <div class="card-title-bar">
+        <mat-icon class="icon-subtle">place</mat-icon>
+        <h3>Mapa de iglesias</h3>
+      </div>
+      <div class="map-outer-container">
+        <div id="map" class="leaflet-map-element"></div>
+        <p class="map-instructions-hint">
+          Haga clic en un marcador para ver detalles · {{ filteredIglesias.length }} iglesia(s) mostrada(s)
+        </p>
+      </div>
+    </div>
 
+    <!-- Right Column: Directory List -->
+    <div class="directory-card-wrapper">
+      <div class="card-title-bar">
+        <h3>Lista de Iglesias</h3>
+      </div>
+      <div class="directory-list-scrollable" cdkDropList (cdkDropListDropped)="drop($event)">
+        <app-loading-spinner *ngIf="isLoading" message="Cargando iglesias..."></app-loading-spinner>
 
+        <div class="no-churches-placeholder" *ngIf="!isLoading && filteredIglesias.length === 0">
+          <mat-icon>church</mat-icon>
+          <p>No se encontraron iglesias con los filtros seleccionados.</p>
+        </div>
 
-  <mat-paginator [pageSizeOptions]="[10,25, 100]" aria-label="Seleccionar página de iglesias">
-  </mat-paginator>
+        <div 
+          *ngFor="let ig of filteredIglesias" 
+          class="directory-item-card" 
+          [class.selected]="seleccionada?.id === ig.id"
+          (click)="seleccionarIglesia(ig)"
+          cdkDrag
+        >
+          <!-- Tirador para arrastrar -->
+          <div class="drag-handle-grip" cdkDragHandle matTooltip="Arrastrar para cambiar el orden">
+            <mat-icon>drag_indicator</mat-icon>
+          </div>
+
+          <div class="church-avatar" [class.inactive]="!ig.estado">
+            <img *ngIf="ig.uriFoto" [src]="ig.uriFoto | imageUrl" [alt]="ig.nombre" loading="lazy" />
+            <span *ngIf="!ig.uriFoto">{{ ig.nombre.replace('Iglesia ', '').slice(0,2).toUpperCase() }}</span>
+          </div>
+          
+          <div class="church-metadata">
+            <div class="church-name-row">
+              <span class="church-title-name">{{ ig.nombre }}</span>
+              <span class="status-indicator-dot" [class.active]="ig.estado"></span>
+            </div>
+            
+            <p class="church-location-line">
+              <mat-icon>place</mat-icon>
+              <span>{{ ig.ciudad }}, {{ ig.departamento }}</span>
+            </p>
+            
+            <div class="church-counters-line">
+              <span class="counter-item">
+                <mat-icon>people</mat-icon>
+                {{ ig.miembrosActivos }}
+              </span>
+              <span class="counter-item">
+                <mat-icon>event</mat-icon>
+                {{ ig.eventosMes }}
+              </span>
+              <span class="counter-item">
+                <mat-icon>workspace_premium</mat-icon>
+                {{ ig.certificadosEmitidos }}
+              </span>
+            </div>
+          </div>
+
+          <div class="church-actions-column">
+            <button 
+              mat-icon-button 
+              class="btn-view-details" 
+              matTooltip="Ver detalles" 
+              (click)="verDetalles(ig, $event)"
+            >
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+

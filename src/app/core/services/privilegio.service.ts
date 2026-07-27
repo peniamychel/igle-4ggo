@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PrivilegioDto, PrivilegioResponse } from '../models/interfaces/privilegio.interface';
 
@@ -10,42 +11,52 @@ import { PrivilegioDto, PrivilegioResponse } from '../models/interfaces/privileg
 export class PrivilegioService {
   private apiUrl = `${environment.apiUrl}/api/privilegios/v1`;
 
+  // Catalogo de privilegios: cambia poco, se cachea y se invalida en cada mutacion
+  // del catalogo (NO al asignar/quitar privilegios de un rol, eso no cambia el catalogo).
+  private privilegiosCache$?: Observable<PrivilegioDto[]>;
+
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  getAll(): Observable<PrivilegioDto[]> {
+    if (!this.privilegiosCache$) {
+      this.privilegiosCache$ = this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`).pipe(
+        catchError(err => { this.privilegiosCache$ = undefined; return throwError(() => err); }),
+        shareReplay(1)
+      );
+    }
+    return this.privilegiosCache$;
   }
 
-  getAll(): Observable<PrivilegioDto[]> {
-    return this.http.get<PrivilegioDto[]>(`${this.apiUrl}/findall`, { headers: this.getHeaders() });
+  /** Invalida el cache del catalogo de privilegios; llamar tras crear/editar/eliminar uno. */
+  private invalidateCache(): void {
+    this.privilegiosCache$ = undefined;
   }
 
   getById(id: number): Observable<PrivilegioDto> {
-    return this.http.get<PrivilegioDto>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<PrivilegioDto>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   create(dto: PrivilegioDto): Observable<PrivilegioDto> {
-    return this.http.post<PrivilegioDto>(`${this.apiUrl}/create`, dto, { headers: this.getHeaders() });
+    return this.http.post<PrivilegioDto>(`${this.apiUrl}/create`, dto).pipe(tap(() => this.invalidateCache()));
   }
 
   update(id: number, dto: PrivilegioDto): Observable<PrivilegioDto> {
-    return this.http.put<PrivilegioDto>(`${this.apiUrl}/update/${id}`, dto, { headers: this.getHeaders() });
+    return this.http.put<PrivilegioDto>(`${this.apiUrl}/update/${id}`, dto).pipe(tap(() => this.invalidateCache()));
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`).pipe(tap(() => this.invalidateCache()));
   }
 
-  getPrivilegiosByRol(rolName: string): Observable<PrivilegioResponse[]> {
-    return this.http.get<PrivilegioResponse[]>(`${this.apiUrl}/rol/${rolName}/privilegios`, { headers: this.getHeaders() });
+  getPrivilegiosByRolCargo(rolCargoId: number): Observable<PrivilegioResponse[]> {
+    return this.http.get<PrivilegioResponse[]>(`${this.apiUrl}/rol-cargo/${rolCargoId}/privilegios`);
   }
 
-  addPrivilegioToRol(rolName: string, privilegioId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/rol/${rolName}/add/${privilegioId}`, {}, { headers: this.getHeaders() });
+  addPrivilegioToRolCargo(rolCargoId: number, privilegioId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/rol-cargo/${rolCargoId}/add/${privilegioId}`, {});
   }
 
-  removePrivilegioFromRol(rolName: string, privilegioId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/rol/${rolName}/remove/${privilegioId}`, { headers: this.getHeaders() });
+  removePrivilegioFromRolCargo(rolCargoId: number, privilegioId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/rol-cargo/${rolCargoId}/remove/${privilegioId}`);
   }
 }

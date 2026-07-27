@@ -1,124 +1,172 @@
+<!-- ════════════════════════════════════════════════
+     DIÁLOGO: CREAR NUEVO USUARIO DEL SISTEMA (SKILL: IGLE_DIALOG_DESIGN)
+     ════════════════════════════════════════════════ -->
+
 <div class="dialog-header">
   <div class="header-title">
-    <mat-icon class="header-icon">person_add</mat-icon>
-    <div>
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">person_add</mat-icon>
+    </div>
+    <div class="header-text">
       <h2 mat-dialog-title>Crear Nuevo Usuario</h2>
-      <p class="header-subtitle">Complete los datos del nuevo usuario</p>
+      <p class="header-subtitle">Configuración de credenciales, visualización de rol asignado y resumen de servicios</p>
     </div>
   </div>
-  <button mat-icon-button mat-dialog-close class="close-btn">
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button" matTooltip="Cerrar ventana">
     <mat-icon>close</mat-icon>
   </button>
 </div>
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
-    <div class="photo-section">
-      <div class="photo-container" (click)="fileInput.click()">
-        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de perfil" class="profile-photo">
-        <div class="no-photo" *ngIf="!previewUrl">
-          <mat-icon>person</mat-icon>
-        </div>
-        <div class="photo-overlay">
-          <mat-icon>photo_camera</mat-icon>
-          <span>{{ previewUrl ? 'Cambiar foto' : 'Click para agregar foto' }}</span>
-        </div>
-      </div>
-      <input #fileInput type="file"
-             (change)="onFileSelected($event)"
-             accept="image/*"
-             style="display: none">
-      <button *ngIf="previewUrl" mat-icon-button type="button" class="remove-photo-btn"
-              (click)="removePhoto(); $event.stopPropagation()" matTooltip="Quitar foto">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Nombre de Usuario</mat-label>
-        <input matInput formControlName="username" placeholder="Ingrese nombre de usuario">
-        <mat-icon matPrefix>person</mat-icon>
-        <mat-error *ngIf="userForm.get('username')?.hasError('required')">
-          El nombre de usuario es requerido
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Correo Electrónico</mat-label>
-        <input matInput formControlName="email" placeholder="Ingrese correo electrónico">
-        <mat-icon matPrefix>email</mat-icon>
-        <mat-error *ngIf="userForm.get('email')?.hasError('required')">
-          El correo electrónico es requerido
-        </mat-error>
-        <mat-error *ngIf="userForm.get('email')?.hasError('email')">
-          Ingrese un correo electrónico válido
-        </mat-error>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Nombres</mat-label>
-        <input matInput formControlName="name" placeholder="Ingrese nombres">
-        <mat-icon matPrefix>badge</mat-icon>
-        <mat-error *ngIf="userForm.get('name')?.hasError('required')">
-          Los nombres son requeridos
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Apellidos</mat-label>
-        <input matInput formControlName="apellidos" placeholder="Ingrese apellidos">
-        <mat-icon matPrefix>badge</mat-icon>
-        <mat-error *ngIf="userForm.get('apellidos')?.hasError('required')">
-          Los apellidos son requeridos
-        </mat-error>
-      </mat-form-field>
-    </div>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Contraseña</mat-label>
-      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-        placeholder="Ingrese contraseña">
-      <mat-icon matPrefix>lock</mat-icon>
-      <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Hide password'"
-        [attr.aria-pressed]="hidePassword" type="button">
-        <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-      </button>
-      <mat-error *ngIf="userForm.get('password')?.hasError('required')">
-        La contraseña es requerida
-      </mat-error>
-      <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
-        La contraseña debe tener al menos 4 caracteres
-      </mat-error>
-    </mat-form-field>
-
-    <div class="roles-section">
-      <h3 class="section-title">
-        <mat-icon>admin_panel_settings</mat-icon>
-        Roles del Sistema
-      </h3>
-      <p class="section-hint">Selecciona los roles que tendrá este usuario</p>
-      <div class="roles-grid" formArrayName="roles">
-        <label class="role-card" *ngFor="let role of roleDefinitions; let i = index">
-          <input type="checkbox" [formControlName]="i" class="role-checkbox-hidden">
-          <div class="role-card-content">
-            <mat-icon class="role-icon" [style.color]="role.color">{{ role.icon }}</mat-icon>
-            <div class="role-info">
-              <span class="role-name">{{ role.label }}</span>
-              <span class="role-description">{{ role.description }}</span>
-            </div>
-            <mat-icon class="role-check">check_circle</mat-icon>
+    
+    <div class="two-columns-layout">
+      
+      <!-- ── COLUMNA IZQUIERDA ── -->
+      <div class="left-panel">
+        
+        <!-- Tarjeta 1: Datos del Usuario -->
+        <div class="panel-card">
+          <div class="card-header-title">
+            <mat-icon class="card-title-icon purple">badge</mat-icon>
+            <h3>Datos del Usuario</h3>
           </div>
-        </label>
+
+          <!-- Selector de Miembro con Cargo Activo -->
+          <mat-form-field appearance="outline" class="w-100 mb-2">
+            <mat-label>Vincular a Miembro con Cargo</mat-label>
+            <mat-select formControlName="miembroId" placeholder="Seleccione un miembro con cargo">
+              @for (m of miembrosCargoOptions; track m.id) {
+                <mat-option [value]="m.id">
+                  {{ m.nombreCompleto }} {{ m.ci ? '(CI: ' + m.ci + ')' : '' }} — [Cargo: {{ m.cargoNombre || 'Asignado' }}]
+                </mat-option>
+              }
+            </mat-select>
+            <mat-icon matPrefix>recent_actors</mat-icon>
+            <mat-error *ngIf="userForm.get('miembroId')?.hasError('required')">
+              Debe seleccionar un miembro con cargo
+            </mat-error>
+          </mat-form-field>
+
+          <div class="form-grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombres</mat-label>
+              <input matInput formControlName="name" placeholder="Ej. Juan">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Apellidos</mat-label>
+              <input matInput formControlName="apellidos" placeholder="Ej. Pérez">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Correo Electrónico</mat-label>
+              <input matInput formControlName="email" placeholder="juan@ejemplo.com">
+              <mat-icon matPrefix>email</mat-icon>
+              <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+                Correo no válido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre de Usuario</mat-label>
+              <input matInput formControlName="username" placeholder="juanperez123">
+              <mat-icon matPrefix>account_circle</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Contraseña</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="••••••••">
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+          </mat-form-field>
+        </div>
+
+        <!-- Tarjeta 2: Rol Asignado (Muestra ÚNICAMENTE el rol activo) -->
+        <div class="panel-card">
+          <div class="card-header-title">
+            <mat-icon class="card-title-icon orange">shield</mat-icon>
+            <div>
+              <h3>Rol del Usuario</h3>
+              <p class="card-subtitle">Rol determinado automáticamente según el cargo del miembro.</p>
+            </div>
+          </div>
+
+          <div class="roles-cards-row readonly-container">
+            @for (rol of rolesDisponibles; track rol.id) {
+              @if (isRolActive(rol)) {
+                <div class="role-select-box readonly selected active-single-role">
+                  <mat-icon class="role-select-icon">{{ getRoleIcon(rol.nombreRol || rol.nombre) }}</mat-icon>
+                  <span class="role-select-label">{{ rol.nombre || rol.nombreRol }}</span>
+                  <span class="badge-assigned">Rol Asignado</span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
       </div>
+
+      <!-- ── COLUMNA DERECHA: RESUMEN DE SERVICIOS Y ACCIONES (COLAPSADOS Y SOLO LECTURA) ── -->
+      <div class="right-panel">
+        
+        <div class="panel-card full-height">
+          <div class="card-header-title">
+            <mat-icon class="card-title-icon green">vpn_key</mat-icon>
+            <div>
+              <h3>Acceso a Servicios y Acciones</h3>
+              <p class="card-subtitle">Resumen informativo de las acciones autorizadas para este rol.</p>
+            </div>
+          </div>
+
+          <div class="accordion-container">
+            @for (servicio of servicios; track servicio.id) {
+              @if (hasServiceAccessForRole(servicio)) {
+                <mat-expansion-panel [expanded]="false" class="custom-panel">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title class="panel-service-header">
+                      <div class="service-header-icon">
+                        <mat-icon>{{ servicio.icono || 'apps' }}</mat-icon>
+                      </div>
+                      <span class="service-header-name">{{ servicio.nombre }}</span>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  <div class="actions-checkboxes-list">
+                    @for (accion of servicio.acciones; track accion.id) {
+                      @if (isAccionSelected(accion.id)) {
+                        <div class="action-info-row included">
+                          <div class="action-info-left">
+                            <mat-icon class="action-status-icon active">check_circle</mat-icon>
+                            <span class="action-checkbox-label" [class.danger]="accion.codigo === 'ELIMINAR'">
+                              {{ accion.nombre }} {{ accion.codigo === 'ELIMINAR' ? '(Peligro)' : '' }}
+                            </span>
+                          </div>
+                          <span class="action-code-tag"><code>{{ accion.authorityCode }}</code></span>
+                        </div>
+                      }
+                    }
+                  </div>
+                </mat-expansion-panel>
+              }
+            }
+          </div>
+        </div>
+
+      </div>
+
     </div>
+
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-actions">
-    <button mat-stroked-button type="button" (click)="onCancel()">Cancelar</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="!userForm.valid">
+    <button mat-stroked-button type="button" (click)="onCancel()" class="btn-cancel">Cancelar</button>
+    <button mat-flat-button class="btn-primary-custom" type="submit" [disabled]="!userForm.valid">
       <mat-icon>person_add</mat-icon>
       Crear Usuario
     </button>

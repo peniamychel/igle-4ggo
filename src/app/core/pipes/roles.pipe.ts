@@ -10,6 +10,6 @@ export class RolesPipe implements PipeTransform {
     if (!roles || !Array.isArray(roles)) {
       return '';
     }
-    return roles.map(role => role.name).join(', ');
+    return roles.map(role => role.nombre || role.name || role.nombreRol || '').filter(Boolean).join(', ');
   }
 }

@@ -8,10 +8,20 @@ import { environment } from '../../../environments/environment';
 export class ImageUrlPipe implements PipeTransform {
   transform(value: string | null | undefined): string {
     if (!value) return '';
+    if (value.endsWith('/') || value === '/uploads/miembros' || value === '/uploads/personas') {
+      return '';
+    }
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) {
       return value;
     }
-    const cleanPath = value.startsWith('/') ? value : `/uploads/personas/${value}`;
+    let cleanPath = '';
+    if (value.startsWith('/')) {
+      cleanPath = value;
+    } else if (value.startsWith('activos/') || value.startsWith('iglesias/') || value.startsWith('miembros/') || value.startsWith('cargos/') || value.startsWith('cartas-traspaso/')) {
+      cleanPath = `/uploads/${value}`;
+    } else {
+      cleanPath = `/uploads/personas/${value}`;
+    }
     return `${environment.apiUrl}${cleanPath}`;
   }
 }

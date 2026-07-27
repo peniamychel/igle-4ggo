@@ -1,0 +1,162 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">print</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Imprimir Certificados</h2>
+      <p class="header-subtitle">{{ certificado.eventoDto?.nombre }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+
+  <!-- Loader -->
+  <div class="loader-container" *ngIf="loading">
+    <span>Cargando participantes...</span>
+  </div>
+
+  <!-- Listado de Participantes con sus Certificados -->
+  <div class="list-section" *ngIf="!loading">
+    <h3 class="section-title">Participantes del Evento ({{ participantes.length }})</h3>
+
+    <div class="table-container">
+      <mat-table [dataSource]="dataSource">
+        <!-- Columna Selección -->
+        <ng-container matColumnDef="select">
+          <mat-header-cell *matHeaderCellDef class="checkbox-header-cell">
+            <mat-checkbox (change)="$event ? masterToggle() : null"
+                          [checked]="selection.hasValue() && isAllSelected()"
+                          [indeterminate]="selection.hasValue() && !isAllSelected()">
+            </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row" class="checkbox-cell">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(row) : null"
+                          [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Miembro (Avatar + Nombre + CI) -->
+        <ng-container matColumnDef="miembro">
+          <mat-header-cell *matHeaderCellDef> Miembro </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="miembro-profile">
+              <div class="miembro-avatar-container">
+                <img *ngIf="item.miembroDto?.uriFoto"
+                     [src]="item.miembroDto.uriFoto | imageUrl"
+                     [alt]="item.miembroDto.nombre"
+                     (error)="onImageError($event)">
+                <div class="miembro-avatar-fallback" [style.display]="item.miembroDto?.uriFoto ? 'none' : 'flex'">
+                  {{ item.miembroDto?.nombre?.charAt(0) || '?' }}
+                </div>
+              </div>
+              <div class="miembro-meta">
+                <span class="nombre">{{ item.miembroDto?.nombre }} {{ item.miembroDto?.apellido }}</span>
+                <span class="ci" *ngIf="item.miembroDto?.ci">CI: {{ item.miembroDto.ci }}</span>
+              </div>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Contacto -->
+        <ng-container matColumnDef="contacto">
+          <mat-header-cell *matHeaderCellDef> Contacto </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="contacto-text" *ngIf="item.miembroDto?.celular">
+              <mat-icon class="inline-icon">phone</mat-icon>
+              {{ item.miembroDto.celular }}
+            </span>
+            <span class="no-contacto" *ngIf="!item.miembroDto?.celular">Sin número</span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Entrega -->
+        <ng-container matColumnDef="entrega">
+          <mat-header-cell *matHeaderCellDef> Estado de Entrega </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="entrega-status">
+              <span class="entrega-badge" [ngClass]="item.entregado ? 'entregado' : 'pendiente'">
+                <mat-icon class="badge-icon">{{ item.entregado ? 'check_circle' : 'hourglass_empty' }}</mat-icon>
+                {{ item.entregado ? 'Entregado' : 'Pendiente' }}
+              </span>
+              <span class="entrega-date" *ngIf="item.entregado && item.fechaEntrega">
+                {{ item.fechaEntrega | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Acciones -->
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef class="acciones-header"> Acciones </mat-header-cell>
+          <mat-cell *matCellDef="let item" class="acciones-cell">
+            <button mat-icon-button class="btn-action-primary print-icon-btn" (click)="printCertificado(item)" matTooltip="Imprimir Certificado">
+              <mat-icon>print</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+        <!-- Hilera para cuando no hay resultados -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data-cell" colspan="5">
+            <div class="no-results">
+              <mat-icon>group_remove</mat-icon>
+              <span>No hay participantes registrados en este evento para generar certificado.</span>
+            </div>
+          </td>
+        </tr>
+      </mat-table>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <div class="footer-content">
+    <div class="progress-info-bottom" *ngIf="printingAll">
+      <mat-icon class="spinner-icon">sync</mat-icon>
+      <span>{{ printingProgress }}</span>
+    </div>
+    
+    <div class="actions-wrapper-bottom" *ngIf="!printingAll">
+      <button mat-stroked-button mat-dialog-close [disabled]="printingAll">Cerrar</button>
+      <button mat-flat-button 
+              class="btn-action-primary print-selected-btn-bottom" 
+              [disabled]="selection.selected.length === 0 || loading || printingAll" 
+              (click)="printSelectedCertificates()">
+        <mat-icon>print</mat-icon>
+        Imprimir Seleccionados ({{ selection.selected.length }})
+      </button>
+    </div>
+  </div>
+</mat-dialog-actions>
+
+<!-- Lienzo oculto para renderizado masivo en PDF -->
+<div *ngIf="plantilla && currentPrintingPart" style="position: absolute; left: -9999px; top: -9999px; overflow: hidden; width: 0; height: 0;">
+  <div class="canvas" [ngClass]="orientacion" id="hidden-render-canvas" style="background-color: white; position: relative;">
+    <div *ngFor="let el of printingElements" 
+         class="render-element" 
+         [style.left.px]="el.x"
+         [style.top.px]="el.y"
+         [style.fontSize.px]="el.fontSize"
+         [style.color]="el.color"
+         [style.zIndex]="el.type === 'marcaAgua' ? 0 : 10">
+         
+         <span *ngIf="el.type === 'text'">{{ el.value }}</span>
+         
+         <div *ngIf="el.type === 'qr'" class="qr-container" [style.width.px]="el.width">
+             <qrcode [qrdata]="printingQrData" [width]="el.width || 80" [errorCorrectionLevel]="'M'"></qrcode>
+         </div>
+
+         <img *ngIf="el.type === 'logo' && logoUrl" [src]="logoUrl" [style.width.px]="el.width" />
+         <img *ngIf="el.type === 'firma' && firmaUrl" [src]="firmaUrl" [style.width.px]="el.width" />
+         <img *ngIf="el.type === 'marcaAgua' && marcaAguaUrl" [src]="marcaAguaUrl" [style.width.px]="el.width" />
+    </div>
+  </div>
+</div>

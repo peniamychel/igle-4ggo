@@ -1,32 +1,15 @@
-import { CanActivateFn } from '@angular/router';
-import {inject} from '@angular/core';
-import {AuthService} from '../services/security/auth.service';
+import { CanActivateFn, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { AuthService } from '../services/security/auth.service';
 
 export const adminGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
+  const router = inject(Router);
 
-  return authService.isLoggedRolAdmin() ;
-  // return false;
+  if (authService.isLoggedRolAdmin()) {
+    return true;
+  } else {
+    router.navigate(['/no-autorizado']);
+    return false;
+  }
 };
-
-
-// PARA USAR VARIOS GUARDS
-// export const multiGuard: CanActivateFn = (route, state) => {
-//   const authGuard = inject(AuthGuard);
-//   const permisosGuard = inject(PermisosGuard);
-//   const extrasGuard = inject(ExtrasGuard);
-//
-//   const path = route.routeConfig?.path;
-//
-//   // Definir qué guards deben aplicarse según el path
-//   switch (path) {
-//     case 'miembro':
-//       return authGuard(route, state) && permisosGuard(route, state) && extrasGuard(route, state);
-//     case 'persona':
-//       return authGuard(route, state);
-//     case 'iglesia':
-//       return authGuard(route, state) && permisosGuard(route, state);
-//     default:
-//       return true;
-//   }
-// };

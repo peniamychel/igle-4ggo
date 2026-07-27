@@ -1,0 +1,577 @@
+<div class="container no-print">
+  <mat-tab-group class="modern-tabs" animationDuration="200ms">
+    <!-- PESTAÑA 1: VISTA GENERAL (Ingresos por Mes) -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">calendar_month</mat-icon>
+        <span>Ingresos por Mes</span>
+      </ng-template>
+      <div class="tab-content">
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">monetization_on</mat-icon>
+              <span>Gestión de Ofrendas y Finanzas</span>
+            </h2>
+            <p class="subtitle-text">Administra los ingresos, egresos y el flujo de caja de la iglesia</p>
+          </div>
+          <div class="header-actions" *ngIf="canWrite">
+            <button mat-stroked-button class="btn-secondary" (click)="openCreateDialog('EGRESO')">
+              <mat-icon>remove</mat-icon>
+              Registrar Egreso
+            </button>
+            <button mat-flat-button class="btn-action-primary" (click)="openCreateDialog('INGRESO')">
+              <mat-icon>add</mat-icon>
+              Registrar Ingreso
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Filtros -->
+        <div class="filters-bar">
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(ngModel)]="selectedYearGeneral" (selectionChange)="onYearGeneralChange()">
+                <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="isAdmin" appearance="outline" class="filter-select">
+              <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="loadGeneralMonthData()">
+                <mat-option [value]="0">Todas las Sedes</mat-option>
+                <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- 3. Lista mensual en forma de Tarjetas / Acordeón -->
+        <div class="months-grid">
+          <div class="month-card" *ngFor="let mes of ingresosMensuales" [class.expanded]="selectedMonthDetail?.month === mes.month">
+            <div class="month-card-header" (click)="verDetalleMes(mes)">
+              <div class="month-info">
+                <span class="month-name">{{ mes.name }}</span>
+                <span class="month-year">{{ selectedYearGeneral }}</span>
+              </div>
+              <div class="month-totals">
+                <div class="totals-col">
+                  <span class="label">Total Ingresos</span>
+                  <span class="amount amount-ingreso">Bs. {{ mes.total | number:'1.2-2' }}</span>
+                </div>
+                <div class="totals-col text-center">
+                  <span class="label">Transacciones</span>
+                  <span class="badge-count">{{ mes.count }}</span>
+                </div>
+              </div>
+              <button mat-icon-button class="expand-btn">
+                <mat-icon>{{ selectedMonthDetail?.month === mes.month ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            </div>
+
+            <!-- Desglose de ingresos (Detalle) -->
+            <div class="month-card-details" *ngIf="selectedMonthDetail?.month === mes.month">
+              <div class="details-divider"></div>
+              <div class="no-data-msg" *ngIf="mes.items.length === 0">
+                No hay ingresos registrados en este mes.
+              </div>
+              <div class="details-list" *ngIf="mes.items.length > 0">
+                <table class="details-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Detalle / Concepto</th>
+                      <th>Iglesia</th>
+                      <th class="text-right">Monto</th>
+                      <th>Registrado por</th>
+                      <th *ngIf="canWrite" class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of mes.items">
+                      <td>{{ row.fechaRecaudacion | date:'dd/MM/yyyy' }}</td>
+                      <td>{{ row.conceptoDetalle }}</td>
+                      <td>{{ row.iglesiaNombre }}</td>
+                      <td class="text-right amount-ingreso font-semibold">Bs. {{ row.monto | number:'1.2-2' }}</td>
+                      <td>{{ row.usuarioTesoreroUsername }}</td>
+                      <td *ngIf="canWrite" class="text-center">
+                        <button mat-icon-button [matMenuTriggerFor]="rowMenu" (click)="$event.stopPropagation()">
+                          <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #rowMenu="matMenu">
+                          <button mat-menu-item (click)="openEditDialog(row)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Editar</span>
+                          </button>
+                          <button mat-menu-item (click)="deleteOfrenda(row)">
+                            <mat-icon style="color: #dc3545;">delete</mat-icon>
+                            <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+                          </button>
+                        </mat-menu>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- PESTAÑA 2: DETALLE DE TRANSACCIONES (Ingresos y Egresos) -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">receipt_long</mat-icon>
+        <span>Ingresos y Egresos Detallados</span>
+      </ng-template>
+      <div class="tab-content">
+        <!-- 1. KPIs -->
+        <div class="kpis-grid-layout kpis-3col">
+          <div class="kpi-box-card">
+            <div class="kpi-circle-icon icon-teal">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="kpi-values-meta">
+              <span class="kpi-num">Bs. {{ resumen.ingresos | number:'1.2-2' }}</span>
+              <span class="kpi-desc-label">Ingresos del Rango</span>
+            </div>
+          </div>
+          <div class="kpi-box-card">
+            <div class="kpi-circle-icon icon-danger">
+              <mat-icon>trending_down</mat-icon>
+            </div>
+            <div class="kpi-values-meta">
+              <span class="kpi-num">Bs. {{ resumen.egresos | number:'1.2-2' }}</span>
+              <span class="kpi-desc-label">Egresos del Rango</span>
+            </div>
+          </div>
+          <div class="kpi-box-card">
+            <div class="kpi-circle-icon" [ngClass]="resumen.neto >= 0 ? 'icon-teal' : 'icon-danger'">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="kpi-values-meta">
+              <span class="kpi-num" [ngClass]="resumen.neto >= 0 ? 'amount-ingreso' : 'amount-egreso'">Bs. {{ resumen.neto | number:'1.2-2' }}</span>
+              <span class="kpi-desc-label">Saldo Neto</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Filtros y Búsqueda -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar transacción... Ej: Luz, Diezmo, Ofrenda">
+          </div>
+
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select w-month">
+              <mat-select [(ngModel)]="filterDesdeMes" (selectionChange)="applyMonthRangeFilter()">
+                <mat-option *ngFor="let name of mesesNombres; let i = index" [value]="i">{{ name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-select w-month">
+              <mat-select [(ngModel)]="filterHastaMes" (selectionChange)="applyMonthRangeFilter()">
+                <mat-option *ngFor="let name of mesesNombres; let i = index" [value]="i">{{ name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-select w-year">
+              <mat-select [(ngModel)]="filterYear" (selectionChange)="applyMonthRangeFilter()">
+                <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="isAdmin" appearance="outline" class="filter-select">
+              <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                <mat-option [value]="0">Todas las Sedes</mat-option>
+                <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-checkbox class="only-egresos-check" [(ngModel)]="showOnlyEgresos" (change)="applyFilters()">
+              Solo Egresos
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <!-- 3. Tabla -->
+        <div class="table-container">
+          <mat-table [dataSource]="dataSource" matSort>
+            <ng-container matColumnDef="fechaRecaudacion">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Fecha </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{ row.fechaRecaudacion | date:'dd/MM/yyyy' }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="conceptoDetalle">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Detalle / Concepto </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{ row.conceptoDetalle }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="iglesiaNombre">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{ row.iglesiaNombre }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="tipoMovimiento">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                <span class="tipo-pill" [ngClass]="row.tipoMovimiento === 'INGRESO' ? 'ingreso' : 'egreso'">
+                  {{ row.tipoMovimiento }}
+                </span>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="monto">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Monto </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="monto-cell" [ngClass]="row.tipoMovimiento === 'INGRESO' ? 'amount-ingreso' : 'amount-egreso'">
+                Bs. {{ row.monto | number:'1.2-2' }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="usuarioTesoreroUsername">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Registrado Por </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{ row.usuarioTesoreroUsername }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+              <mat-cell *matCellDef="let row" class="acciones-cell">
+                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="openEditDialog(row)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteOfrenda(row)">
+                    <mat-icon style="color: #dc3545;">delete</mat-icon>
+                    <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+                  </button>
+                </mat-menu>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+            <!-- Hilera para carga / sin resultados -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell no-data-cell" colspan="7">
+                <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+                <div class="no-results" *ngIf="!isLoading">
+                  <mat-icon>search_off</mat-icon>
+                  <span>No se encontraron movimientos financieros para los filtros seleccionados.</span>
+                </div>
+              </td>
+            </tr>
+          </mat-table>
+
+          <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página"></mat-paginator>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- PESTAÑA 3: IMPRESIÓN DE INFORMES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">print</mat-icon>
+        <span>Impresión de Informes</span>
+      </ng-template>
+      <div class="tab-content">
+        <!-- Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">summarize</mat-icon>
+              <span>Configurar Parámetros del Reporte</span>
+            </h2>
+            <p class="subtitle-text">Genera y descarga el informe económico de ingresos y egresos</p>
+          </div>
+        </div>
+
+        <!-- Formulario Opciones -->
+        <div class="filters-bar report-filters-bar">
+          <div class="select-filters">
+            <!-- Criterio -->
+            <mat-form-field appearance="outline" class="report-field">
+              <mat-label>Criterio de Rango</mat-label>
+              <mat-select [(ngModel)]="reportCriterio" (selectionChange)="generarInforme()">
+                <mat-option value="fechas">Rango de Fechas</mat-option>
+                <mat-option value="semana">Semanas</mat-option>
+                <mat-option value="mes">Meses</mat-option>
+                <mat-option value="anio">Años</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Inputs dinámicos según el criterio -->
+            <ng-container [ngSwitch]="reportCriterio">
+              <!-- Rango de Fechas -->
+              <ng-container *ngSwitchCase="'fechas'">
+                <mat-form-field appearance="outline" class="report-field">
+                  <mat-label>Desde Fecha</mat-label>
+                  <input matInput [matDatepicker]="repDesde" [(ngModel)]="reportStartDate" (dateChange)="generarInforme()">
+                  <mat-datepicker-toggle matIconSuffix [for]="repDesde"></mat-datepicker-toggle>
+                  <mat-datepicker #repDesde></mat-datepicker>
+                  <mat-hint>DD/MM/YYYY</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="report-field">
+                  <mat-label>Hasta Fecha</mat-label>
+                  <input matInput [matDatepicker]="repHasta" [(ngModel)]="reportEndDate" (dateChange)="generarInforme()">
+                  <mat-datepicker-toggle matIconSuffix [for]="repHasta"></mat-datepicker-toggle>
+                  <mat-datepicker #repHasta></mat-datepicker>
+                  <mat-hint>DD/MM/YYYY</mat-hint>
+                </mat-form-field>
+              </ng-container>
+
+              <!-- Semanas -->
+              <ng-container *ngSwitchCase="'semana'">
+                <mat-form-field appearance="outline" class="report-field">
+                  <mat-label>Seleccionar Semana</mat-label>
+                  <input matInput type="week" [(ngModel)]="reportWeek" (change)="generarInforme()">
+                </mat-form-field>
+              </ng-container>
+
+              <!-- Meses -->
+              <ng-container *ngSwitchCase="'mes'">
+                <mat-form-field appearance="outline" class="report-field w-month">
+                  <mat-label>Mes</mat-label>
+                  <mat-select [(ngModel)]="reportMonth" (selectionChange)="generarInforme()">
+                    <mat-option *ngFor="let name of mesesNombres; let i = index" [value]="i">{{ name }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="report-field w-year">
+                  <mat-label>Año</mat-label>
+                  <mat-select [(ngModel)]="reportYear" (selectionChange)="generarInforme()">
+                    <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </ng-container>
+
+              <!-- Años -->
+              <ng-container *ngSwitchCase="'anio'">
+                <mat-form-field appearance="outline" class="report-field w-year">
+                  <mat-label>Año</mat-label>
+                  <mat-select [(ngModel)]="reportYear" (selectionChange)="generarInforme()">
+                    <mat-option *ngFor="let year of anosDisponibles" [value]="year">{{ year }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </ng-container>
+            </ng-container>
+
+            <!-- Filtro iglesia para admin en reporte -->
+            <mat-form-field *ngIf="isAdmin" appearance="outline" class="report-field">
+              <mat-label>Iglesia Sede</mat-label>
+              <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="generarInforme()">
+                <mat-option [value]="0">Todas las Sedes (Consolidado)</mat-option>
+                <mat-option *ngFor="let iglesia of iglesias" [value]="iglesia.id">{{ iglesia.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="header-actions">
+            <button mat-stroked-button class="btn-secondary" (click)="generarInforme()">
+              <mat-icon>refresh</mat-icon> Refrescar
+            </button>
+            <button mat-flat-button class="btn-pdf" [disabled]="reportData.length === 0" (click)="descargarPDF()">
+              <mat-icon>picture_as_pdf</mat-icon> Descargar PDF
+            </button>
+            <button mat-flat-button class="btn-action-primary" [disabled]="reportData.length === 0" (click)="descargarExcel()">
+              <mat-icon>table_view</mat-icon> Descargar Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Vista Previa de Impresión -->
+        <mat-card class="print-preview-card" *ngIf="reportData.length > 0">
+          <div class="print-sheet">
+            <div class="report-header-layout">
+              <img src="/logo.png" alt="Logo" class="report-header-logo">
+              <div class="report-header-text">
+                <h2 class="report-header-title">Movimiento Cristiano Misionero Maranatha</h2>
+                <p class="report-header-subtitle">Informe Económico de Ingresos y Egresos</p>
+              </div>
+            </div>
+            <div class="report-header-divider"></div>
+
+            <div class="print-meta-info">
+              <p class="print-meta-church"><strong>Sede:</strong> {{ getNombreIglesiaReporte() }}</p>
+              <p class="print-meta-dates">
+                <strong>Periodo:</strong>
+                <span [ngSwitch]="reportCriterio">
+                  <span *ngSwitchCase="'fechas'">Del {{ reportStartDate | date:'dd/MM/yyyy' }} al {{ reportEndDate | date:'dd/MM/yyyy' }}</span>
+                  <span *ngSwitchCase="'semana'">Semana: {{ reportWeek }}</span>
+                  <span *ngSwitchCase="'mes'">Mes de {{ mesesNombres[reportMonth] }} del {{ reportYear }}</span>
+                  <span *ngSwitchCase="'anio'">Gestión Anual: {{ reportYear }}</span>
+                </span>
+              </p>
+            </div>
+
+            <!-- Tabla de Resumen -->
+            <div class="print-summary-section">
+              <h4>Resumen Financiero</h4>
+              <table class="print-summary-table">
+                <tbody>
+                  <tr>
+                    <td><strong>Total Ingresos recaudados:</strong></td>
+                    <td class="text-right text-ingreso">Bs. {{ reportResumen.ingresos | number:'1.2-2' }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Total Egresos desembolsados:</strong></td>
+                    <td class="text-right text-egreso">Bs. {{ reportResumen.egresos | number:'1.2-2' }}</td>
+                  </tr>
+                  <tr class="final-balance-row">
+                    <td><strong>Saldo Neto / Caja Chica:</strong></td>
+                    <td class="text-right" [ngClass]="reportResumen.neto >= 0 ? 'text-ingreso' : 'text-egreso'">
+                      Bs. {{ reportResumen.neto | number:'1.2-2' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Tabla Detalle Transacciones -->
+            <div class="print-details-section">
+              <h4>Detalle de Transacciones</h4>
+              <table class="print-details-table">
+                <thead>
+                  <tr>
+                    <th style="width: 12%">Fecha</th>
+                    <th style="width: 48%">Detalle / Concepto</th>
+                    <th style="width: 15%">Sede</th>
+                    <th style="width: 10%">Tipo</th>
+                    <th style="width: 15%" class="text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of reportData">
+                    <td>{{ row.fechaRecaudacion | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ row.conceptoDetalle }}</td>
+                    <td>{{ row.iglesiaNombre }}</td>
+                    <td>{{ row.tipoMovimiento }}</td>
+                    <td class="text-right" [ngClass]="row.tipoMovimiento === 'INGRESO' ? 'text-ingreso' : 'text-egreso'">
+                      Bs. {{ row.monto | number:'1.2-2' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Firmas -->
+            <div class="print-signature-section">
+              <div class="signature-line">
+                <div class="line"></div>
+                <span>Firma Tesorero / Cajero</span>
+              </div>
+              <div class="signature-line">
+                <div class="line"></div>
+                <span>Firma Pastor Responsable</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- No data report -->
+        <div class="no-results no-results-report" *ngIf="reportData.length === 0">
+          <mat-icon>find_in_page</mat-icon>
+          <span>No hay registros para generar la vista previa. Seleccione otros parámetros y haga clic en "Refrescar".</span>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- ========================================== -->
+<!-- HOJA DE IMPRESIÓN OFICIAL (SOLO PARA WINDOW.PRINT) -->
+<!-- ========================================== -->
+<div class="only-print">
+  <div class="print-sheet">
+    <div class="report-header-layout">
+      <img src="/logo.png" alt="Logo" class="report-header-logo">
+      <div class="report-header-text">
+        <h2 class="report-header-title">Movimiento Cristiano Misionero Maranatha</h2>
+        <p class="report-header-subtitle">Informe Económico de Ingresos y Egresos</p>
+      </div>
+    </div>
+    <div class="report-header-divider"></div>
+
+    <div class="print-meta-info">
+      <p class="print-meta-church"><strong>Sede:</strong> {{ getNombreIglesiaReporte() }}</p>
+      <p class="print-meta-dates">
+        <strong>Periodo:</strong>
+        <span [ngSwitch]="reportCriterio">
+          <span *ngSwitchCase="'fechas'">Del {{ reportStartDate | date:'dd/MM/yyyy' }} al {{ reportEndDate | date:'dd/MM/yyyy' }}</span>
+          <span *ngSwitchCase="'semana'">Semana: {{ reportWeek }}</span>
+          <span *ngSwitchCase="'mes'">Mes de {{ mesesNombres[reportMonth] }} del {{ reportYear }}</span>
+          <span *ngSwitchCase="'anio'">Gestión Anual: {{ reportYear }}</span>
+        </span>
+      </p>
+    </div>
+
+    <!-- Resumen -->
+    <div class="print-summary-section">
+      <h4>Resumen Financiero</h4>
+      <table class="print-summary-table">
+        <tbody>
+          <tr>
+            <td><strong>Total Ingresos recaudados:</strong></td>
+            <td class="text-right text-ingreso">Bs. {{ reportResumen.ingresos | number:'1.2-2' }}</td>
+          </tr>
+          <tr>
+            <td><strong>Total Egresos desembolsados:</strong></td>
+            <td class="text-right text-egreso">Bs. {{ reportResumen.egresos | number:'1.2-2' }}</td>
+          </tr>
+          <tr class="final-balance-row">
+            <td><strong>Saldo Neto / Caja Chica:</strong></td>
+            <td class="text-right" [ngClass]="reportResumen.neto >= 0 ? 'text-ingreso' : 'text-egreso'">
+              Bs. {{ reportResumen.neto | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detalle de transacciones -->
+    <div class="print-details-section">
+      <h4>Detalle de Transacciones</h4>
+      <table class="print-details-table">
+        <thead>
+          <tr>
+            <th style="width: 12%">Fecha</th>
+            <th style="width: 48%">Detalle / Concepto</th>
+            <th style="width: 15%">Sede</th>
+            <th style="width: 10%">Tipo</th>
+            <th style="width: 15%" class="text-right">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of reportData">
+            <td>{{ row.fechaRecaudacion | date:'dd/MM/yyyy' }}</td>
+            <td>{{ row.conceptoDetalle }}</td>
+            <td>{{ row.iglesiaNombre }}</td>
+            <td>{{ row.tipoMovimiento }}</td>
+            <td class="text-right" [ngClass]="row.tipoMovimiento === 'INGRESO' ? 'text-ingreso' : 'text-egreso'">
+              Bs. {{ row.monto | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pie de firmas -->
+    <div class="print-signature-section">
+      <div class="signature-line">
+        <div class="line"></div>
+        <span>Firma Tesorero / Cajero</span>
+      </div>
+      <div class="signature-line">
+        <div class="line"></div>
+        <span>Firma Pastor Responsable</span>
+      </div>
+    </div>
+  </div>
+</div>

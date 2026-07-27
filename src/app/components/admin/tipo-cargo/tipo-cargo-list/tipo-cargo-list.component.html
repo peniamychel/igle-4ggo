@@ -1,12 +1,25 @@
-<div class="container">
+<!-- Cabecera de Diálogo (Solo si se abre en Modal) -->
+<div class="dialog-header" *ngIf="dialogRef">
+  <div class="header-title">
+    <mat-icon class="header-icon">church</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Tipos de Ministerio</h2>
+    </div>
+  </div>
+  <button mat-icon-button (click)="dialogRef.close()" class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<div [class.dialog-content]="dialogRef" [class.container]="!dialogRef">
   <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" *appHasPrivilegio="'Escribir Cargos'">
       <mat-icon>add</mat-icon>
-      Nuevo Tipo de Cargo
+      Nuevo Tipo Ministerio
     </button>
     <mat-form-field appearance="outline">
       <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Diácono" #input>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Pastor" #input>
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
   </div>
@@ -24,6 +37,14 @@
       <mat-cell *matCellDef="let item">{{ item.nombre }}</mat-cell>
     </ng-container>
 
+    <ng-container matColumnDef="nombreRol">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Rol del Sistema</mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <span class="rol-badge" *ngIf="item.nombreRol">{{ item.nombreRol }}</span>
+        <span class="sin-rol" *ngIf="!item.nombreRol">—</span>
+      </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="estado">
       <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
       <mat-cell *matCellDef="let item">
@@ -35,22 +56,24 @@
 
     <ng-container matColumnDef="acciones">
       <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <button mat-icon-button color="primary"
-                matTooltip="Editar: {{item.nombre}}" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(item)">
-          <mat-icon>edit</mat-icon>
+      <mat-cell *matCellDef="let item" class="acciones-cell">
+        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()" *ngIf="item.nombreRol !== 'ADMIN'">
+          <mat-icon>more_vert</mat-icon>
         </button>
-        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
-                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); toggleEstado(item)">
-          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-        </button>
-        <button mat-icon-button color="warn"
-                matTooltip="Eliminar" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); deleteTipoCargo(item)">
-          <mat-icon>delete</mat-icon>
-        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Cargos'">
+            <mat-icon>edit</mat-icon>
+            <span>Editar</span>
+          </button>
+          <button mat-menu-item (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Cargos'">
+            <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+            <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+          </button>
+          <button mat-menu-item (click)="deleteTipoCargo(item)" *appHasPrivilegio="'Escribir Cargos'">
+            <mat-icon style="color: #dc3545;">delete</mat-icon>
+            <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+          </button>
+        </mat-menu>
       </mat-cell>
     </ng-container>
 
@@ -58,11 +81,14 @@
     <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
     <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">No se encontraron datos que coincidan con "{{ input.value }}"</td>
+      <td class="mat-cell" colspan="5">
+        <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+        <span *ngIf="!isLoading">No se encontraron datos que coincidan con "{{ input.value }}"</span>
+      </td>
     </tr>
   </mat-table>
 
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de tipos de cargo">
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de tipos ministerio">
   </mat-paginator>
   </div>
 </div>

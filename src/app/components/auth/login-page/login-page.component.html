@@ -1,0 +1,119 @@
+<div class="login-page">
+  <!-- Left Panel — Image + Branding -->
+  <div class="login-hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <img src="/logo.png" alt="Logo" class="hero-logo">
+      <h1 class="hero-title">Movimiento Cristiano<br>Misionero Maranatha</h1>
+      <p class="hero-subtitle">Sistema de Gestión Eclesial</p>
+    </div>
+    <div class="hero-footer">
+      <span class="hero-footer-text">© 2026 Maranatha. Todos los derechos reservados.</span>
+    </div>
+  </div>
+
+  <!-- Right Panel — Login Form -->
+  <div class="login-panel">
+    <button mat-icon-button class="theme-toggle" (click)="toggleTheme()" [matTooltip]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
+      <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+    <div class="login-card">
+      <div class="login-header">
+        <img src="/logo.png" alt="Logo" class="login-logo">
+        <h2 class="login-title">Bienvenido</h2>
+        <p class="login-subtitle">Inicia sesión para continuar</p>
+      </div>
+
+      <form *ngIf="!requiresSelection" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Usuario</mat-label>
+          <input matInput formControlName="username" placeholder="Ingrese su usuario" autocomplete="username">
+          <mat-icon matPrefix>person_outline</mat-icon>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+            El usuario es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'"
+                 formControlName="password"
+                 placeholder="Ingrese su contraseña"
+                 autocomplete="current-password">
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button matSuffix type="button"
+                  (click)="hidePassword = !hidePassword"
+                  class="password-toggle">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            La contraseña es requerida
+          </mat-error>
+        </mat-form-field>
+
+        <div *ngIf="error" class="error-message">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <button mat-raised-button color="primary"
+                type="submit"
+                [disabled]="loginForm.invalid || loading"
+                class="login-button">
+          <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
+          <span *ngIf="!loading">Iniciar Sesión</span>
+        </button>
+
+        <!-- ── Demo Accounts Section ── -->
+        @if (demoAccounts.length) {
+          <div class="demo-section">
+            <div class="demo-divider">
+              <span>CUENTAS DEMO</span>
+            </div>
+            <div class="demo-cards">
+              @for (acc of demoAccounts; track acc.username) {
+                <div class="demo-card" (click)="loginWithDemo(acc)">
+                  <div class="demo-card-left">
+                    <div class="demo-icon-circle">
+                      <mat-icon>{{ acc.icon }}</mat-icon>
+                    </div>
+                    <div class="demo-info">
+                      <span class="demo-title">{{ acc.title }}</span>
+                      <span class="demo-subtitle">{{ acc.subtitle }}</span>
+                    </div>
+                  </div>
+                  <span class="demo-badge">{{ acc.badge }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </form>
+
+      <div *ngIf="requiresSelection" class="selection-container">
+        <h3 class="selection-title">Selecciona una Congregación</h3>
+        <p class="selection-subtitle">Tienes cargos asignados en múltiples iglesias. Elige una para iniciar sesión:</p>
+
+        <div class="church-list">
+          <button type="button" *ngFor="let igl of iglesias" class="church-option-button" (click)="onSelectIglesia(igl.iglesiaId)" [disabled]="loading">
+            <mat-icon class="church-icon">church</mat-icon>
+            <div class="church-info">
+              <span class="church-name">{{ igl.iglesiaNombre }}</span>
+              <span class="church-cargo">{{ igl.cargos.join(', ') }}</span>
+            </div>
+            <mat-icon class="arrow-icon">chevron_right</mat-icon>
+          </button>
+        </div>
+
+        <div *ngIf="error" class="error-message" style="margin-top: 15px;">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <button mat-button class="back-button" (click)="cancelSelection()" [disabled]="loading">
+          <mat-icon>arrow_back</mat-icon> Volver al Login
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

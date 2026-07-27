@@ -1,73 +1,122 @@
 <div class="container">
-  <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Registrar Participación
-    </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Miembro, Evento" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+  <!-- 1. Header (patron canonico, igual al de la pestaña Eventos) -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">group</mat-icon>
+        <span>Participaciones de Evento</span>
+      </h2>
+      <p class="subtitle-text">{{ dataSource.filteredData.length }} registros</p>
+    </div>
+  </div>
+
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por miembro o evento..." #input>
+    </div>
+
+    <div class="custom-filters">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-select [(value)]="selectedTipoEventoId" (selectionChange)="onFilterChange()">
+          <mat-option value="all">Todos los tipos</mat-option>
+          <mat-option *ngFor="let te of tiposEvento" [value]="te.id ? te.id.toString() : ''">{{ te.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <input matInput [(ngModel)]="filterEventoNombre" (input)="onFilterChange()" placeholder="Nombre de evento">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-select [(value)]="selectedCertificadoStatus" (selectionChange)="onFilterChange()">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="con">Con certificado</mat-option>
+          <mat-option value="sin">Sin certificado</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
   <div class="table-container">
-  <mat-table [dataSource]="dataSource" matSort>
+    <mat-table [dataSource]="dataSource" matSort>
 
-    <ng-container matColumnDef="miembro">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Miembro</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ getMiembroNombreCompleto(item.miembroDto) }}</mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Miembro</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="miembro-cell">{{ getMiembroNombreCompleto(item.miembroDto) }}</mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="evento">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Evento</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.eventoDto?.nombre || 'N/A' }}</mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="evento">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Evento</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="evento-cell">{{ item.eventoDto?.nombre || 'N/A' }}</mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="fecha">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.fecha | date:'dd/MM/yyyy' }}</mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="fecha">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="fecha-cell">{{ item.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="certificado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Certificado</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.certificadoDto?.codigoCertificado || 'Sin certificado' }}</mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="certificado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Certificado</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="certificado-cell">{{ item.certificadoDto ? (item.certificadoDto.motivoCertificado || 'Certificado') : 'Sin certificado' }}</mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="estado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
-          {{ item.estado ? 'Activo' : 'Inactivo' }}
-        </span>
-      </mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="estado-pill" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+            {{ item.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </mat-cell>
+      </ng-container>
 
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <button mat-icon-button color="primary"
-                matTooltip="Editar" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(item)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
-                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); toggleEstado(item)">
-          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="acciones-cell">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openDetailDialog(item)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
+            </button>
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="openEditDialog(item)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <button mat-menu-item *ngIf="item.certificadoDto" (click)="downloadPdf(item)">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span>Certificado PDF</span>
+            </button>
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="toggleEstado(item)">
+              <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+              <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+            </button>
+            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="deleteParticipacion(item)">
+              <mat-icon style="color: #dc3545;">delete</mat-icon>
+              <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+            </button>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="6">No se encontraron datos que coincidan con "{{ input.value }}"</td>
-    </tr>
-  </mat-table>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" colspan="6">
+          <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+          <div class="no-results" *ngIf="!isLoading">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron datos que coincidan con la búsqueda.</span>
+          </div>
+        </td>
+      </tr>
+    </mat-table>
 
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de participaciones">
-  </mat-paginator>
+    <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de participaciones">
+    </mat-paginator>
   </div>
 </div>

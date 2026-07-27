@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Cargo, CargoResponse, CargosResponse } from '../models/cargo.model';
@@ -17,20 +17,20 @@ export class CargoService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Obtiene los headers con el token
-   * @returns headers con el token
-   */
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('auth_token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  }
-
-  /**
    * Obtiene todos los cargos
    * @returns lista de cargos
    */
   getCargos(): Observable<CargosResponse> {
-    return this.http.get<CargosResponse>(`${this.apiUrl}/findall`, { headers: this.getHeaders() });
+    return this.http.get<CargosResponse>(`${this.apiUrl}/findall`);
+  }
+
+  /**
+   * Obtiene los colaboradores de la iglesia activa, con datos de miembro y rol embebidos.
+   * Accesible para PASTOR sin necesitar privilegios adicionales.
+   * @returns lista de cargos enriquecidos
+   */
+  getMisColaboradores(): Observable<CargosResponse> {
+    return this.http.get<CargosResponse>(`${this.apiUrl}/mis-colaboradores`);
   }
 
   /**
@@ -39,7 +39,7 @@ export class CargoService {
    * @returns cargo encontrado
    */
   getCargoById(id: number): Observable<CargoResponse> {
-    return this.http.get<CargoResponse>(`${this.apiUrl}/showbyid/${id}`, { headers: this.getHeaders() });
+    return this.http.get<CargoResponse>(`${this.apiUrl}/showbyid/${id}`);
   }
 
   /**
@@ -48,7 +48,7 @@ export class CargoService {
    * @returns cargo creado
    */
   createCargo(cargo: Partial<Cargo>): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, cargo, { headers: this.getHeaders() });
+    return this.http.post(`${this.apiUrl}/create`, cargo);
   }
 
   /**
@@ -57,16 +57,45 @@ export class CargoService {
    * @returns cargo actualizado
    */
   updateCargo(cargo: Partial<Cargo>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, cargo, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/update`, cargo);
   }
 
   /**
    * Cambia el estado de un cargo
    * @param id id del cargo
-   * @returns true si se cambio el estado
+   * @param fechaFin fecha de fin opcional (formato yyyy-MM-dd)
+   * @returns true si el nuevo estado es activo, false si es inactivo
    */
-  toggleEstado(id: number): Observable<boolean> {
-    return this.http.put<boolean>(`${this.apiUrl}/estado/${id}`, {}, { headers: this.getHeaders() });
+  toggleEstado(id: number, fechaFin?: string): Observable<boolean> {
+    let url = `${this.apiUrl}/estado/${id}`;
+    if (fechaFin) {
+      url += `?fechaFin=${fechaFin}`;
+    }
+    return this.http.put<boolean>(url, {});
+  }
+
+  /**
+   * Sube el acta de asignación para un cargo
+   * @param id id del cargo
+   * @param file archivo a subir
+   * @returns URL del archivo subido
+   */
+  uploadActaAsignacion(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/acta-asignacion`, formData);
+  }
+
+  /**
+   * Sube el acta de deslindación para un cargo
+   * @param id id del cargo
+   * @param file archivo a subir
+   * @returns URL del archivo subido
+   */
+  uploadActaDeslindacion(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${id}/acta-deslindacion`, formData);
   }
 
   /**
@@ -74,6 +103,6 @@ export class CargoService {
    * @param id id del cargo
    */
   deleteCargo(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete/${id}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/delete/${id}`);
   }
 }

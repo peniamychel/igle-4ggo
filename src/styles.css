@@ -7,96 +7,106 @@
 /* You can add global styles to this file, and also import other style files */
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 @import 'material-icons/iconfont/material-icons.css';
+@import 'leaflet/dist/leaflet.css';
 @import './app/styles/table-shared.css';
 
 /*@import '@angular/material/prebuilt-themes/purple-green.css';*/
 :root {
-  --bg-app: #f5f7fa;
+  /* New Color Palette */
+  --primary-color: #7F0B85;
+  --primary-rgb: 127, 11, 133;
+  --secondary-color: #857F0B;
+  --secondary-rgb: 133, 127, 11;
+  --accent-color: #0B857F;
+  --accent-rgb: 11, 133, 127;
+
+  /* Backgrounds (lower backgrounds to contrast with tables and cards) */
+  --bg-app: #eef1f6;
   --bg-sidenav: #ffffff;
   --text-primary: #1a1b2f;
-  --text-secondary: #78909c;
-  --border-color: #eceff1;
-  --bg-content: #ffffff;
+  --text-secondary: #5c6bc0;
+  --border-color: #d8dee4;
+  --bg-content: #eef1f6;
   --card-bg: #ffffff;
-  --card-border: #eceff1;
+  --card-border: #d8dee4;
   --toolbar-bg: #ffffff;
   --toolbar-text: #1a1b2f;
 }
 
 .dark-theme {
-  /* Fondo general del body y superficies */
-  --mat-app-background-color: #0f0f12;
+  /* Fondo general del body y superficies - lower background for tables to pop */
+  --mat-app-background-color: #0c0c0f;
   --mat-app-text-color: #e3e2e6;
 
   /* Componentes comunes de Material */
-  --mat-table-background-color: #17171e;
+  --mat-table-background-color: #16161c;
   --mat-table-row-item-label-text-color: #e3e2e6;
   --mat-table-header-headline-color: #c4c6d0;
 
-  --mdc-dialog-container-color: #17171e;
+  --mdc-dialog-container-color: #16161c;
   --mdc-dialog-subhead-color: #e3e2e6;
   --mdc-dialog-supporting-text-color: #c4c6d0;
-  --mat-dialog-container-color: #17171e;
+  --mat-dialog-container-color: #16161c;
   --mat-dialog-heading-color: #e3e2e6;
 
-  --mat-select-panel-background-color: #23232c;
+  --mat-select-panel-background-color: #212128;
   --mat-select-enabled-trigger-text-color: #e3e2e6;
   --mat-select-placeholder-text-color: #8e9099;
-  --mat-select-dropdown-background-color: #23232c;
+  --mat-select-dropdown-background-color: #212128;
   --mat-select-panel-text-color: #e3e2e6;
 
   /* Option items inside select/autocomplete */
   --mat-option-text-color: #e3e2e6;
-  --mat-option-hover-state-layer-color: rgba(124, 77, 255, 0.08);
-  --mat-option-active-state-layer-color: rgba(124, 77, 255, 0.12);
-  --mat-option-selected-state-layer-color: rgba(124, 77, 255, 0.12);
-  --mat-option-selected-state-text-color: #ab92ff;
+  --mat-option-hover-state-layer-color: rgba(var(--primary-rgb), 0.08);
+  --mat-option-active-state-layer-color: rgba(var(--primary-rgb), 0.12);
+  --mat-option-selected-state-layer-color: rgba(var(--primary-rgb), 0.12);
+  --mat-option-selected-state-text-color: #e56bf7; /* light tint of primary for dark mode */
   --mat-option-label-text-color: #e3e2e6;
   --mat-option-disabled-text-color: #555555;
 
   /* Autocomplete panel */
-  --mat-autocomplete-background-color: #23232c;
+  --mat-autocomplete-background-color: #212128;
 
   /* Datepicker */
-  --mat-datepicker-calendar-background-color: #23232c;
+  --mat-datepicker-calendar-background-color: #212128;
   --mat-datepicker-calendar-text-color: #e3e2e6;
   --mat-datepicker-calendar-period-button-text-color: #e3e2e6;
-  --mat-datepicker-calendar-period-button-active-background-color: rgba(124, 77, 255, 0.12);
-  --mat-datepicker-calendar-period-button-active-text-color: #ab92ff;
+  --mat-datepicker-calendar-period-button-active-background-color: rgba(var(--primary-rgb), 0.12);
+  --mat-datepicker-calendar-period-button-active-text-color: #e56bf7;
   --mat-datepicker-calendar-date-picker-toggle-button-color: #c4c6d0;
   --mat-datepicker-calendar-arrow-color: #c4c6d0;
   --mat-datepicker-calendar-day-label-color: #c4c6d0;
   --mat-datepicker-calendar-day-label-active-background-color: transparent;
-  --mat-datepicker-calendar-day-label-active-text-color: #ab92ff;
-  --mat-datepicker-calendar-day-label-hover-background-color: rgba(124, 77, 255, 0.08);
+  --mat-datepicker-calendar-day-label-active-text-color: #e56bf7;
+  --mat-datepicker-calendar-day-label-hover-background-color: rgba(var(--primary-rgb), 0.08);
   --mat-datepicker-calendar-body-active-background-color: transparent;
   --mat-datepicker-calendar-body-active-text-color: #e3e2e6;
   --mat-datepicker-calendar-body-disabled-text-color: #555555;
-  --mat-datepicker-calendar-body-hover-background-color: rgba(124, 77, 255, 0.08);
-  --mat-datepicker-calendar-body-today-indicator-color: #ab92ff;
-  --mat-datepicker-calendar-body-range-background-color: rgba(124, 77, 255, 0.12);
-  --mat-datepicker-calendar-body-selected-background-color: #ab92ff;
+  --mat-datepicker-calendar-body-hover-background-color: rgba(var(--primary-rgb), 0.08);
+  --mat-datepicker-calendar-body-today-indicator-color: #e56bf7;
+  --mat-datepicker-calendar-body-range-background-color: rgba(var(--primary-rgb), 0.12);
+  --mat-datepicker-calendar-body-selected-background-color: #e56bf7;
   --mat-datepicker-calendar-body-selected-text-color: #ffffff;
   --mat-datepicker-calendar-header-divider-color: #2d2f39;
 
-  /* MDC List (used by mat-option, mat-select options) */
+  /* MDC List */
   --mdc-list-list-item-label-text-color: #e3e2e6;
   --mdc-list-list-item-leading-icon-color: #c4c6d0;
   --mdc-list-list-item-trailing-supporting-text-color: #c4c6d0;
   --mdc-list-list-item-hover-label-text-color: #e3e2e6;
   --mdc-list-list-item-hover-leading-icon-color: #c4c6d0;
-  --mdc-list-list-item-hover-container-color: rgba(124, 77, 255, 0.08);
+  --mdc-list-list-item-hover-container-color: rgba(var(--primary-rgb), 0.08);
   --mdc-list-list-item-pressed-label-text-color: #e3e2e6;
-  --mdc-list-list-item-pressed-container-color: rgba(124, 77, 255, 0.12);
-  --mdc-list-list-item-selected-label-text-color: #ab92ff;
-  --mdc-list-list-item-selected-container-color: rgba(124, 77, 255, 0.12);
-  --mdc-list-list-item-selected-leading-icon-color: #ab92ff;
+  --mdc-list-list-item-pressed-container-color: rgba(var(--primary-rgb), 0.12);
+  --mdc-list-list-item-selected-label-text-color: #e56bf7;
+  --mdc-list-list-item-selected-container-color: rgba(var(--primary-rgb), 0.12);
+  --mdc-list-list-item-selected-leading-icon-color: #e56bf7;
 
-  --mat-menu-container-color: #17171e;
+  --mat-menu-container-color: #16161c;
   --mat-menu-item-label-text-color: #e3e2e6;
   --mat-menu-item-icon-color: #c4c6d0;
 
-  --mdc-outlined-card-container-color: #17171e;
+  --mdc-outlined-card-container-color: #16161c;
   --mdc-outlined-card-outline-color: #2d2f39;
   --mdc-elevated-card-container-color: #1f1f27;
 
@@ -105,11 +115,14 @@
   --mdc-outlined-text-field-label-text-color: #c4c6d0;
   --mdc-outlined-text-field-outline-color: #2d2f39;
   --mdc-outlined-text-field-hover-outline-color: #e3e2e6;
-  --mdc-outlined-text-field-focus-outline-color: #ab92ff;
-  --mdc-outlined-text-field-focus-label-text-color: #ab92ff;
-  --mdc-outlined-text-field-caret-color: #ab92ff;
-  --mat-form-field-focus-select-arrow-color: #ab92ff;
+  --mdc-outlined-text-field-focus-outline-color: #e56bf7;
+  --mdc-outlined-text-field-focus-label-text-color: #e56bf7;
+  --mdc-outlined-text-field-caret-color: #e56bf7;
+  --mat-form-field-focus-select-arrow-color: #e56bf7;
   --mat-form-field-select-option-text-color: #e3e2e6;
+  --mat-form-field-placeholder-text-color: #8e9099;
+  --mat-form-field-prefix-text-color: #8e9099;
+  --mat-form-field-suffix-text-color: #8e9099;
 
   /* Inputs Filled */
   --mdc-filled-text-field-container-color: #1f2022;
@@ -117,19 +130,19 @@
   --mdc-filled-text-field-label-text-color: #c4c6d0;
   --mdc-filled-text-field-hover-container-color: #292a2c;
   --mdc-filled-text-field-focus-container-color: #1f2022;
-  --mdc-filled-text-field-focus-label-text-color: #ab92ff;
-  --mdc-filled-text-field-caret-color: #ab92ff;
+  --mdc-filled-text-field-focus-label-text-color: #e56bf7;
+  --mdc-filled-text-field-caret-color: #e56bf7;
 
   /* Paginador */
-  --mat-paginator-container-background-color: #131318;
+  --mat-paginator-container-background-color: #121216;
   --mat-paginator-container-text-color: #e3e2e6;
   --mat-paginator-enabled-icon-color: #c4c6d0;
 
   /* Tabs */
   --mat-tab-header-inactive-label-text-color: #a0a0b0;
-  --mat-tab-header-active-label-text-color: #ab92ff;
-  --mat-tab-header-active-focus-label-text-color: #ab92ff;
-  --mat-tab-header-active-hover-label-text-color: #ab92ff;
+  --mat-tab-header-active-label-text-color: #e56bf7;
+  --mat-tab-header-active-focus-label-text-color: #e56bf7;
+  --mat-tab-header-active-hover-label-text-color: #e56bf7;
   --mat-tab-header-divider-color: #23232c;
 
   /* Botones e Iconos */
@@ -140,27 +153,140 @@
   --mat-ripple-color: rgba(255, 255, 255, 0.08);
 
   /* Sidenav / Drawer */
-  --mat-drawer-container-background-color: #0f0f12;
+  --mat-drawer-container-background-color: #0c0c0f;
   --mat-drawer-container-text-color: #e3e2e6;
-  --mat-drawer-background-color: #17171e;
+  --mat-drawer-background-color: #16161c;
   --mat-drawer-container-divider-color: #23232c;
-  --mat-nav-list-item-hover-container-color: rgba(124, 77, 255, 0.05);
-  --mat-nav-list-item-active-container-color: rgba(124, 77, 255, 0.08);
-  --mat-nav-list-item-active-text-color: #ab92ff;
+  --mat-nav-list-item-hover-container-color: rgba(var(--primary-rgb), 0.05);
+  --mat-nav-list-item-active-container-color: rgba(var(--primary-rgb), 0.08);
+  --mat-nav-list-item-active-text-color: #e56bf7;
   --mat-nav-list-item-icon-color: #c4c6d0;
   --mat-nav-list-item-text-color: #e3e2e6;
 
   /* Nuestras Variables Propias */
-  --bg-app: #0f0f12;
-  --bg-sidenav: #17171e;
+  --bg-app: #0c0c0f;
+  --bg-sidenav: #16161c;
   --text-primary: #e3e2e6;
   --text-secondary: #90a4ae;
   --border-color: #23232c;
-  --bg-content: #0f0f12;
-  --card-bg: #17171e;
+  --bg-content: #0c0c0f;
+  --card-bg: #16161c;
   --card-border: #23232c;
-  --toolbar-bg: #17171e;
+  --toolbar-bg: #16161c;
   --toolbar-text: #e3e2e6;
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — Form field overrides (force over prebuilt theme)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-form-field .mdc-floating-label {
+  color: #8e9099 !important;
+}
+
+.dark-theme .mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #e56bf7 !important;
+}
+
+.dark-theme .mat-mdc-text-field-wrapper {
+  background-color: #1f1f27 !important;
+}
+
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined .mdc-notched-outline__notch {
+  border-color: #2d2f39 !important;
+}
+
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined:hover .mdc-notched-outline__notch {
+  border-color: #8e9099 !important;
+}
+
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing,
+.dark-theme .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch {
+  border-color: #e56bf7 !important;
+}
+
+.dark-theme .mat-mdc-input-element {
+  color: #e3e2e6 !important;
+}
+
+.dark-theme .mat-mdc-input-element::placeholder,
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder {
+  color: #8e9099 !important;
+}
+
+.dark-theme .mat-mdc-form-field-icon-prefix,
+.dark-theme .mat-mdc-form-field-icon-suffix {
+  color: #8e9099 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — Active Basic Buttons (Fix Global)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-button:not(:disabled):not([color]) {
+  color: var(--text-primary) !important;
+}
+
+.dark-theme .mat-mdc-outlined-button:not(:disabled):not([color]) {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — Disabled Buttons (Fix Global)
+   ══════════════════════════════════════════════════ */
+.dark-theme .mat-mdc-button:disabled,
+.dark-theme .mat-mdc-raised-button:disabled,
+.dark-theme .mat-mdc-unelevated-button:disabled,
+.dark-theme .mat-mdc-outlined-button:disabled,
+.dark-theme .mat-mdc-icon-button:disabled,
+.dark-theme .mat-mdc-fab:disabled,
+.dark-theme .mat-mdc-mini-fab:disabled,
+.dark-theme button:disabled,
+.dark-theme button[disabled] {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.dark-theme .mat-mdc-raised-button:disabled,
+.dark-theme .mat-mdc-unelevated-button:disabled,
+.dark-theme .mat-mdc-fab:disabled,
+.dark-theme .mat-mdc-mini-fab:disabled {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark-theme .mat-mdc-outlined-button:disabled {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: transparent !important;
+}
+
+.dark-theme .mat-mdc-button:disabled .mat-icon,
+.dark-theme .mat-mdc-raised-button:disabled .mat-icon,
+.dark-theme .mat-mdc-unelevated-button:disabled .mat-icon,
+.dark-theme .mat-mdc-outlined-button:disabled .mat-icon,
+.dark-theme .mat-mdc-icon-button:disabled .mat-icon,
+.dark-theme button:disabled mat-icon,
+.dark-theme button[disabled] mat-icon {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+/* Login page form field specifics */
+.dark-theme .login-page .mat-mdc-text-field-wrapper,
+.dark-theme .mat-mdc-form-field .mdc-text-field--outlined .mdc-text-field__surface {
+  background-color: #1f1f27 !important;
+}
+
+.dark-theme .login-page .mat-mdc-floating-label,
+.dark-theme .mat-mdc-form-field .mdc-floating-label {
+  color: #9e9e9e !important;
+}
+
+.dark-theme .login-page .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
+.dark-theme .mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #e56bf7 !important;
 }
 
 html,
@@ -273,7 +399,7 @@ body {
 
 /* Title icon */
 [mat-dialog-title] .title-icon {
-  color: var(--mat-tab-header-active-label-text-color, #7c4dff) !important;
+  color: var(--primary-color) !important;
 }
 
 /* Dialog content */
@@ -301,7 +427,7 @@ body {
 }
 
 .mdc-dialog__actions button[mat-dialog-close]:hover {
-  background-color: rgba(124, 77, 255, 0.05) !important;
+  background-color: rgba(var(--primary-rgb), 0.05) !important;
   border-color: var(--text-secondary) !important;
 }
 
@@ -348,7 +474,7 @@ body {
 }
 
 .search-input:focus {
-  border-color: var(--mat-tab-header-active-label-text-color, #7c4dff);
+  border-color: var(--primary-color);
 }
 
 .search-input::placeholder {
@@ -389,7 +515,7 @@ body {
 }
 
 .dark-theme .mat-datepicker-content .mat-calendar-period-button:hover {
-  background-color: rgba(124, 77, 255, 0.08) !important;
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
 }
 
 .dark-theme .mat-datepicker-content .mat-calendar-table {
@@ -410,27 +536,27 @@ body {
 }
 
 .dark-theme .mat-datepicker-content .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
-  background-color: rgba(124, 77, 255, 0.15) !important;
+  background-color: rgba(var(--primary-rgb), 0.15) !important;
 }
 
 /* Selected date — solid purple circle */
 .dark-theme .mat-datepicker-content .mat-calendar-body-selected .mat-calendar-body-cell-content {
-  background-color: #ab92ff !important;
+  background-color: #e56bf7 !important;
   color: #ffffff !important;
   font-weight: 600 !important;
 }
 
 /* TODAY — purple ring around the number */
 .dark-theme .mat-datepicker-content .mat-calendar-body-today .mat-calendar-body-cell-content {
-  border: 2px solid #ab92ff !important;
-  color: #ab92ff !important;
+  border: 2px solid #e56bf7 !important;
+  color: #e56bf7 !important;
   font-weight: 700 !important;
 }
 
 /* TODAY when it's also selected — solid purple */
 .dark-theme .mat-datepicker-content .mat-calendar-body-today.mat-calendar-body-selected .mat-calendar-body-cell-content {
   border: none !important;
-  background-color: #ab92ff !important;
+  background-color: #e56bf7 !important;
   color: #ffffff !important;
 }
 
@@ -469,4 +595,71 @@ body {
 /* CDK Overlay backdrop for dark mode */
 .dark-theme .cdk-overlay-dark-backdrop {
   background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   EXPANSION PANEL — Dark Mode & Theme Compatibility
+   ══════════════════════════════════════════════════ */
+mat-expansion-panel {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+mat-expansion-panel-header {
+  color: var(--text-primary) !important;
+}
+
+.dark-theme mat-expansion-panel-header:not([aria-disabled=true]):hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   NOTIFICACIONES POPOVER DIALOG OVERLAY RESET
+   ══════════════════════════════════════════════════ */
+.solicitudes-popover-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0 !important;
+}
+.solicitudes-popover-panel .mat-mdc-dialog-content {
+  padding: 0 !important;
+  max-height: unset !important;
+}
+.solicitudes-popover-panel {
+  overflow: visible !important;
+}
+
+/* ══════════════════════════════════════════════════
+   AIRE LATERAL UNIFORME EN MÓVIL
+   Cada módulo definía su propio padding en `.container` (24px, 20px, 0…), lo que
+   dejaba "aire" desigual en los extremos en pantallas pequeñas. Se unifica el
+   padding horizontal a 8px en móvil (el shell de la app ya aporta márgenes),
+   dejando el padding vertical de cada módulo intacto.
+   ══════════════════════════════════════════════════ */
+@media (max-width: 599px) {
+  .container,
+  .iglesias-container,
+  .dashboard-container,
+  .settings-page {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   Impresión: ocultar overlays de Angular Material
+   (menús, tooltips, snackbars) para que no se cuelen
+   en la vista previa de impresión de los informes.
+   ══════════════════════════════════════════════════ */
+@media print {
+  .cdk-overlay-container,
+  .cdk-overlay-container * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Modal de vista previa de informe: sin padding para que la barra
+   de acciones y la hoja ocupen todo el diálogo. */
+.preview-dialog-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  padding: 0 !important;
+  overflow: hidden;
 }

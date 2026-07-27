@@ -1,0 +1,70 @@
+<!-- Configuración -->
+<div class="config-bar">
+  <div class="config-filters">
+    <span class="config-title"><mat-icon>tune</mat-icon> Configurar informe de inventario</span>
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin">
+      <mat-label>Iglesia</mat-label>
+      <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="onFiltroChange()">
+        <mat-option value="all">Todas las sedes (consolidado)</mat-option>
+        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="config-actions">
+    <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLote()" [disabled]="isLoading || isGenerating || !iglesias.length">
+      <mat-icon>print</mat-icon>
+      Varias iglesias
+    </button>
+    <button mat-flat-button class="btn-pdf" (click)="descargarPDF()" [disabled]="isLoading || isGenerating || !totalBienes">
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
+    </button>
+  </div>
+</div>
+
+<app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+<ng-container *ngIf="!isLoading">
+  <div class="kpis-row">
+    <div class="kpi-card">
+      <div class="kpi-circle icon-purple"><mat-icon>inventory_2</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ totalBienes }}</span><span class="kpi-label">Bienes</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-teal"><mat-icon>payments</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">Bs. {{ valorTotal | number:'1.2-2' }}</span><span class="kpi-label">Valor estimado</span></div>
+    </div>
+  </div>
+
+  <!-- Gráfico por estado de conservación -->
+  <div class="chart-card" style="margin-bottom: 18px;">
+    <p class="chart-title"><mat-icon>donut_large</mat-icon> Bienes por estado de conservación</p>
+    <div class="chart-canvas" #chartConservacion *ngIf="conservacionData.length; else sinCons">
+      <ngx-charts-pie-chart [view]="view" [scheme]="scheme" [results]="conservacionData"
+        [labels]="true" [doughnut]="true" [arcWidth]="0.35" [animations]="false">
+      </ngx-charts-pie-chart>
+    </div>
+    <ng-template #sinCons><div class="empty-chart">Sin bienes registrados.</div></ng-template>
+  </div>
+
+  <div class="table-card">
+    <table class="preview-table" *ngIf="activos.length; else sinBienes">
+      <thead>
+        <tr><th>Código</th><th>Nombre</th><th>Cant.</th><th>Estado</th><th>Valor (Bs.)</th><th>Adquisición</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of activos">
+          <td>{{ a.codigo || '—' }}</td>
+          <td>{{ a.nombre }}</td>
+          <td>{{ a.cantidad }}</td>
+          <td>{{ a.estadoConservacion || '—' }}</td>
+          <td>{{ (a.valorEstimado || 0) | number:'1.2-2' }}</td>
+          <td>{{ fecha(a) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #sinBienes>
+      <div class="empty-chart">No hay bienes registrados.</div>
+    </ng-template>
+  </div>
+</ng-container>

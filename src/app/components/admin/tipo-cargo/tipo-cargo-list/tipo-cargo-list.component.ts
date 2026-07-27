@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -7,17 +7,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { TipoCargoCreateComponent } from '../tipo-cargo-create/tipo-cargo-create.component';
 import { TipoCargoDetailComponent } from '../tipo-cargo-detail/tipo-cargo-detail.component';
 import { TipoCargoEditComponent } from '../tipo-cargo-edit/tipo-cargo-edit.component';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 
 @Component({
   selector: 'app-tipo-cargo-list',
@@ -36,12 +39,16 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatMenuModule,
+    LoadingSpinnerComponent,
+    HasPrivilegioDirective
   ],
   templateUrl: './tipo-cargo-list.component.html',
   styleUrls: ['./tipo-cargo-list.component.css']
 })
 export class TipoCargoListComponent implements OnInit {
-  displayedColumns: string[] = ['tipo', 'nombre', 'estado', 'acciones'];
+  isLoading = true;
+  displayedColumns: string[] = ['tipo', 'nombre', 'nombreRol', 'estado', 'acciones'];
   dataSource: MatTableDataSource<TipoCargo>;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -50,7 +57,8 @@ export class TipoCargoListComponent implements OnInit {
   constructor(
     private tipoCargoService: TipoCargoService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    @Optional() public dialogRef?: MatDialogRef<TipoCargoListComponent>
   ) {
     this.dataSource = new MatTableDataSource<TipoCargo>([]);
   }
@@ -65,14 +73,19 @@ export class TipoCargoListComponent implements OnInit {
   }
 
   loadTipoCargos() {
-    this.tipoCargoService.getTipoCargos().subscribe(response => {
-      const data = Array.isArray(response.datos) ? [...response.datos] : [];
-      data.sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      this.dataSource.data = data;
+    this.isLoading = true;
+    this.tipoCargoService.getTipoCargos().subscribe({
+      next: response => {
+        const data = Array.isArray(response.datos) ? [...response.datos] : [];
+        data.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        this.dataSource.data = data;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
     });
   }
 
@@ -94,12 +107,16 @@ export class TipoCargoListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadTipoCargos();
-        this.messageSnackBar(`Tipo de Cargo '${result.nombre}' creado`);
+        this.messageSnackBar(`Tipo Ministerio '${result.nombre}' creado`);
       }
     });
   }
 
   openEditDialog(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede editar el rol Administrador', 'warning');
+      return;
+    }
     const dialogRef = this.dialog.open(TipoCargoEditComponent, {
       width: '500px',
       maxWidth: '95vw',
@@ -110,7 +127,7 @@ export class TipoCargoListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadTipoCargos();
-        this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' modificado`);
+        this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' modificado`);
       }
     });
   }
@@ -124,14 +141,22 @@ export class TipoCargoListComponent implements OnInit {
     });
   }
 
+  isAdminRole(tipoCargo: TipoCargo): boolean {
+    return tipoCargo.nombreRol === 'ADMIN';
+  }
+
   toggleEstado(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede desactivar el rol Administrador', 'warning');
+      return;
+    }
     if (tipoCargo.id) {
       const action = tipoCargo.estado ? 'desactivar' : 'activar';
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '400px',
         data: {
           title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} el tipo de cargo <strong>${tipoCargo.nombre}</strong>.`,
+          message: `Está a punto de ${action} el tipo ministerio <strong>${tipoCargo.nombre}</strong>.`,
           confirmText: tipoCargo.estado ? 'Desactivar' : 'Activar',
           type: 'warning'
         }
@@ -141,7 +166,7 @@ export class TipoCargoListComponent implements OnInit {
         if (result && tipoCargo.id) {
           this.tipoCargoService.toggleEstado(tipoCargo.id).subscribe(response => {
             tipoCargo.estado = response.datos.estado;
-            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' ${response.datos.estado ? 'activado' : 'desactivado'}`);
+            this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' ${response.datos.estado ? 'activado' : 'desactivado'}`);
           });
         }
       });
@@ -149,13 +174,17 @@ export class TipoCargoListComponent implements OnInit {
   }
 
   deleteTipoCargo(tipoCargo: TipoCargo) {
+    if (this.isAdminRole(tipoCargo)) {
+      this.messageSnackBar('No se puede eliminar el rol Administrador', 'warning');
+      return;
+    }
     if (!tipoCargo.id) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: '¿Está seguro que desea eliminar?',
-        message: `Está a punto de eliminar el tipo de cargo <strong>${tipoCargo.nombre}</strong>. Esta acción no se puede deshacer.`,
+        message: `Está a punto de eliminar el tipo ministerio <strong>${tipoCargo.nombre}</strong>. Esta acción no se puede deshacer.`,
         confirmText: 'Eliminar',
         type: 'danger'
       }
@@ -166,10 +195,10 @@ export class TipoCargoListComponent implements OnInit {
         this.tipoCargoService.deleteTipoCargo(tipoCargo.id).subscribe({
           next: () => {
             this.loadTipoCargos();
-            this.messageSnackBar(`Tipo de Cargo '${tipoCargo.nombre}' eliminado`);
+            this.messageSnackBar(`Tipo Ministerio '${tipoCargo.nombre}' eliminado`);
           },
           error: () => {
-            this.messageSnackBar('Error al eliminar el tipo de cargo', 'error');
+            this.messageSnackBar('Error al eliminar el tipo ministerio', 'error');
           }
         });
       }

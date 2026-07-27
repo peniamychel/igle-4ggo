@@ -9,7 +9,9 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CargoService } from '../../../../core/services/cargo.service';
+import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { TipoCargo } from '../../../../core/models/tipo-cargo.model';
 import { Miembro } from '../../../../core/models/miembro.model';
@@ -28,7 +30,8 @@ import { Cargo } from '../../../../core/models/cargo.model';
     MatDialogModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSnackBarModule
   ],
   templateUrl: './cargo-create.component.html',
   styleUrls: ['./cargo-create.component.css']
@@ -42,17 +45,20 @@ export class CargoCreateComponent implements OnInit {
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
   filteredMiembros: Miembro[] = [];
-  filterRole: string = '';
-  hideCargoSelect: boolean = false;
+  selectedFile: File | null = null;
+
+  cargosActivos: Cargo[] = [];
 
   constructor(
     private fb: FormBuilder,
     private cargoService: CargoService,
+    private miembroIglesiaService: MiembroIglesiaService,
     private dialogRef: MatDialogRef<CargoCreateComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[], filterRole?: string }
+    private snackBar: MatSnackBar,
+    @Inject(MAT_DIALOG_DATA) public data: { iglesias: Iglesia[], tiposCargo: TipoCargo[], miembros: Miembro[] }
   ) {
     this.cargoForm = this.fb.group({
-      tipoCargoId: ['', Validators.required],
+      rolCargoId: ['', Validators.required],
       iglesiaId: ['', Validators.required],
       idMiembro: ['', Validators.required],
       fechaInicio: ['', Validators.required],
@@ -66,21 +72,71 @@ export class CargoCreateComponent implements OnInit {
       this.iglesias = this.data.iglesias;
       this.filteredIglesias = [...this.iglesias];
       this.tiposCargo = this.data.tiposCargo.filter(tc => tc.estado);
-      this.miembros = this.data.miembros;
-      this.filteredMiembros = [...this.miembros];
-      this.filterRole = this.data.filterRole || '';
-
-      if (this.filterRole) {
-        this.hideCargoSelect = true;
-        const tipoCargoMatch = this.tiposCargo.find(tc => {
-          const nombre = tc.nombre?.toLowerCase() || '';
-          return nombre.includes(this.filterRole.toLowerCase());
-        });
-        if (tipoCargoMatch) {
-          this.cargoForm.patchValue({ tipoCargoId: tipoCargoMatch.id });
+      this.miembros = [];
+      this.filteredMiembros = [];
+      // Cargar cargos para filtrar los miembros que ya tienen roles activos
+      this.cargoService.getCargos().subscribe({
+        next: (res) => {
+          this.cargosActivos = res.datos || [];
+        },
+        error: (err) => {
+          console.error('[CargoCreate] Error loading active cargos:', err);
         }
+      });
+
+      this.registerIglesiaChangeHandler();
+
+      if (this.iglesias.length === 1) {
+        this.cargoForm.patchValue({ iglesiaId: this.iglesias[0].id });
+        this.cargoForm.get('iglesiaId')?.disable();
       }
     }
+  }
+
+  memberCargoName = '';
+
+  checkMiembroCargo(miembroId: number) {
+    if (!miembroId) return;
+    const cargoMiembro = this.cargosActivos.find(c => Number(c.idMiembro) === Number(miembroId) && c.estado === true);
+    if (cargoMiembro) {
+      const rolNombre = cargoMiembro.tipoCargoDto?.nombre || (cargoMiembro as any).rolCargo?.nombre || 'un cargo';
+      this.memberCargoName = rolNombre;
+      this.cargoForm.get('idMiembro')?.setErrors({ yaTieneCargo: true });
+    } else {
+      const control = this.cargoForm.get('idMiembro');
+      if (control?.errors && control.errors['yaTieneCargo']) {
+        const errors = { ...control.errors };
+        delete errors['yaTieneCargo'];
+        control.setErrors(Object.keys(errors).length ? errors : null);
+      }
+    }
+  }
+
+  registerIglesiaChangeHandler() {
+    if (!this.cargoForm.get('iglesiaId')?.value) {
+      this.cargoForm.get('idMiembro')?.disable();
+    }
+
+    // Suscribirse a cambios de miembro para validar si ya tiene cargo
+    this.cargoForm.get('idMiembro')?.valueChanges.subscribe(miembroId => {
+      this.checkMiembroCargo(Number(miembroId));
+    });
+
+    this.cargoForm.get('iglesiaId')?.valueChanges.subscribe(iglesiaId => {
+      if (iglesiaId) {
+        this.cargoForm.get('idMiembro')?.enable();
+        this.miembroIglesiaService.getMiembrosPorIglesia(iglesiaId).subscribe(response => {
+          this.miembros = response.datos || [];
+          this.filteredMiembros = [...this.miembros];
+          this.cargoForm.get('idMiembro')?.setValue('');
+        });
+      } else {
+        this.miembros = [];
+        this.filteredMiembros = [];
+        this.cargoForm.get('idMiembro')?.setValue('');
+        this.cargoForm.get('idMiembro')?.disable();
+      }
+    });
   }
 
   filterIglesias(event: Event) {
@@ -104,7 +160,7 @@ export class CargoCreateComponent implements OnInit {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
     this.filteredMiembros = this.miembros.filter(miembro => {
       const nombreCompleto = this.getMiembroNombreCompleto(miembro).toLowerCase();
-      const ci = (miembro.personaDto?.ci?.toString() || '').toLowerCase();
+      const ci = (miembro.ci?.toString() || '').toLowerCase();
       return nombreCompleto.includes(filterValue) || ci.includes(filterValue);
     });
   }
@@ -121,22 +177,49 @@ export class CargoCreateComponent implements OnInit {
 
   onSubmit() {
     if (this.cargoForm.valid) {
-      const cargoData: Partial<Cargo> = this.cargoForm.value;
-      this.cargoService.createCargo(cargoData).subscribe(() => {
-        this.dialogRef.close(true);
+      const cargoData: Partial<Cargo> = this.cargoForm.getRawValue();
+      this.cargoService.createCargo(cargoData).subscribe({
+        next: (response: any) => {
+          const cargoId = response.datos?.id;
+          if (this.selectedFile && cargoId) {
+            this.cargoService.uploadActaAsignacion(cargoId, this.selectedFile).subscribe({
+              next: () => this.dialogRef.close(true),
+              error: () => this.dialogRef.close(true)
+            });
+          } else {
+            this.dialogRef.close(true);
+          }
+        },
+        error: (err) => {
+          console.error('Error saving cargo:', err);
+          const errorMsg = err.error?.message || 'Error al guardar el cargo. Si el problema persiste, por favor contacte con soporte técnico.';
+          this.snackBar.open(errorMsg, 'Cerrar', { duration: 5000 });
+        }
       });
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+    }
+  }
+
+  removeFile() {
+    this.selectedFile = null;
   }
 
   getError(controlName: string): string {
     const control = this.cargoForm.get(controlName);
     if (control?.hasError('required')) return 'Este campo es requerido';
     if (control?.hasError('maxlength')) return 'Longitud máxima excedida';
+    if (control?.hasError('yaTieneCargo')) return 'Este miembro ya tiene el rol: ' + this.memberCargoName;
     return '';
   }
 
   getMiembroNombreCompleto(miembro: Miembro): string {
-    if (!miembro || !miembro.personaDto) return 'N/A';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return 'N/A';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 }

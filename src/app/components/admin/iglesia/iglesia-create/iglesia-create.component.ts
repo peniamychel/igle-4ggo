@@ -14,6 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { catchError, Observable, of } from 'rxjs';
@@ -30,13 +32,18 @@ import { map } from 'rxjs/operators';
     MatButtonModule,
     MatDatepickerModule,
     MatDialogModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './iglesia-create.component.html',
   styleUrls: ['./iglesia-create.component.css']
 })
 export class IglesiaCreateComponent implements OnInit {
   iglesiaForm: FormGroup;
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+  saving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -47,7 +54,97 @@ export class IglesiaCreateComponent implements OnInit {
     this.iglesiaForm = this.fb.group({
       nombre: ['', { validators: [Validators.required], asyncValidators: [this.nombreValidator], updateOn: 'blur' }],
       direccion: ['', [Validators.required]],
-      // telefono: ['', [Validators.required, Validators.pattern('^[0-9]*$')]]
+      telefono: ['', [Validators.pattern('^[0-9]*$')]],
+      fechaFundacion: [null],
+      latitud: [null],
+      longitud: [null]
+    });
+  }
+
+  map: any;
+  marker: any;
+  defaultLat = -17.288672;
+  defaultLng = -65.918849;
+
+  loadLeaflet(): Promise<any> {
+    if ((window as any).L) {
+      return Promise.resolve((window as any).L);
+    }
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => resolve((window as any).L);
+      script.onerror = (err) => reject(err);
+      document.head.appendChild(script);
+    });
+  }
+
+  initMap(L: any, lat: number, lng: number, hasMarker: boolean) {
+    const coords: [number, number] = [lat, lng];
+    this.map = L.map('map-container').setView(coords, 14);
+
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      attribution: '© Google',
+      maxZoom: 20
+    });
+
+    streetLayer.addTo(this.map);
+
+    const baseMaps = {
+      "Mapa (Calles)": streetLayer,
+      "Satélite": satelliteLayer
+    };
+
+    L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(this.map);
+
+    if (hasMarker) {
+      this.createMarker(L, lat, lng);
+    }
+
+    this.map.on('click', (e: any) => {
+      const position = e.latlng;
+      if (!this.marker) {
+        this.createMarker(L, position.lat, position.lng);
+      } else {
+        this.marker.setLatLng(position);
+      }
+      this.updateCoords(position.lat, position.lng);
+    });
+  }
+
+  createMarker(L: any, lat: number, lng: number) {
+    const coords: [number, number] = [lat, lng];
+    this.marker = L.marker(coords, { draggable: true }).addTo(this.map);
+    this.marker.on('dragend', () => {
+      const position = this.marker.getLatLng();
+      this.updateCoords(position.lat, position.lng);
+    });
+  }
+
+  updateCoords(lat: number, lng: number) {
+    this.iglesiaForm.patchValue({
+      latitud: lat,
+      longitud: lng
+    });
+  }
+
+  clearLocation() {
+    if (this.marker) {
+      this.map.removeLayer(this.marker);
+      this.marker = null;
+    }
+    this.iglesiaForm.patchValue({
+      latitud: null,
+      longitud: null
     });
   }
 
@@ -55,56 +152,88 @@ export class IglesiaCreateComponent implements OnInit {
     if (this.data) {
       this.iglesiaForm.patchValue(this.data);
     }
+    setTimeout(() => {
+      this.loadLeaflet().then(L => {
+        const hasMarker = !!(this.iglesiaForm.value.latitud && this.iglesiaForm.value.longitud);
+        const lat = this.iglesiaForm.value.latitud || this.defaultLat;
+        const lng = this.iglesiaForm.value.longitud || this.defaultLng;
+        this.initMap(L, lat, lng, hasMarker);
+      }).catch(err => {
+        console.error('Error al cargar Leaflet:', err);
+      });
+    }, 150);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.previewUrl = e.target?.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile);
+    }
+  }
+
+  clearFile() {
+    this.selectedFile = null;
+    this.previewUrl = null;
   }
 
   onSubmit() {
     if (this.iglesiaForm.valid) {
-      let iglesiaData = this.iglesiaForm.value;
+      this.saving = true;
+      const iglesiaData = this.iglesiaForm.value;
 
-      this.iglesiaService.createIglesia(iglesiaData).subscribe(() => {
-        this.dialogRef.close(iglesiaData);
+      this.iglesiaService.createIglesia(iglesiaData).subscribe({
+        next: (res) => {
+          const createdId = res?.datos?.id;
+          if (this.selectedFile && createdId) {
+            this.iglesiaService.uploadFoto(createdId, this.selectedFile).subscribe({
+              next: (fotoRes) => {
+                iglesiaData.uriFoto = fotoRes.datos;
+                this.saving = false;
+                this.dialogRef.close(iglesiaData);
+              },
+              error: () => {
+                this.saving = false;
+                this.dialogRef.close(iglesiaData);
+              }
+            });
+          } else {
+            this.saving = false;
+            this.dialogRef.close(iglesiaData);
+          }
+        },
+        error: () => { this.saving = false; }
       });
     }
   }
 
-  /*valida nombre de iglesia si ya existe*/
   nombreValidator = (control: AbstractControl): Observable<ValidationErrors | null> => {
     return this.iglesiaService.buscarNombreIglesia(control.value).pipe(
-      map(iglesia => {
-        return iglesia ? { nameExists: true } : null;
-      }),
-      catchError(() => of(null)) // Si hay un error en la solicitud, no marcará error
+      map(iglesia => iglesia ? { nameExists: true } : null),
+      catchError(() => of(null))
     );
   }
 
   getErrorMessageNombre(controlName: string): string {
     const control = this.iglesiaForm.get(controlName);
-
-    if (control?.hasError('required')) {
-      return 'El nombre de la iglesia es requerido';
-    }
-    if (control?.hasError('nameExists')) {
-      return 'El nombre de la iglesia ya se encuentra registrado';
-    }
+    if (control?.hasError('required')) return 'El nombre de la iglesia es requerido';
+    if (control?.hasError('nameExists')) return 'El nombre de la iglesia ya se encuentra registrado';
     return '';
   }
 
   getErrorMessageDireccion(controlName: string): string {
     const control = this.iglesiaForm.get(controlName);
-    if (control?.hasError('required')) {
-      return 'La direccion es requerida';
-    }
-    return '';
-  }
-  getErrorMessageTelefono(controlName: string): string {
-    const control = this.iglesiaForm.get(controlName);
-    if (control?.hasError('required')) {
-      return 'El telefono es requerido';
-    }
-    if (control?.hasError('pattern')) {
-      return 'Solo se permiten números';
-    }
+    if (control?.hasError('required')) return 'La direccion es requerida';
     return '';
   }
 
+  getErrorMessageTelefono(controlName: string): string {
+    const control = this.iglesiaForm.get(controlName);
+    if (control?.hasError('pattern')) return 'Solo se permiten números';
+    return '';
+  }
 }

@@ -1,9 +1,12 @@
-<div class="config-wrapper">
+<div class="container">
   <!-- ── Encabezado de la Página ── -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Configuración</h1>
-      <p class="page-subtitle">Administra tus preferencias del sistema, seguridad y bitácora de auditoría</p>
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">settings</mat-icon>
+        <span>Configuración</span>
+      </h2>
+      <p class="subtitle-text">Administra tus preferencias del sistema, seguridad y bitácora de auditoría</p>
     </div>
   </div>
 
@@ -11,6 +14,89 @@
   <mat-tab-group [(selectedIndex)]="selectedTabIndex"
                  animationDuration="300ms"
                  class="config-tabs">
+
+    <!-- Tab 0: Iglesia (Only for Pastores) -->
+    <mat-tab *ngIf="isPastor">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">church</mat-icon>
+        <span class="tab-label-text">Mi Iglesia</span>
+      </ng-template>
+      <div class="tab-content">
+        <div class="theme-settings-container" *ngIf="iglesiaPastor">
+          <div class="settings-card-header">
+            <mat-icon class="section-header-icon">church</mat-icon>
+            <div>
+              <h3 class="theme-section-title">Datos de la Iglesia</h3>
+              <p class="section-subtitle">Administra los detalles de la iglesia a tu cargo</p>
+            </div>
+          </div>
+
+          <div class="pastor-church-card">
+            <div class="church-profile-top">
+              <div class="church-avatar-large">
+                <img *ngIf="iglesiaPastor.uriFoto" [src]="iglesiaPastor.uriFoto | imageUrl" [alt]="iglesiaPastor.nombre" />
+                <span *ngIf="!iglesiaPastor.uriFoto"><mat-icon>church</mat-icon></span>
+              </div>
+              <div class="church-meta-large">
+                <h2>{{ iglesiaPastor.nombre }}</h2>
+                <p class="church-status-badge"><span class="badge-status-pill active">Activa</span></p>
+              </div>
+            </div>
+
+            <div class="church-details-list">
+              <div class="detail-row">
+                <mat-icon>place</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Dirección</span>
+                  <span class="detail-value">{{ iglesiaPastor.direccion || 'Sin dirección registrada' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>phone</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Teléfono</span>
+                  <span class="detail-value">{{ iglesiaPastor.telefono || 'Sin teléfono registrado' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>calendar_today</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Fecha de fundación</span>
+                  <span class="detail-value">{{ (iglesiaPastor.fechaFundacion | date:'dd/MM/yyyy') || 'Sin fecha registrada' }}</span>
+                </div>
+              </div>
+              <div class="detail-row">
+                <mat-icon>gps_fixed</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Coordenadas geográficas</span>
+                  <span class="detail-value" *ngIf="iglesiaPastor.latitud && iglesiaPastor.longitud">{{ iglesiaPastor.latitud }}, {{ iglesiaPastor.longitud }}</span>
+                  <span class="detail-value" *ngIf="!iglesiaPastor.latitud || !iglesiaPastor.longitud">No configuradas</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="church-actions-row">
+              <button mat-flat-button color="primary" class="btn-action-primary" (click)="openEditPastorChurch()">
+                <mat-icon>edit</mat-icon>
+                Editar datos de Iglesia
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="placeholder-section" *ngIf="!iglesiaPastor && !loadingIglesia">
+          <mat-icon class="placeholder-icon">warning</mat-icon>
+          <h3>Sin iglesia asignada</h3>
+          <p>No se pudo cargar la información de tu iglesia activa. Por favor, verifica el contexto o inicia sesión nuevamente.</p>
+        </div>
+
+        <div class="placeholder-section" *ngIf="loadingIglesia">
+          <mat-icon class="placeholder-icon rotating">sync</mat-icon>
+          <h3>Cargando información...</h3>
+          <p>Por favor espera un momento.</p>
+        </div>
+      </div>
+    </mat-tab>
 
     <!-- Tab 1: General -->
     <mat-tab>
@@ -94,8 +180,81 @@
       </div>
     </mat-tab>
 
-    <!-- Tab 3: Bitácora de Auditoría (activa por defecto) -->
+    <!-- Tab: Historial de Notificaciones -->
     <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">notifications_none</mat-icon>
+        <span class="tab-label-text">Historial de Notificaciones</span>
+      </ng-template>
+      <div class="tab-content">
+        <div class="theme-settings-container">
+          <div class="settings-card-header">
+            <mat-icon class="section-header-icon">notifications</mat-icon>
+            <div>
+              <h3 class="theme-section-title">Historial de Invitaciones</h3>
+              <p class="section-subtitle">Revisa el registro histórico de las decisiones tomadas frente a invitaciones de eventos. Tabla diseñada bajo el skill <code>igle-app-functionality</code>.</p>
+            </div>
+          </div>
+
+          <div class="loading-shade" *ngIf="loadingHistorial" style="padding: 40px; text-align: center; color: var(--text-muted, rgba(0,0,0,0.54));">
+            <mat-icon class="rotating" style="font-size: 32px; width: 32px; height: 32px; animation: spin 2s linear infinite;">sync</mat-icon>
+            <p style="margin-top: 10px;">Cargando historial de notificaciones...</p>
+          </div>
+
+          <div class="placeholder-section" *ngIf="!loadingHistorial && historialNotificaciones.length === 0">
+            <mat-icon class="placeholder-icon">notifications_off</mat-icon>
+            <h3>Historial vacío</h3>
+            <p>No se han registrado decisiones (aceptar/archivar) sobre invitaciones en esta iglesia.</p>
+          </div>
+
+          <div class="history-table-container mat-elevation-z2" *ngIf="!loadingHistorial && historialNotificaciones.length > 0">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Invitación / Evento</th>
+                  <th>Ubicación</th>
+                  <th>Fecha de Evento</th>
+                  <th>Fecha de Decisión</th>
+                  <th>Decisión</th>
+                  <th class="acciones-header">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of historialNotificaciones">
+                  <td class="evento-cell">
+                    <div class="evento-title-wrapper">
+                      <mat-icon [color]="row.estado === 'ACEPTADO' ? 'primary' : 'accent'" class="estado-icon">
+                        {{ row.estado === 'ACEPTADO' ? 'check_circle' : 'archive' }}
+                      </mat-icon>
+                      <span class="evento-nombre-text">{{ row.nombreEvento }}</span>
+                    </div>
+                  </td>
+                  <td>{{ row.ubicacion || 'Sin ubicación' }}</td>
+                  <td>{{ row.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                  <td class="fecha-decision-cell">{{ formatDate(row.fechaDecision) }}</td>
+                  <td>
+                    <span [class.badge-aceptado]="row.estado === 'ACEPTADO'" [class.badge-archivado]="row.estado === 'ARCHIVADO'" class="decision-pill">
+                      {{ row.estado === 'ACEPTADO' ? 'Aceptada' : 'Archivada' }}
+                    </span>
+                  </td>
+                  <td class="acciones-cell-right">
+                    <button mat-icon-button class="mac-mini-btn mac-btn-reactivate" *ngIf="row.estado === 'ARCHIVADO'" (click)="cambiarEstadoDecision(row, 'ACEPTADO')" matTooltip="Aceptar Invitación">
+                      <mat-icon>done</mat-icon>
+                    </button>
+                    <button mat-icon-button class="mac-mini-btn mac-btn-archive" *ngIf="row.estado === 'ACEPTADO'" (click)="cambiarEstadoDecision(row, 'ARCHIVADO')" matTooltip="Archivar Invitación">
+                      <mat-icon>archive</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Bitácora de Auditoría (activa por defecto) -->
+    <mat-tab *ngIf="canViewBitacora">
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">history</mat-icon>
         <span class="tab-label-text">Bitácora de Auditoría</span>

@@ -12,6 +12,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 import { CargoService } from '../../../../core/services/cargo.service';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
@@ -23,9 +25,15 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { CargoCreateComponent } from '../cargo-create/cargo-create.component';
 import { CargoDetailComponent } from '../cargo-detail/cargo-detail.component';
 import { CargoEditComponent } from '../cargo-edit/cargo-edit.component';
+import { CargoBajaDialogComponent } from '../cargo-baja-dialog/cargo-baja-dialog.component';
+import { TipoCargoListComponent } from '../../tipo-cargo/tipo-cargo-list/tipo-cargo-list.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
+import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cargo-list',
@@ -44,18 +52,31 @@ import { forkJoin } from 'rxjs';
     MatCardModule,
     MatTooltipModule,
     MatChipsModule,
+    MatSelectModule,
+    MatMenuModule,
+    ImageUrlPipe,
+    HasPrivilegioDirective,
+    LoadingSpinnerComponent
   ],
   templateUrl: './cargo-list.component.html',
   styleUrls: ['./cargo-list.component.css']
 })
 export class CargoListComponent implements OnInit {
-  displayedColumns: string[] = ['iglesia', 'tipoCargo', 'miembro', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
+  isLoading = true;
+  displayedColumns: string[] = ['miembro', 'tipoCargo', 'iglesia', 'fechaInicio', 'fechaFin', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Cargo>;
 
   iglesias: Iglesia[] = [];
   tiposCargo: TipoCargo[] = [];
   miembros: Miembro[] = [];
-  filterRole: string = '';
+  selectedTipoCargoId: string = 'all';
+  allCargos: Cargo[] = [];
+
+  // Métricas para el Dashboard
+  totalObrerosCount: number = 0;
+  obrerosActivosCount: number = 0;
+  obrerosInactivosCount: number = 0;
+  tiposMinisterioCount: number = 0;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -72,16 +93,57 @@ export class CargoListComponent implements OnInit {
     this.dataSource = new MatTableDataSource<Cargo>([]);
   }
 
+  getAge(fechaNac: Date | string | null | undefined): string {
+    if (!fechaNac) return 'Edad desconocida';
+    const birth = new Date(fechaNac);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return `${age} años`;
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling as HTMLElement;
+    if (placeholder) {
+      placeholder.style.display = 'flex';
+    }
+  }
+
   ngOnInit() {
-    this.route.data.subscribe(data => {
-      this.filterRole = data['filterRole'] || '';
-    });
     this.loadInitialData();
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    this.configureSorting();
+  }
+
+  configureSorting() {
+    this.dataSource.sortingDataAccessor = (item: Cargo, property: string) => {
+      switch (property) {
+        case 'iglesia':
+          return item.iglesiaDto?.nombre ? item.iglesiaDto.nombre.toLowerCase() : '';
+        case 'tipoCargo':
+          return item.tipoCargoDto?.nombre ? item.tipoCargoDto.nombre.toLowerCase() : '';
+        case 'miembro':
+          return item.miembroDto ? `${item.miembroDto.nombre} ${item.miembroDto.apellido}`.toLowerCase() : '';
+        case 'fechaInicio':
+          return item.fechaInicio ? new Date(item.fechaInicio).getTime() : 0;
+        case 'fechaFin':
+          return item.fechaFin ? new Date(item.fechaFin).getTime() : 0;
+        case 'estado':
+          return item.estado ? 1 : 0;
+        default:
+          const value = (item as any)[property];
+          return typeof value === 'string' ? value.toLowerCase() : value;
+      }
+    };
   }
 
   loadInitialData() {
@@ -98,14 +160,12 @@ export class CargoListComponent implements OnInit {
   }
 
   get displayedColumnsForView(): string[] {
-    if (this.filterRole) {
-      return this.displayedColumns.filter(col => col !== 'tipoCargo' && col !== 'fechaFin');
-    }
     return this.displayedColumns.filter(col => col !== 'fechaFin');
   }
 
   loadCargos() {
-    this.cargoService.getCargos().subscribe(response => {
+    this.isLoading = true;
+    this.cargoService.getCargos().pipe(finalize(() => this.isLoading = false)).subscribe(response => {
       let cargos = Array.isArray(response.datos) ? response.datos : [];
       cargos.sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
@@ -114,27 +174,39 @@ export class CargoListComponent implements OnInit {
       });
       cargos.forEach(cargo => {
         cargo.iglesiaDto = this.iglesias.find(i => i.id === cargo.iglesiaId);
-        cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.tipoCargoId);
+        cargo.tipoCargoDto = this.tiposCargo.find(tc => tc.id === cargo.rolCargoId);
         cargo.miembroDto = this.miembros.find(m => m.id === cargo.idMiembro);
       });
       
-      this.route.data.subscribe(data => {
-        const filterRole = data['filterRole'];
-        if (filterRole) {
-          const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
-          this.dataSource.data = cargos.filter(cargo => 
-            cargo.tipoCargoDto && normalize(cargo.tipoCargoDto.nombre).includes(normalize(filterRole))
-          );
-        } else {
-          this.dataSource.data = cargos;
-        }
-      });
+      this.allCargos = cargos;
+      this.calculateMetrics();
+      this.applyLocalFilters();
     });
   }
 
+  calculateMetrics() {
+    this.totalObrerosCount = this.allCargos.length;
+    this.obrerosActivosCount = this.allCargos.filter(c => c.estado).length;
+    this.obrerosInactivosCount = this.allCargos.filter(c => !c.estado).length;
+    this.tiposMinisterioCount = this.tiposCargo.filter(tc => tc.estado).length;
+  }
+
+  applyLocalFilters() {
+    if (this.selectedTipoCargoId !== 'all') {
+      const targetId = Number(this.selectedTipoCargoId);
+      this.dataSource.data = this.allCargos.filter(cargo => cargo.rolCargoId === targetId);
+    } else {
+      this.dataSource.data = this.allCargos;
+    }
+  }
+
+  onFilterChange() {
+    this.applyLocalFilters();
+  }
+
   getMiembroNombreCompleto(miembro?: Miembro): string {
-    if (!miembro || !miembro.personaDto) return 'N/A';
-    return `${miembro.personaDto.nombre} ${miembro.personaDto.apellido}`;
+    if (!miembro) return 'N/A';
+    return `${miembro.nombre} ${miembro.apellido}`;
   }
 
   applyFilter(event: Event) {
@@ -160,12 +232,11 @@ export class CargoListComponent implements OnInit {
       width: '600px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
-      data: {
-        iglesias: this.iglesias,
-        tiposCargo: this.tiposCargo,
-        miembros: this.miembros,
-        filterRole: this.filterRole
-      }
+        data: {
+          iglesias: this.iglesias,
+          tiposCargo: this.tiposCargo,
+          miembros: this.miembros
+        }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -199,35 +270,93 @@ export class CargoListComponent implements OnInit {
 
   openDetailDialog(cargo: Cargo) {
     this.dialog.open(CargoDetailComponent, {
-      width: '600px',
+      width: '800px',
       maxWidth: '95vw',
       panelClass: 'dialog-fullscreen-mobile',
       data: cargo
     });
   }
 
+  openTiposMinisterioDialog() {
+    const dialogRef = this.dialog.open(TipoCargoListComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialData();
+    });
+  }
+
   toggleEstado(cargo: Cargo) {
     if (cargo.id) {
-      const action = cargo.estado ? 'desactivar' : 'activar';
-      const cargoName = cargo.tipoCargoDto?.nombre || 'este cargo';
-      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        width: '400px',
-        data: {
-          title: `¿Está seguro que desea ${action}?`,
-          message: `Está a punto de ${action} el cargo <strong>${cargoName}</strong>.`,
-          confirmText: cargo.estado ? 'Desactivar' : 'Activar',
-          type: 'warning'
-        }
-      });
+      if (cargo.estado) {
+        // Dar de baja - Abrir diálogo personalizado
+        const dialogRef = this.dialog.open(CargoBajaDialogComponent, {
+          width: '450px',
+          maxWidth: '95vw',
+          panelClass: 'dialog-fullscreen-mobile',
+          data: { cargo }
+        });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result && cargo.id) {
-          this.cargoService.toggleEstado(cargo.id).subscribe(newEstado => {
-            cargo.estado = newEstado;
-            this.messageSnackBar(`Cargo ${newEstado ? 'activado' : 'desactivado'}`);
-          });
-        }
-      });
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            const fechaString = result.fechaFin instanceof Date
+              ? result.fechaFin.toISOString().split('T')[0]
+              : '';
+
+            this.cargoService.toggleEstado(cargo.id!, fechaString).subscribe({
+              next: () => {
+                if (result.file) {
+                  this.cargoService.uploadActaDeslindacion(cargo.id!, result.file).subscribe({
+                    next: () => {
+                      this.messageSnackBar('Obrero dado de baja exitosamente');
+                      this.loadCargos();
+                    },
+                    error: () => {
+                      this.messageSnackBar('Baja registrada, pero hubo un error al subir el acta');
+                      this.loadCargos();
+                    }
+                  });
+                } else {
+                  this.messageSnackBar('Obrero dado de baja exitosamente');
+                  this.loadCargos();
+                }
+              },
+              error: () => {
+                this.messageSnackBar('Error al dar de baja al obrero', 'error');
+              }
+            });
+          }
+        });
+      } else {
+        // Reactivar - Confirmación simple
+        const cargoName = cargo.tipoCargoDto?.nombre || 'este cargo';
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '400px',
+          data: {
+            title: '¿Reactivar cargo del obrero?',
+            message: `Está a punto de reactivar el cargo de <strong>${cargoName}</strong>. La fecha de finalización se eliminará del historial.`,
+            confirmText: 'Reactivar',
+            type: 'warning'
+          }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result && cargo.id) {
+            this.cargoService.toggleEstado(cargo.id).subscribe({
+              next: () => {
+                this.messageSnackBar('Cargo reactivado exitosamente');
+                this.loadCargos();
+              },
+              error: () => {
+                this.messageSnackBar('Error al reactivar el cargo', 'error');
+              }
+            });
+          }
+        });
+      }
     }
   }
 

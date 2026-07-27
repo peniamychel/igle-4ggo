@@ -1,0 +1,244 @@
+/* ========================================
+   Certificado Verificar Dialog Component Styles
+   ======================================== */
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  color: var(--primary-color, #7F0B85);
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.header-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.close-btn {
+  color: #a0aec0;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #4a5568;
+}
+
+.dialog-content {
+  padding: 20px 24px !important;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+/* Tabs */
+.modern-tabs {
+  margin-top: 5px;
+}
+
+.tab-icon {
+  margin-right: 8px;
+}
+
+.tab-pane-content {
+  padding: 24px 0 12px 0;
+}
+
+.instructions-text {
+  font-size: 0.9rem;
+  color: #4a5568;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ----------------------------------------
+   Pestaña 1: Escáner QR
+   ---------------------------------------- */
+.scanner-outer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.scanner-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 320px;
+  background-color: #1a202c;
+  border-radius: 20px;
+  border: 3px solid #edf2f7;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.3s ease;
+}
+
+.scanner-viewport.camera-active {
+  border-color: var(--primary-color, #7F0B85);
+}
+
+/* Contenedor del video html5-qrcode */
+#qr-scanner-reader {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+::ng-deep #qr-scanner-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Línea láser de escaneo animada */
+.scanner-laser-line {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  width: 90%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary-color, #7F0B85) 50%, transparent);
+  box-shadow: 0 0 8px var(--primary-color, #7F0B85);
+  animation: scan 2.5s infinite linear;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% {
+    top: 5%;
+  }
+  50% {
+    top: 95%;
+  }
+  100% {
+    top: 5%;
+  }
+}
+
+.camera-error-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 20px;
+  color: #c53030;
+  font-size: 0.88rem;
+  max-width: 350px;
+  line-height: 1.4;
+}
+
+.error-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------
+   Pestaña 2: Entrada Manual
+   ---------------------------------------- */
+.manual-tab-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.manual-input-container {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  justify-content: center;
+  margin: 15px 0 25px 0;
+}
+
+.code-form-field {
+  width: 100%;
+}
+
+.manual-code-input {
+  text-align: center !important;
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 6px !important;
+  text-transform: uppercase !important;
+  height: auto !important;
+  color: var(--primary-color, #7F0B85) !important;
+}
+
+::ng-deep .code-form-field .mat-mdc-form-field-subscript-wrapper {
+  text-align: center;
+}
+
+.manual-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn-verify-manual {
+  background-color: var(--primary-color, #7F0B85) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  height: 48px !important;
+  padding: 0 32px !important;
+  font-size: 1rem !important;
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-verify-manual:hover:not([disabled]) {
+  background-color: #630568 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(127, 11, 133, 0.3) !important;
+}
+
+.btn-verify-manual[disabled] {
+  background-color: rgba(0, 0, 0, 0.12) !important;
+  color: rgba(0, 0, 0, 0.26) !important;
+  box-shadow: none !important;
+}
+
+/* Dialog Actions */
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #edf2f7;
+  background-color: #f8fafc;
+}
+
+.btn-cancel {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  color: #718096 !important;
+}
+
+.btn-cancel:hover {
+  background-color: #edf2f7 !important;
+}

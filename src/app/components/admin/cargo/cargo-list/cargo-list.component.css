@@ -1,59 +1,470 @@
+/* ========================================
+   Obreros List — Skill: igle_list_layout
+   ======================================== */
+
+/* 1. Contenedor principal (Flexbox) */
 .container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
-.nuevo-buscar {
+/* 2. Header */
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.mat-form-field {
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
+}
+
+.icon-primary {
+  color: var(--primary-color, #7c4dff);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-action-primary {
+  background-color: var(--primary-color, #7c4dff) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  height: 42px !important;
+  padding: 0 18px !important;
+  font-size: 0.88rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-action-primary:hover {
+  background-color: #673ab7 !important;
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.25) !important;
+}
+
+.btn-secondary {
+  border-color: var(--border-color, #e3e8ee) !important;
+  color: var(--text-primary, #1a1f36) !important;
+  border-radius: 10px;
+  font-weight: 600;
+  height: 42px;
+  padding: 0 18px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(124, 77, 255, 0.04) !important;
+  border-color: var(--primary-color, #7c4dff) !important;
+}
+
+/* 3. KPIs */
+.kpis-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.kpi-box-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.015);
+}
+
+.kpi-circle-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-circle-icon mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-purple { background-color: #f1edff; color: #7c4dff; }
+.icon-teal   { background-color: #e6fcf5; color: #00bfa5; }
+.icon-blue   { background-color: #e8f2ff; color: #2979ff; }
+.icon-amber  { background-color: #fff8e6; color: #ffab00; }
+
+.kpi-values-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  line-height: 1;
+}
+
+.kpi-desc-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+}
+
+/* 4. Filtros y Búsqueda */
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 30px;
+  padding: 6px 18px;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+  max-width: 600px;
+  height: 48px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary-color, #7c4dff);
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.08);
+}
+
+.search-icon {
+  color: var(--text-secondary, #8792a2);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
   font-size: 14px;
-  width: 300px;
+  color: var(--text-primary, #1a1f36);
+  width: 100%;
 }
 
+.search-box input::placeholder {
+  color: var(--text-secondary, #8792a2);
+  opacity: 0.8;
+}
+
+.select-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  width: 260px;
+}
+
+/* Angular Material overrides (estilo píldora) */
+::ng-deep .filter-select .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+::ng-deep .filter-select .mdc-notched-outline__leading,
+::ng-deep .filter-select .mdc-notched-outline__trailing,
+::ng-deep .filter-select .mdc-notched-outline__notch {
+  border: none !important;
+}
+
+::ng-deep .filter-select .mat-mdc-text-field-wrapper {
+  height: 48px !important;
+  border-radius: 30px !important;
+  border: 1px solid var(--border-color, #e3e8ee) !important;
+  background-color: var(--card-bg, #ffffff) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+::ng-deep .filter-select.mat-focused .mat-mdc-text-field-wrapper {
+  border-color: var(--primary-color, #7c4dff) !important;
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.08) !important;
+}
+
+/* 5. Tabla */
 .table-container {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
   border-radius: 16px;
-  overflow: hidden;
-  transition: background-color 0.25s ease, border-color 0.25s ease;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mat-table {
   width: 100%;
 }
 
-.clickable-row {
+.clickable-row:hover {
+  background-color: rgba(124, 77, 255, 0.03) !important;
   cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .mat-column-tipoCargo,
-  .mat-column-fechaInicio,
-  .mat-column-fechaFin {
-    display: none;
-  }
+/* Obrero Profile & Avatar */
+.miembro-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
 
+.miembro-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.miembro-avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color, #e3e8ee);
+}
+
+.miembro-avatar-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(124, 77, 255, 0.05) 100%);
+  border: 2px solid rgba(124, 77, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #7c4dff);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.miembro-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.miembro-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary, #1a1f36);
+}
+
+.miembro-ci-age {
+  font-size: 0.76rem;
+  color: var(--text-secondary, #697386);
+}
+
+/* Badges and tags */
+.cargo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.dark-theme .cargo-badge {
+  background-color: rgba(146, 64, 14, 0.2);
+  color: #fcd34d;
+  border-color: rgba(252, 211, 77, 0.3);
+}
+
+.iglesia-name-label {
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--text-primary, #1a1f36);
+}
+
+/* Columna Fecha */
+.bautismo-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-primary, #1a1f36);
+}
+
+.bautismo-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color);
+}
+
+/* Estado Badge */
+.estado-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.estado-pill.clickable {
+  cursor: pointer;
+}
+
+.estado-pill.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.15);
+}
+
+.estado-pill.inactivo {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid rgba(198, 40, 40, 0.15);
+}
+
+.dark-theme .estado-pill.activo {
+  background-color: rgba(46, 125, 50, 0.15);
+  color: #81c784;
+}
+
+.dark-theme .estado-pill.inactivo {
+  background-color: rgba(198, 40, 40, 0.15);
+  color: #e57373;
+}
+
+/* Acciones */
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Column Widths */
+.mat-column-miembro {
+  flex: 2.2 !important;
+  min-width: 220px !important;
+}
+
+.mat-column-tipoCargo {
+  flex: 1.5 !important;
+  min-width: 150px !important;
+}
+
+.mat-column-iglesia {
+  flex: 2.0 !important;
+  min-width: 180px !important;
+}
+
+.mat-column-fechaInicio {
+  flex: 1.2 !important;
+  min-width: 120px !important;
+}
+
+.mat-column-estado {
+  flex: 0.8 !important;
+  min-width: 90px !important;
+}
+
+.mat-column-acciones {
+  flex: 1.2 !important;
+  min-width: 130px !important;
+}
+
+/* 6. Responsive */
+@media (max-width: 900px) {
+  .kpis-grid-layout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .kpis-grid-layout {
+    grid-template-columns: 1fr;
+  }
   .container {
-    padding: 12px;
+    padding: 16px;
   }
-
-  .nuevo-buscar {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
-
-  .nuevo-buscar button {
+  .header-actions button {
     width: 100%;
-    margin-bottom: 12px;
   }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    max-width: 100%;
+  }
+  .select-filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-select {
+    width: 100% !important;
+  }
+}
 
-  .mat-form-field {
-    width: 100%;
+@media (max-width: 768px) {
+  .mat-column-fechaInicio {
+    display: none !important;
   }
 }

@@ -8,7 +8,6 @@ import {
   SingleUserResponse,
   CreateUserDto,
   UpdateUserDto,
-  UpdateUserRolesDto,
   ChangePasswordDto,
   AdminResetPasswordDto
 } from '../models/user.model';
@@ -51,23 +50,8 @@ export class UserService {
    * @param user usuario a actualizar
    * @returns usuario actualizado
    */
-  updateUser(user: {
-    apellidos: any;
-    name: string;
-    id: number | undefined;
-    email: any;
-    username: any
-  }): Observable<User> {
+  updateUser(user: UpdateUserDto): Observable<User> {
     return this.http.put<User>(`${this.API_URL}/update`, user);
-  }
-
-  /**
-   * Actualiza los roles de un usuario
-   * @param updateRoles roles del usuario a actualizar
-   * @returns usuario actualizado
-   */
-  updateUserRoles(updateRoles: UpdateUserRolesDto): Observable<User> {
-    return this.http.put<User>(`${this.API_URL}/update-roles`, updateRoles);
   }
 
   /**
@@ -109,10 +93,14 @@ export class UserService {
     return this.http.delete(`${this.API_URL}/${id}/foto`);
   }
 
-  // getUserByNameForToken(): Observable<CreateUserDto> {
-  //   return this.http.get<CreateUserDto>(`${this.API_URL}/findbyusername`, {});
-  // }
-
+  /**
+   * Elimina un usuario del sistema
+   * @param id id del usuario
+   * @returns respuesta de la API
+   */
+  deleteUser(id: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/delete/${id}`);
+  }
 
   /**
    * Obtiene un usuario por nombre de usuario
@@ -122,17 +110,16 @@ export class UserService {
   getUserByNameForToken(): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/findbyusername`).pipe(
       map((response) => {
-        // Mapea la respuesta JSON a CreateUserDto
         const datos = response.datos;
+        const { password, ...datosSinPassword } = datos;
         return {
-          id: datos.id,
-          email: datos.email,
-          username: datos.username,
-          name: datos.name,
-          apellidos: datos.apellidos,
-          uriFoto: datos.uriFoto,
-          password: datos.password,
-          roles: datos.roles.map((role: { id: number; name: string }) => role.name)
+          id: datosSinPassword.id,
+          email: datosSinPassword.email,
+          username: datosSinPassword.username,
+          name: datosSinPassword.name,
+          apellidos: datosSinPassword.apellidos,
+          uriFoto: datosSinPassword.uriFoto,
+          roles: datosSinPassword.roles ? datosSinPassword.roles.map((role: any) => role.nombreRol || role.nombre || role.name || '') : []
         };
       })
     );

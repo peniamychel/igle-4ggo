@@ -1,0 +1,188 @@
+<div class="container">
+
+  <!-- 1. Header -->
+  <div class="header-section">
+    <div class="title-meta">
+      <h2 class="page-title">
+        <mat-icon class="icon-primary">people</mat-icon>
+        <span>Miembros Iglesia: {{ selectedIglesia?.nombre || 'Cargando...' }}</span>
+      </h2>
+      <p class="subtitle-text">
+        {{ miembrosCount }} miembros registrados
+      </p>
+    </div>
+    <div class="header-actions">
+      <!-- Herramientas: exportación (Directorio PDF / Excel) + plantilla e importación.
+           Exportar está disponible para todos; plantilla/importar requieren privilegio
+           de escritura. La plantilla del pastor NO lleva columna Iglesia; el backend
+           asigna los miembros a su iglesia (tomada del token). -->
+      <button mat-stroked-button [matMenuTriggerFor]="toolsMenu" class="btn-tools-menu"
+              matTooltip="Exportar / Plantilla / Importar">
+        <mat-icon>tune</mat-icon>
+        <span>Herramientas</span>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #toolsMenu="matMenu">
+        <button mat-menu-item (click)="generatePDF()">
+          <mat-icon style="color: #e53935;">picture_as_pdf</mat-icon>
+          <span>Directorio PDF</span>
+        </button>
+        <button mat-menu-item (click)="exportToExcel()">
+          <mat-icon style="color: #1e7e34;">grid_on</mat-icon>
+          <span>Exportar a Excel</span>
+        </button>
+
+        <ng-container *ngIf="hasPrivilegio('Escribir MiembroIglesia')">
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="descargarPlantilla()">
+            <mat-icon style="color: #2e7d32;">table_view</mat-icon>
+            <span>Descargar Plantilla Excel</span>
+          </button>
+          <button mat-menu-item (click)="excelInput.click()">
+            <mat-icon style="color: #2e7d32;">upload_file</mat-icon>
+            <span>Importar desde Excel</span>
+          </button>
+        </ng-container>
+      </mat-menu>
+
+      <!-- Input oculto para importar excel -->
+      <input type="file" #excelInput style="display: none;" accept=".xlsx, .xls" (change)="importarExcel($event)">
+
+      <button mat-flat-button
+              [class.btn-action-primary]="hasPrivilegio('Escribir MiembroIglesia')"
+              [class.btn-action-disabled]="!hasPrivilegio('Escribir MiembroIglesia')"
+              [disabled]="!hasPrivilegio('Escribir MiembroIglesia')"
+              [matTooltip]="hasPrivilegio('Escribir MiembroIglesia') ? 'Registrar un nuevo miembro' : 'Acceso denegado: No cuenta con privilegios'"
+              (click)="addNewMiembro()">
+        <mat-icon>add</mat-icon>
+        Nuevo Miembro
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Filtros -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" (keyup)="applyFilter($event)" placeholder="Buscar por nombre, apellido, CI..." #searchInput>
+    </div>
+  </div>
+
+  <!-- Contenedor de la Tabla -->
+  <div class="table-container">
+    <mat-table [dataSource]="dataSource" matSort>
+
+      <!-- Columna Miembro (Avatar + Datos personales + Cargo) -->
+      <ng-container matColumnDef="miembro">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Miembro </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="miembro-profile">
+            <div class="miembro-avatar-container">
+              <img *ngIf="item.uriFoto"
+                   [src]="item.uriFoto | imageUrl"
+                   [alt]="item.nombre"
+                   class="miembro-avatar-img"
+                   loading="lazy"
+                   (error)="onImageError($event)">
+              <div class="miembro-avatar-placeholder" [style.display]="item.uriFoto ? 'none' : 'flex'">
+                {{item.nombre?.charAt(0) || '?'}}
+              </div>
+            </div>
+            <div class="miembro-info-text">
+              <span class="miembro-name">{{ item.nombre }} {{ item.apellido }}</span>
+              <span class="miembro-ci-age">CI: {{ item.ci || 'Sin CI' }} · {{ getAge(item.fechaNac) }}</span>
+              <span class="cargo-badge" *ngIf="item.cargoNombre">{{ item.cargoNombre }}</span>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Contacto (Celular + Dirección) -->
+      <ng-container matColumnDef="contacto">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Contacto </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="contacto-info">
+            <span class="contacto-item">
+              <mat-icon class="contacto-icon">phone</mat-icon>
+              {{ item.celular || 'Sin teléfono' }}
+            </span>
+            <span class="contacto-item">
+              <mat-icon class="contacto-icon">place</mat-icon>
+              {{ item.direccion || 'Sin dirección' }}
+            </span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Bautismo / Conversión -->
+      <ng-container matColumnDef="bautismo">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Bautismo </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="bautismo-info">
+            <mat-icon class="bautismo-icon">water_drop</mat-icon>
+            <span>{{ formatDate(item.fechaConvercion) }}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <span class="estado-pill" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+            {{ item.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+        <mat-cell *matCellDef="let item" class="acciones-cell">
+          <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openMiembroIglesiaDetail(item)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver detalle</span>
+            </button>
+            <!-- Editar disponible para TODOS los miembros (incluidos los que tienen
+                 cargo): solo edita datos personales, no toca la iglesia ni el cargo. -->
+            <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="openEditDialog(item)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <ng-container *ngIf="!hasCargo(item)">
+              <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="openTraspasoDialog(item)">
+                <mat-icon>swap_horiz</mat-icon>
+                <span>Traspasar</span>
+              </button>
+              <button mat-menu-item *appHasPrivilegio="'Escribir MiembroIglesia'" (click)="deleteMiembroAsignacion(item)">
+                <mat-icon style="color: #dc3545;">delete</mat-icon>
+                <span style="color: #dc3545; font-weight: 500;">Quitar miembro</span>
+              </button>
+            </ng-container>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Encabezados e Hileras de la Tabla -->
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openMiembroIglesiaDetail(row)" class="clickable-row"></mat-row>
+
+      <!-- Hilera para cuando no hay resultados -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" colspan="5">
+          <div class="no-results">
+            <mat-icon>search_off</mat-icon>
+            <span>No se encontraron miembros registrados en esta iglesia.</span>
+          </div>
+        </td>
+      </tr>
+    </mat-table>
+
+    <!-- Paginador -->
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de miembros"></mat-paginator>
+  </div>
+</div>

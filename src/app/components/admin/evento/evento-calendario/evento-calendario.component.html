@@ -1,0 +1,63 @@
+<div class="calendar-container">
+  <!-- Cabecera del Calendario -->
+  <div class="calendar-header-bar">
+    <div class="navigation-controls">
+      <button mat-icon-button (click)="prevMonth()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="month-title">{{ currentMonthName | titlecase }}</span>
+      <button mat-icon-button (click)="nextMonth()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button mat-stroked-button class="today-btn" (click)="today()">Hoy</button>
+    </div>
+
+  </div>
+
+  <!-- Panel de Filtros / Leyenda -->
+  <div class="legend-panel">
+    <span class="legend-label">Mostrar en Calendario:</span>
+    <mat-checkbox [(ngModel)]="showGeneral" (change)="onFilterChange()" color="primary" class="legend-item general-chk">
+      <span class="dot-indicator" style="background-color: #1976d2;"></span> Eventos Generales / Nacionales
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="showLocal" (change)="onFilterChange()" color="primary" class="legend-item local-chk">
+      <span class="dot-indicator" style="background-color: #2e7d32;"></span> Eventos Locales
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="showAnniversaries" (change)="onFilterChange()" color="primary" class="legend-item anniversary-chk">
+      <span class="dot-indicator" style="background-color: #ff8f00;"></span> Aniversarios de Iglesias
+    </mat-checkbox>
+  </div>
+
+  <!-- Rejilla del Calendario -->
+  <div class="calendar-grid-card">
+    <div class="weekdays-row">
+      <div class="weekday-header" *ngFor="let dayName of weekDays">{{ dayName }}</div>
+    </div>
+
+    <div class="days-grid">
+      <div *ngFor="let cell of daysInMonth" class="day-cell" [ngClass]="{
+        'empty-cell': !cell.dayNumber,
+        'today-cell': cell.isToday,
+        'has-events': cell.events.length > 0
+      }">
+        <div class="cell-header" *ngIf="cell.dayNumber">
+          <span class="day-number">{{ cell.dayNumber }}</span>
+        </div>
+        
+        <div class="cell-content" *ngIf="cell.dayNumber">
+          <!-- Lista de eventos o marcadores -->
+          <div class="events-list">
+            <div *ngFor="let ev of cell.events" class="event-tag" 
+                 [style.border-left-color]="ev.color"
+                 [matTooltip]="ev.label"
+                 matTooltipPosition="above"
+                 (click)="onEventClick($event, ev)">
+              <span class="event-dot" [style.background-color]="ev.color"></span>
+              <span class="event-label-text">{{ ev.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

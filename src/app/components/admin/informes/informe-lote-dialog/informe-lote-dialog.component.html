@@ -1,0 +1,53 @@
+<div class="lote-dialog">
+  <div class="dialog-header">
+    <div class="header-title">
+      <mat-icon class="header-icon">print</mat-icon>
+      <div>
+        <h2 mat-dialog-title>Imprimir para varias iglesias</h2>
+        <p class="header-subtitle">{{ data.titulo }}</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn" [disabled]="generando"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <!-- Selección -->
+    <ng-container *ngIf="!generando && !terminado">
+      <mat-checkbox [checked]="todasMarcadas" [indeterminate]="algunaMarcada" (change)="toggleTodas($event.checked)" class="check-all">
+        Seleccionar todas ({{ data.iglesias.length }})
+      </mat-checkbox>
+      <div class="iglesias-list">
+        <mat-checkbox *ngFor="let ig of data.iglesias" [checked]="seleccion.has(ig.id)"
+                      (change)="toggle(ig.id, $event.checked)" class="iglesia-item">
+          {{ ig.nombre }}
+        </mat-checkbox>
+      </div>
+    </ng-container>
+
+    <!-- Progreso -->
+    <ng-container *ngIf="generando || terminado">
+      <div class="progreso-box">
+        <div class="progreso-label" *ngIf="generando">
+          <mat-icon class="spin">autorenew</mat-icon>
+          Generando {{ progreso + 1 }} de {{ total }}: <strong>{{ actual }}</strong>
+        </div>
+        <div class="progreso-label ok" *ngIf="terminado">
+          <mat-icon>check_circle</mat-icon>
+          Listo: {{ progreso }} de {{ total }} informe(s) generado(s).
+        </div>
+        <mat-progress-bar mode="determinate" [value]="total ? (progreso / total) * 100 : 0"></mat-progress-bar>
+        <p class="errores" *ngIf="errores.length">No se pudo generar: {{ errores.join(', ') }}</p>
+      </div>
+    </ng-container>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button mat-dialog-close *ngIf="!generando && !terminado">Cancelar</button>
+    <button mat-flat-button class="btn-generar" *ngIf="!generando && !terminado"
+            [disabled]="seleccion.size === 0" (click)="generar()">
+      <mat-icon>picture_as_pdf</mat-icon>
+      Generar {{ seleccion.size ? '(' + seleccion.size + ')' : '' }}
+    </button>
+    <button mat-flat-button class="btn-generar" mat-dialog-close *ngIf="terminado">Cerrar</button>
+  </mat-dialog-actions>
+</div>

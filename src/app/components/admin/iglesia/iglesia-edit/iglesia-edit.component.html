@@ -1,43 +1,120 @@
-<h2 mat-dialog-title>Editar Iglesia</h2>
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">edit</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Editar Iglesia</h2>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 <form [formGroup]="iglesiaForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+
+    <!-- FOTO BANNER -->
+    <div class="foto-banner-wrapper">
+      <div class="foto-banner-container">
+        <img *ngIf="previewUrl" [src]="previewUrl" alt="Foto de la iglesia" class="foto-banner-img">
+        <div *ngIf="!previewUrl" class="foto-banner-placeholder">
+          <mat-icon>church</mat-icon>
+          <span>Sin imagen de portada</span>
+          <small>Sube una foto panorámica de la iglesia</small>
+        </div>
+        <div class="foto-banner-overlay">
+          <label class="upload-label" for="fotoInputEdit">
+            <mat-icon>upload</mat-icon>
+            {{ previewUrl ? 'Cambiar imagen' : 'Subir imagen' }}
+          </label>
+          <input id="fotoInputEdit" type="file" accept="image/*" hidden (change)="onFileSelected($event)">
+          <button mat-icon-button type="button" class="delete-foto-btn"
+                  *ngIf="previewUrl"
+                  matTooltip="Eliminar foto"
+                  (click)="deletingFoto ? null : (selectedFile ? clearFile() : deleteFoto())"
+                  [disabled]="deletingFoto">
+            <mat-icon *ngIf="!deletingFoto">delete</mat-icon>
+            <mat-spinner *ngIf="deletingFoto" diameter="18"></mat-spinner>
+          </button>
+        </div>
+      </div>
+      <span class="foto-hint" *ngIf="selectedFile">✓ {{ selectedFile.name }}</span>
+    </div>
+
     <mat-form-field appearance="outline">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" placeholder="Nombre de la iglesia">
-      <mat-error>
-        {{ getErrorMessageNombre('nombre') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageNombre('nombre') }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Dirección</mat-label>
       <input matInput formControlName="direccion" placeholder="Dirección de la iglesia">
-      <mat-error>
-        {{ getErrorMessageDireccion('direccion') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageDireccion('direccion') }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Teléfono</mat-label>
       <input matInput formControlName="telefono" placeholder="Teléfono de contacto">
-      <mat-error>
-        {{ getErrorMessageTelefono('telefono') }}
-      </mat-error>
+      <mat-error>{{ getErrorMessageTelefono('telefono') }}</mat-error>
     </mat-form-field>
-
 
     <mat-form-field appearance="outline">
       <mat-label>Fecha de Fundación</mat-label>
-      <input matInput [matDatepicker]="picker">
+      <input matInput [matDatepicker]="picker" formControlName="fechaFundacion">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
+      <mat-hint>DD/MM/YYYY</mat-hint>
     </mat-form-field>
 
-    <mat-dialog-actions>
+    <!-- SECCIÓN UBICACIÓN -->
+    <div class="ubicacion-header">
+      <span class="ubicacion-title">
+        <mat-icon>location_on</mat-icon> Ubicación
+      </span>
+      <span class="ubicacion-status" *ngIf="iglesiaForm.get('latitud')?.value && iglesiaForm.get('longitud')?.value">
+        <span class="dot-green"></span> Ubicación guardada
+      </span>
+    </div>
+
+    <div class="map-frame">
+      <div id="map-container" class="map-container"></div>
+      <button mat-icon-button type="button" class="clear-map-btn" *ngIf="iglesiaForm.get('latitud')?.value" (click)="clearLocation()" matTooltip="Limpiar ubicación">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="ubicacion-footer-box">
+      <div class="coords-display">
+        <mat-icon>gps_fixed</mat-icon>
+        <div class="coords-values" *ngIf="iglesiaForm.get('latitud')?.value">
+          <div>{{ iglesiaForm.get('latitud')?.value }}</div>
+          <div>{{ iglesiaForm.get('longitud')?.value }}</div>
+        </div>
+        <div class="coords-values" *ngIf="!iglesiaForm.get('latitud')?.value">
+          Sin marcar
+        </div>
+      </div>
+      <a *ngIf="iglesiaForm.get('latitud')?.value"
+         [href]="'https://www.google.com/maps/search/?api=1&query=' + iglesiaForm.get('latitud')?.value + ',' + iglesiaForm.get('longitud')?.value"
+         target="_blank" class="gmaps-link">
+        Ver en Google Maps &rarr;
+      </a>
+    </div>
+    <span class="map-help-text">
+      <mat-icon>mouse</mat-icon> Click para marcar · Rueda del mouse para zoom · Arrastrar para mover
+    </span>
+
+    <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="!iglesiaForm.valid">
+      <button mat-raised-button color="primary" type="submit"
+              [disabled]="!iglesiaForm.valid || uploadingFoto">
+        <mat-spinner *ngIf="uploadingFoto" diameter="18" class="btn-spinner"></mat-spinner>
+        <mat-icon *ngIf="!uploadingFoto">save</mat-icon>
         Actualizar
       </button>
     </mat-dialog-actions>
+
   </mat-dialog-content>
 </form>

@@ -1,0 +1,72 @@
+<!-- Configuración -->
+<div class="config-bar">
+  <div class="config-filters">
+    <span class="config-title"><mat-icon>tune</mat-icon> Configurar informe de certificaciones</span>
+    <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin">
+      <mat-label>Iglesia</mat-label>
+      <mat-select [(ngModel)]="selectedIglesiaId" (selectionChange)="onFiltroChange()">
+        <mat-option value="all">Todas las sedes (consolidado)</mat-option>
+        <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="config-actions">
+    <button mat-stroked-button class="btn-lote" *ngIf="isAdmin" (click)="abrirLote()" [disabled]="isLoading || isGenerating || !iglesias.length">
+      <mat-icon>print</mat-icon>
+      Varias iglesias
+    </button>
+    <button mat-flat-button class="btn-pdf" (click)="descargarPDF()" [disabled]="isLoading || isGenerating || !totalCert">
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
+    </button>
+  </div>
+</div>
+
+<app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+
+<ng-container *ngIf="!isLoading">
+  <div class="kpis-row">
+    <div class="kpi-card">
+      <div class="kpi-circle icon-purple"><mat-icon>workspace_premium</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ totalCert }}</span><span class="kpi-label">Certificados</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-teal"><mat-icon>check_circle</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ activos }}</span><span class="kpi-label">Activos</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-circle icon-orange"><mat-icon>cancel</mat-icon></div>
+      <div class="kpi-info"><span class="kpi-number">{{ inactivos }}</span><span class="kpi-label">Inactivos</span></div>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="chart-card" style="margin-bottom: 18px;">
+    <p class="chart-title"><mat-icon>pie_chart</mat-icon> Certificados por tipo de evento</p>
+    <div class="chart-canvas" #chartTipo *ngIf="tipoEventoData.length; else sinCert2">
+      <ngx-charts-pie-chart [view]="view" [scheme]="schemeTipo" [results]="tipoEventoData"
+        [labels]="true" [doughnut]="false" [animations]="false">
+      </ngx-charts-pie-chart>
+    </div>
+    <ng-template #sinCert2><div class="empty-chart">Sin certificados.</div></ng-template>
+  </div>
+
+  <div class="table-card">
+    <table class="preview-table" *ngIf="filas.length; else sinCert">
+      <thead>
+        <tr><th>Evento</th><th>Tipo de evento</th><th>Motivo</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of filas">
+          <td>{{ f.evento }}</td>
+          <td>{{ f.tipoEvento }}</td>
+          <td>{{ f.motivo }}</td>
+          <td>{{ f.estado }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #sinCert>
+      <div class="empty-chart">No hay certificados registrados.</div>
+    </ng-template>
+  </div>
+</ng-container>

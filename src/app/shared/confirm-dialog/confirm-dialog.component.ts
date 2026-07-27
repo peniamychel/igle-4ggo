@@ -8,7 +8,7 @@ export interface ConfirmDialogData {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'danger' | 'warning' | 'info';
+  type?: 'danger' | 'warning' | 'info' | 'primary';
 }
 
 @Component({
@@ -23,6 +23,7 @@ export interface ConfirmDialogData {
     <mat-dialog-actions class="dialog-actions">
       <button mat-stroked-button mat-dialog-close class="btn-cancel">{{ data.cancelText || 'Cancelar' }}</button>
       <button mat-raised-button [mat-dialog-close]="true"
+              [class.btn-primary]="data.type === 'primary'"
               [class.btn-danger]="data.type === 'danger'"
               [class.btn-warning]="data.type === 'warning'"
               [class.btn-info]="data.type === 'info'"
@@ -39,17 +40,18 @@ export interface ConfirmDialogData {
     }
     .dialog-title {
       font-size: 1.375rem;
-      font-weight: 400;
+      font-weight: 700;
       margin: 0;
       padding: 24px 24px 0 24px;
       line-height: 1.4;
+      color: var(--text-primary, #1a1f36);
     }
     .dialog-content {
       padding: 12px 24px 0 24px !important;
     }
     .dialog-message {
       font-size: 0.9375rem;
-      color: #44474e;
+      color: var(--text-secondary, #44474e);
       line-height: 1.5;
       margin: 0;
     }
@@ -65,8 +67,8 @@ export interface ConfirmDialogData {
       height: 40px;
       font-size: 0.875rem;
       font-weight: 500;
-      color: #44474e;
-      border-color: #c4c6d0;
+      color: var(--text-secondary, #44474e);
+      border-color: var(--border-color, #c4c6d0);
     }
     .btn-cancel:hover {
       background-color: rgba(0, 0, 0, 0.04);
@@ -77,25 +79,47 @@ export interface ConfirmDialogData {
       height: 40px;
       font-size: 0.875rem;
       font-weight: 500;
-      color: #ffffff;
+      color: #ffffff !important;
     }
-    .btn-danger {
-      background-color: #ba1a1a;
+    .btn-confirm.btn-primary {
+      background-color: var(--primary-color, #7F0B85) !important;
     }
-    .btn-danger:hover {
-      background-color: #93000a;
+    .btn-confirm.btn-primary:hover {
+      background-color: #6b0970 !important;
+      box-shadow: 0 4px 12px rgba(127, 11, 133, 0.25) !important;
     }
-    .btn-warning {
-      background-color: #e8a317;
+    .btn-confirm.btn-danger {
+      background-color: #ba1a1a !important;
     }
-    .btn-warning:hover {
-      background-color: #c98b0f;
+    .btn-confirm.btn-danger:hover {
+      background-color: #93000a !important;
     }
-    .btn-info, .btn-default {
-      background-color: #005cbb;
+    .btn-confirm.btn-warning {
+      background-color: #e8a317 !important;
     }
-    .btn-info:hover, .btn-default:hover {
-      background-color: #00458f;
+    .btn-confirm.btn-warning:hover {
+      background-color: #c98b0f !important;
+    }
+    .btn-confirm.btn-info, .btn-confirm.btn-default {
+      background-color: #005cbb !important;
+    }
+    .btn-confirm.btn-info:hover, .btn-confirm.btn-default:hover {
+      background-color: #00458f !important;
+    }
+
+    /* Modo oscuro */
+    :host-context(.dark-theme) .dialog-title {
+      color: #e3e2e6;
+    }
+    :host-context(.dark-theme) .dialog-message {
+      color: #90a4ae;
+    }
+    :host-context(.dark-theme) .btn-cancel {
+      color: #e3e2e6;
+      border-color: #23232c;
+    }
+    :host-context(.dark-theme) .btn-cancel:hover {
+      background-color: rgba(255, 255, 255, 0.05);
     }
   `]
 })

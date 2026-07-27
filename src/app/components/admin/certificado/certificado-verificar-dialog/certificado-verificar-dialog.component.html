@@ -1,0 +1,88 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <mat-icon class="header-icon">qr_code_scanner</mat-icon>
+    <div>
+      <h2 mat-dialog-title>Verificar Certificado</h2>
+      <p class="header-subtitle">Valide la autenticidad del documento</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <mat-tab-group class="modern-tabs" (selectedTabChange)="onTabChange($event)">
+    
+    <!-- Pestaña 1: Escáner QR -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">photo_camera</mat-icon>
+        <span>Escanear Código QR</span>
+      </ng-template>
+      
+      <div class="tab-pane-content qr-tab-pane">
+        <p class="instructions-text">
+          Coloque el código QR del certificado frente a la cámara de su dispositivo para escanearlo automáticamente.
+        </p>
+        
+        <div class="scanner-outer-container">
+          <div class="scanner-viewport" [class.camera-active]="isCameraActive">
+            <div id="qr-scanner-reader"></div>
+            <div class="scanner-laser-line" *ngIf="isCameraActive"></div>
+          </div>
+          
+          <div class="camera-error-message" *ngIf="cameraErrorMessage">
+            <mat-icon class="error-icon">error_outline</mat-icon>
+            <span>{{ cameraErrorMessage }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Pestaña 2: Entrada Manual -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">keyboard</mat-icon>
+        <span>Código Manual</span>
+      </ng-template>
+      
+      <div class="tab-pane-content manual-tab-pane">
+        <p class="instructions-text">
+          Ingrese el código único alfanumérico de 4 dígitos impreso en el certificado.
+        </p>
+
+        <form [formGroup]="verificarForm" (ngSubmit)="onSubmitManual()">
+          <div class="manual-input-container">
+            <mat-form-field appearance="outline" class="code-form-field">
+              <mat-label>Código de 4 Dígitos</mat-label>
+              <input matInput 
+                     formControlName="codigoManual" 
+                     maxlength="4" 
+                     placeholder="EJ: N5LK" 
+                     autocomplete="off" 
+                     class="manual-code-input">
+              <mat-hint>Sólo letras y números</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="manual-actions">
+            <button mat-raised-button 
+                    color="primary" 
+                    type="submit" 
+                    [disabled]="!verificarForm.valid" 
+                    class="btn-verify-manual">
+              <mat-icon>verified</mat-icon>
+              Verificar Código
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button mat-dialog-close type="button" class="btn-cancel">Cerrar</button>
+</mat-dialog-actions>

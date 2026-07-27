@@ -20,7 +20,7 @@
         <mat-label>Nueva miembro</mat-label>
         <mat-select formControlName="miembroId" id="miembros">
           <mat-option *ngFor="let miembro of miembros" [value]="miembro.id">
-            {{miembro.personaDto?.nombre}} {{miembro.personaDto?.apellido}}
+            {{miembro.nombre}} {{miembro.apellido}}
           </mat-option>
         </mat-select>
 
@@ -35,7 +35,8 @@
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="form.get('fechao')?.hasError('required')">
+        <mat-hint>DD/MM/YYYY</mat-hint>
+        <mat-error *ngIf="form.get('fecha')?.hasError('required')">
           La fecha es requerida
         </mat-error>
       </mat-form-field>

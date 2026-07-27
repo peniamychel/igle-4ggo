@@ -11,7 +11,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^18.2.9",
-    "@angular/cdk": "^18.2.10",
+    "@angular/cdk": "^18.2.14",
     "@angular/common": "^18.2.9",
     "@angular/compiler": "^18.2.0",
     "@angular/core": "^18.2.9",
@@ -22,8 +22,13 @@
     "@angular/router": "^18.2.9",
     "@swimlane/ngx-charts": "^20.5.0",
     "angular-google-charts": "^16.0.1",
+    "angularx-qrcode": "^18.0.2",
+    "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^3.8.4",
     "material-icons": "^1.13.14",
+    "ngx-image-compress": "^18.1.7",
     "ngx-toastr": "^17.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -35,12 +40,14 @@
     "@angular/cli": "^18.2.10",
     "@angular/compiler-cli": "^18.2.9",
     "@types/jasmine": "~5.1.0",
+    "@types/leaflet": "^1.9.21",
     "jasmine-core": "~5.2.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "leaflet": "^1.9.4",
     "typescript": "~5.5.2"
   }
 }

@@ -1,0 +1,330 @@
+/* ========================================
+   Colaboradores — Skill: igle_list_layout
+   ======================================== */
+
+/* 1. Contenedor principal (Flexbox) */
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+/* 2. Header */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  letter-spacing: -0.6px;
+}
+
+.icon-primary {
+  color: var(--primary-color, #7c4dff);
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.subtitle-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button.btn-action-primary {
+  background-color: var(--primary-color, #7F0B85);
+  color: #ffffff;
+  border-radius: 10px;
+  font-weight: 700;
+  height: 42px;
+  padding: 0 18px;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+button.btn-action-primary:hover {
+  background-color: #6b0970;
+  box-shadow: 0 4px 12px rgba(127, 11, 133, 0.25);
+}
+
+/* 3. KPIs */
+.kpis-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.kpi-box-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.015);
+}
+
+.kpi-circle-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-circle-icon mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-purple { background-color: #f1edff; color: #7c4dff; }
+.icon-teal   { background-color: #e6fcf5; color: #00bfa5; }
+.icon-blue   { background-color: #e8f2ff; color: #2979ff; }
+.icon-amber  { background-color: #fff8e6; color: #ffab00; }
+
+.kpi-values-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary, #1a1f36);
+  line-height: 1;
+}
+
+.kpi-desc-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-secondary, #697386);
+  margin-top: 4px;
+}
+
+/* 4. Filtros y Búsqueda */
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 30px;
+  padding: 6px 18px;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+  max-width: 600px;
+  height: 48px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary-color, #7c4dff);
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.08);
+}
+
+.search-icon {
+  color: var(--text-secondary, #8792a2);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary, #1a1f36);
+  width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary, #8792a2);
+  opacity: 0.8;
+}
+
+/* 5. Tabla */
+.table-container {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.mat-table {
+  width: 100%;
+  background: transparent;
+}
+
+.mat-mdc-row.clickable-row:hover {
+  background-color: rgba(124, 77, 255, 0.03);
+  cursor: pointer;
+}
+
+/* Perfil Obrero */
+.miembro-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.miembro-avatar-container {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: rgba(124, 77, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-color, #e3e8ee);
+  flex-shrink: 0;
+}
+
+.miembro-avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miembro-avatar-fallback {
+  color: var(--primary-color, #7c4dff);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miembro-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.miembro-meta .nombre {
+  font-weight: 600;
+  color: var(--text-primary, #1a1f36);
+}
+
+.miembro-meta .ci {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #697386);
+  margin-top: 1px;
+}
+
+/* Badge de tipo de cargo */
+.tipo-cargo-badge {
+  background-color: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 77, 255, 0.15);
+  display: inline-block;
+}
+
+/* Estado Pill */
+.status-pill {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-activo {
+  background-color: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+}
+
+.status-inactivo {
+  background-color: rgba(244, 67, 54, 0.12);
+  color: #c62828;
+}
+
+/* Paginador */
+mat-paginator {
+  background: transparent;
+  border-top: 1px solid var(--border-color, #e3e8ee);
+}
+
+/* 6. Responsive */
+@media (max-width: 900px) {
+  .kpis-grid-layout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .kpis-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .container {
+    padding: 16px;
+  }
+  .page-title {
+    font-size: 1.5rem;
+  }
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .header-actions button {
+    width: 100%;
+  }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    max-width: 100%;
+  }
+}

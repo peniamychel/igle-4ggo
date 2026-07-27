@@ -1,0 +1,212 @@
+:host {
+  display: block;
+}
+
+/* Barra de configuración */
+.config-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.config-filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.config-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text-primary, #1a1f36);
+  font-size: 1rem;
+}
+
+.config-title mat-icon {
+  color: var(--primary-color, #7F0B85);
+}
+
+.filter-field {
+  min-width: 220px;
+}
+
+/* Compactar los mat-form-field de la barra de configuración: se quita el espacio
+   inferior reservado para hints/errores (mat-mdc-form-field-subscript-wrapper) para
+   que el desplegable quede a la misma altura visual que los botones de acción. */
+::ng-deep .config-bar .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+::ng-deep .config-bar .mat-mdc-form-field {
+  margin-bottom: 0;
+}
+
+::ng-deep .config-bar .mat-mdc-text-field-wrapper {
+  background-color: var(--card-bg, #ffffff);
+}
+
+.config-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-pdf {
+  background-color: var(--primary-color, #7F0B85) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  height: 42px !important;
+}
+
+.btn-pdf:disabled {
+  opacity: 0.6;
+}
+
+.btn-lote {
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  height: 42px !important;
+  color: var(--primary-color, #7F0B85) !important;
+  border-color: rgba(127, 11, 133, 0.4) !important;
+}
+
+.btn-lote:disabled {
+  opacity: 0.6;
+}
+
+/* KPIs */
+.kpis-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpi-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-circle mat-icon {
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.kpi-info { display: flex; flex-direction: column; }
+.kpi-number { font-size: 1.3rem; font-weight: 800; color: var(--text-primary, #1a1f36); line-height: 1.1; }
+.kpi-label { font-size: 0.72rem; color: var(--text-secondary, #8792a2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+.icon-purple { background: rgba(127, 11, 133, 0.1); color: #7F0B85; }
+.icon-blue { background: rgba(33, 150, 243, 0.1); color: #2196f3; }
+.icon-pink { background: rgba(233, 30, 99, 0.1); color: #e91e63; }
+.icon-teal { background: rgba(11, 133, 127, 0.1); color: #0b857f; }
+.icon-orange { background: rgba(255, 152, 0, 0.1); color: #ff9800; }
+
+/* Grilla de gráficos */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.chart-card.full { grid-column: 1 / -1; }
+
+.chart-title {
+  font-weight: 700;
+  color: var(--text-primary, #1a1f36);
+  font-size: 0.95rem;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-title mat-icon { color: var(--primary-color, #7F0B85); font-size: 20px; width: 20px; height: 20px; }
+
+.chart-canvas {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.empty-chart {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-secondary, #697386);
+  font-size: 0.9rem;
+}
+
+/* Tabla simple para vista previa */
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.preview-table thead th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary, #697386);
+  border-bottom: 2px solid var(--border-color, #e3e8ee);
+}
+
+.preview-table tbody td {
+  padding: 8px 10px;
+  color: var(--text-primary, #1a1f36);
+  border-bottom: 1px solid var(--border-color, #eef1f5);
+}
+
+.table-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 16px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+
+:host-context(.dark-theme) .config-bar,
+:host-context(.dark-theme) .kpi-card,
+:host-context(.dark-theme) .chart-card,
+:host-context(.dark-theme) .table-card {
+  background: var(--card-bg, #1a1a24);
+  border-color: var(--border-color, #23232c);
+}

@@ -1,73 +1,152 @@
 <div class="container">
-  <div class="nuevo-buscar">
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nuevo Certificado
-    </button>
-    <mat-form-field appearance="outline">
-      <mat-label>Buscar</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej. CERT-2026, Bautismo" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-  </div>
+  <div class="tab-content">
+        <!-- 1. Header -->
+        <div class="header-section">
+          <div class="title-meta">
+            <h2 class="page-title">
+              <mat-icon class="icon-primary">badge</mat-icon>
+              <span>Gestión de Certificados</span>
+            </h2>
+            <p class="subtitle-text">
+              {{ dataSource.filteredData.length }} certificados registrados
+            </p>
+          </div>
+          <div class="header-actions">
+            <button mat-stroked-button class="btn-action-secondary" matTooltip="Verificar validez de un certificado por QR o código" (click)="openVerifyDialog()">
+              <mat-icon>qr_code_scanner</mat-icon>
+              Verificar Certificado
+            </button>
+          </div>
+        </div>
+      
+        <!-- 2. Filtros y Búsqueda -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por código, motivo, evento..." #searchInput>
+          </div>
+          
+          <div class="select-filters">
+            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+              <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todas las iglesias</mat-option>
+                <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-  <div class="table-container">
-  <mat-table [dataSource]="dataSource" matSort>
+            <mat-form-field appearance="outline" class="filter-select">
+              <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option value="active">Activo</mat-option>
+                <mat-option value="inactive">Inactivo</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
 
-    <ng-container matColumnDef="codigo">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Código</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.codigoCertificado }}</mat-cell>
-    </ng-container>
+        <!-- Contenedor de la Tabla -->
+        <div class="table-container">
+          <mat-table [dataSource]="dataSource" matSort>
+            
 
-    <ng-container matColumnDef="evento">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Evento</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.eventoDto?.nombre || 'N/A' }}</mat-cell>
-    </ng-container>
+            <!-- Columna Evento -->
+            <ng-container matColumnDef="evento">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Evento </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span class="evento-name-label">{{ item.eventoDto?.nombre || 'N/A' }}</span>
+              </mat-cell>
+            </ng-container>
 
-    <ng-container matColumnDef="tipoCertificado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Tipo Certificado</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.tipoCertificadoDto?.nombre || 'N/A' }}</mat-cell>
-    </ng-container>
+            <!-- Columna Iglesia -->
+            <ng-container matColumnDef="iglesia">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span style="font-weight: 500; color: var(--text-primary);">{{ getIglesiaNombre(item.eventoDto?.iglesiaId) }}</span>
+              </mat-cell>
+            </ng-container>
 
-    <ng-container matColumnDef="motivo">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Motivo</mat-header-cell>
-      <mat-cell *matCellDef="let item">{{ item.motivoCertificado }}</mat-cell>
-    </ng-container>
+            <!-- Columna Motivo -->
+            <ng-container matColumnDef="motivo">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Motivo </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span class="motivo-text">{{ item.motivoCertificado }}</span>
+              </mat-cell>
+            </ng-container>
 
-    <ng-container matColumnDef="estado">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>Estado</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <span class="estado-badge" [ngClass]="item.estado ? 'activo' : 'inactivo'">
-          {{ item.estado ? 'Activo' : 'Inactivo' }}
-        </span>
-      </mat-cell>
-    </ng-container>
+            <!-- Columna Diseño (plantilla del certificado) -->
+            <ng-container matColumnDef="diseno">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Diseño </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span class="diseno-pill" [ngClass]="item.plantillaCertificadoId ? 'listo' : 'pendiente'"
+                      [matTooltip]="item.plantillaCertificadoId ? 'Plantilla diseñada' : 'Falta diseñar la plantilla para poder imprimir'">
+                  <mat-icon class="diseno-icon">{{ item.plantillaCertificadoId ? 'check_circle' : 'schedule' }}</mat-icon>
+                  {{ item.plantillaCertificadoId ? 'Diseñado' : 'Pendiente' }}
+                </span>
+              </mat-cell>
+            </ng-container>
 
-    <ng-container matColumnDef="acciones">
-      <mat-header-cell *matHeaderCellDef>Acciones</mat-header-cell>
-      <mat-cell *matCellDef="let item">
-        <button mat-icon-button color="primary"
-                matTooltip="Editar" matTooltipPosition="left"
-                (click)="$event.stopPropagation(); openEditDialog(item)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="item.estado ? 'accent' : 'warn'"
-                [matTooltip]="item.estado ? 'Desactivar' : 'Activar'" matTooltipPosition="right"
-                (click)="$event.stopPropagation(); toggleEstado(item)">
-          <mat-icon>{{ item.estado ? 'check_circle' : 'cancel' }}</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
+            <!-- Columna Estado -->
+            <ng-container matColumnDef="estado">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+              <mat-cell *matCellDef="let item">
+                <span class="estado-pill" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+                  {{ item.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </mat-cell>
+            </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetailDialog(row)" class="clickable-row"></mat-row>
+            <!-- Columna Acciones -->
+            <ng-container matColumnDef="acciones">
+              <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+              <mat-cell *matCellDef="let item" class="acciones-cell">
+                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="openDetailDialog(item)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Ver detalle</span>
+                  </button>
+                  <button mat-menu-item (click)="openPrintDialog(item)">
+                    <mat-icon>print</mat-icon>
+                    <span>Imprimir Certificados</span>
+                  </button>
+                  <button mat-menu-item (click)="openEditDialog(item)" *appHasPrivilegio="'Escribir Certificados'">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button mat-menu-item (click)="openDesignerDialog(item)" *appHasPrivilegio="'Escribir Certificados'">
+                    <mat-icon>brush</mat-icon>
+                    <span>Diseñar Plantilla</span>
+                  </button>
+                  <button mat-menu-item (click)="toggleEstado(item)" *appHasPrivilegio="'Escribir Certificados'">
+                    <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+                    <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteCertificado(item)" *appHasPrivilegio="'Escribir Certificados'">
+                    <mat-icon style="color: #dc3545;">delete</mat-icon>
+                    <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+                  </button>
+                </mat-menu>
+              </mat-cell>
+            </ng-container>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="6">No se encontraron datos que coincidan con "{{ input.value }}"</td>
-    </tr>
-  </mat-table>
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openPrintDialog(row)" class="clickable-row"></mat-row>
 
-  <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Seleccionar página de certificados">
-  </mat-paginator>
+            <!-- Hilera para cuando no hay resultados -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell no-data-cell" colspan="6">
+                <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+                <div class="no-results" *ngIf="!isLoading">
+                  <mat-icon>search_off</mat-icon>
+                  <span>No se encontraron certificados que coincidan con la búsqueda.</span>
+                </div>
+              </td>
+            </tr>
+          </mat-table>
+
+          <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de certificados"></mat-paginator>
+        </div>
   </div>
 </div>

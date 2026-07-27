@@ -49,17 +49,14 @@ export class MiembroIglesiaFormCrearComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       miembroId: ['', Validators.required],
-      fecha: ['', Validators.required],
+      fecha: [new Date(), Validators.required],
     });
     this.loadIglesias();
   }
 
   loadIglesias() {
-    // this.iglesiaService.getIglesias().subscribe(response => {
-    //   this.iglesias = response.datos.filter(i => i.estado && i.id !== this.data.iglesia.id);
-    // });
-    this.miembroService.getMiembros().subscribe(response => {
-      // this.miembros = response.datos.filter(m => m.estado && m.id !== this.data.miembro.id);
+    // Usa el endpoint seguro que excluye pastores desde el backend
+    this.miembroService.getMiembrosSinIglesiaParaAsignacion().subscribe(response => {
       this.miembros = response.datos.filter(m => m.estado);
     });
   }
@@ -70,7 +67,7 @@ export class MiembroIglesiaFormCrearComponent implements OnInit {
       const newMiembroIglesia = {
         miembroId: this.form.value.miembroId,
         iglesiaId: this.data.iglesia.id,
-        fecha: new Date(),
+        fecha: this.form.value.fecha,
       };
       this.miembroIglesiaService.createMiembroIglesia(newMiembroIglesia).subscribe(() => {
         this.dialogRef.close(true);

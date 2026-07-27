@@ -1,6 +1,19 @@
-<h2 mat-dialog-title class="realiniar">Editar Miembro</h2>
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">edit</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Editar Miembro</h2>
+      <p class="header-subtitle" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Modificar la información del miembro seleccionado</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 <form [formGroup]="miembroForm" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
+  <mat-dialog-content class="dialog-content">
 
     <div class="photo-section">
       <div class="photo-container" (click)="fileInput.click()">
@@ -44,7 +57,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Nacimiento</mat-label>
         <input matInput [matDatepicker]="fechaNacPicker" formControlName="fechaNac" placeholder="Ej: 01/01/2000">
-        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-datepicker-toggle matSuffix [for]="fechaNacPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaNacPicker></mat-datepicker>
       </mat-form-field>
@@ -76,6 +89,7 @@
         <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion">
         <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaConvPicker></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
@@ -96,11 +110,12 @@
       <textarea matInput formControlName="detalles" rows="3"></textarea>
     </mat-form-field>
 
-    <mat-dialog-actions>
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="!miembroForm.valid">
-        Actualizar
-      </button>
-    </mat-dialog-actions>
   </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!miembroForm.valid" class="btn-save">
+      <mat-icon>save</mat-icon> Guardar
+    </button>
+  </mat-dialog-actions>
 </form>

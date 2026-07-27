@@ -1,0 +1,187 @@
+.designer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.toolbar {
+  background: var(--toolbar-bg);
+  color: var(--toolbar-text);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 24px;
+  align-items: center;
+  background-color: var(--bg-app);
+}
+
+.form-field-sm {
+  width: 180px;
+}
+
+.form-field-xs {
+  width: 100px;
+}
+
+.upload-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.properties-panel {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.properties-panel h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-right: 1px solid var(--border-color);
+  padding-right: 16px;
+}
+
+.props-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.color-picker-wrapper input[type="color"] {
+  border: none;
+  width: 150%;
+  height: 150%;
+  cursor: pointer;
+  padding: 0;
+  margin: -25%;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  overflow: auto;
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.canvas {
+  background-color: white; /* ALWAYS WHITE to simulate paper */
+  color: #000000; /* Force dark text color on the white canvas */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.canvas.horizontal {
+  width: 1123px;
+  height: 794px;
+}
+
+.canvas.vertical {
+  width: 794px;
+  height: 1123px;
+}
+
+.drag-element {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  padding: 4px;
+  border: 1px dashed transparent;
+  font-family: 'Arial', sans-serif;
+  color: #000000; /* Fallback for text elements in canvas */
+}
+
+.drag-element:hover {
+  border-color: #2196f3;
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.drag-element img, .drag-element .qr-placeholder {
+  pointer-events: none;
+  display: block;
+}
+
+.logo-preview, .firma-preview {
+  position: absolute;
+  cursor: move;
+  max-width: 200px;
+  max-height: 200px;
+}
+
+.qr-placeholder {
+  border: 2px dashed #000;
+  color: #000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-element.selected {
+  border-color: #ff4081;
+  background: rgba(255, 64, 129, 0.1);
+  z-index: 100;
+}

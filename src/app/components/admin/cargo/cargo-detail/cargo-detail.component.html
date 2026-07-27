@@ -1,67 +1,316 @@
-<div class="dialog-header">
-  <div class="header-title">
-    <mat-icon class="header-icon">work</mat-icon>
-    <div>
-      <h2 mat-dialog-title>Detalle del Cargo</h2>
-      <p class="header-subtitle">{{ data.iglesiaDto?.nombre }}</p>
-    </div>
+<h2 mat-dialog-title class="dialog-header">
+  <div class="header-icon-circle">
+    <mat-icon class="header-icon">person</mat-icon>
   </div>
-  <button mat-icon-button mat-dialog-close class="close-btn">
+  <div class="header-text">
+    <h2>{{ getObreroFichaTitle() }}</h2>
+    <p class="subtitle">{{ getMiembroNombreCompleto(miembro || data.miembroDto) }}</p>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button" matTooltip="Cerrar ventana">
     <mat-icon>close</mat-icon>
   </button>
-</div>
+</h2>
 
-<mat-dialog-content class="dialog-content">
-  <div class="summary-card">
-    <div class="summary-item">
-      <span class="label">Iglesia</span>
-      <span class="val">{{ data.iglesiaDto?.nombre || 'N/A' }}</span>
+<mat-dialog-content class="detail-content">
+  <!-- Profile Summary Card -->
+  <div class="member-profile-card">
+    <div class="profile-main">
+      <div class="photo-section" *ngIf="getProfilePhoto()">
+        <div class="photo-container" (click)="toggleImagePreview()" style="cursor: pointer;" matTooltip="Hacer clic para ampliar">
+          <img [src]="getProfilePhoto() | imageUrl" [alt]="(miembro || data.miembroDto)?.nombre" class="profile-photo">
+        </div>
+      </div>
+      <div class="photo-section" *ngIf="!getProfilePhoto()">
+        <div class="photo-placeholder">
+          {{(miembro || data.miembroDto)?.nombre?.charAt(0) || '?'}}{{(miembro || data.miembroDto)?.apellido?.charAt(0) || ''}}
+        </div>
+      </div>
+      
+      <div class="profile-details">
+        <h3>{{ getMiembroNombreCompleto(miembro || data.miembroDto) }}</h3>
+        <div class="badges-row" style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+          <span class="member-badge-ci" style="font-size: 0.75rem; background: var(--bg-content); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; color: var(--text-secondary);">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px; color: var(--primary-color);">badge</mat-icon>
+            CI: {{ (miembro || data.miembroDto)?.ci || 'Sin CI' }}
+          </span>
+          <span class="estado-pill" [ngClass]="(miembro || data.miembroDto)?.estado ? 'activo' : 'inactivo'">
+            {{ (miembro || data.miembroDto)?.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
     </div>
-    <div class="summary-item">
-      <span class="label">Cargo</span>
-      <span class="val">{{ data.tipoCargoDto?.nombre || 'N/A' }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Miembro</span>
-      <span class="val">{{ getMiembroNombreCompleto(data.miembroDto) }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Fecha Inicio</span>
-      <span class="val">{{ formatDate(data.fechaInicio) }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Fecha Fin</span>
-      <span class="val">{{ data.fechaFin ? formatDate(data.fechaFin) : 'Indefinido' }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Detalle</span>
-      <span class="val">{{ data.detalle || 'Sin detalles' }}</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Estado</span>
-      <span class="estado-badge" [ngClass]="data.estado ? 'activo' : 'inactivo'">{{ data.estado ? 'Activo' : 'Inactivo' }}</span>
+
+    <!-- Info Grid of Personal Data -->
+    <div class="info-grid">
+      <div class="info-card">
+        <mat-icon class="card-icon">cake</mat-icon>
+        <div class="card-text">
+          <span class="label">Fecha de Nacimiento</span>
+          <span class="value">{{ formatDate((miembro || data.miembroDto)?.fechaNac) }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">wc</mat-icon>
+        <div class="card-text">
+          <span class="label">Sexo</span>
+          <span class="value">{{ (miembro || data.miembroDto)?.sexo || 'No especificado' }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">phone</mat-icon>
+        <div class="card-text">
+          <span class="label">Celular</span>
+          <span class="value">{{ (miembro || data.miembroDto)?.celular || 'Sin celular' }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">place</mat-icon>
+        <div class="card-text">
+          <span class="label">Dirección</span>
+          <span class="value">{{ (miembro || data.miembroDto)?.direccion || 'Sin dirección' }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">event</mat-icon>
+        <div class="card-text">
+          <span class="label">Fecha de Conversión</span>
+          <span class="value">{{ formatDate((miembro || data.miembroDto)?.fechaConvercion) }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">explore</mat-icon>
+        <div class="card-text">
+          <span class="label">Lugar de Conversión</span>
+          <span class="value">{{ (miembro || data.miembroDto)?.lugarConvercion || 'No especificado' }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <mat-icon class="card-icon">church</mat-icon>
+        <div class="card-text">
+          <span class="label">Iglesia Actual</span>
+          <span class="value">{{ getIglesiaActualNombre() }}</span>
+        </div>
+      </div>
+      <div class="info-card" *ngIf="(miembro || data.miembroDto)?.detalles">
+        <mat-icon class="card-icon">notes</mat-icon>
+        <div class="card-text">
+          <span class="label">Detalles / Observaciones</span>
+          <span class="value">{{ (miembro || data.miembroDto)?.detalles }}</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <h3 class="section-title">Información del Sistema</h3>
-  <div class="info-grid">
-    <div class="info-cell">
-      <mat-icon class="cell-icon">schedule</mat-icon>
-      <div class="cell-content">
-        <span class="cell-label">Creado</span>
-        <span class="cell-value">{{ formatDate(data.createdAt) }}</span>
-      </div>
+  <!-- Image Preview Overlay -->
+  <div class="image-preview-overlay" *ngIf="showImagePreview" (click)="toggleImagePreview()">
+    <div class="image-preview-container" (click)="$event.stopPropagation()">
+      <button mat-icon-button class="preview-close-btn" (click)="toggleImagePreview()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="getProfilePhoto() | imageUrl" [alt]="(miembro || data.miembroDto)?.nombre" class="preview-image">
     </div>
-    <div class="info-cell">
-      <mat-icon class="cell-icon">update</mat-icon>
-      <div class="cell-content">
-        <span class="cell-label">Última Actualizacion</span>
-        <span class="cell-value">{{ formatDate(data.updatedAt) }}</span>
-      </div>
-    </div>
+  </div>
+
+  <!-- Accordion System below profile card -->
+  <div class="history-section">
+    <mat-accordion class="modern-accordion" multi="true">
+      
+      <!-- Panel 1: Designaciones / Cargos -->
+      <mat-expansion-panel *ngIf="loadingHistory || cargosHistory.length > 0"
+                           [expanded]="true"
+                           [ngClass]="{
+                             'panel-actual': hasActiveCargo(),
+                             'panel-anterior': !hasActiveCargo()
+                           }">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">assignment_ind</mat-icon>
+            Designación Obrero ({{ cargosHistory.length }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="panel-content">
+          <div class="loading-spinner-wrapper" *ngIf="loadingHistory">
+            <p>Cargando historial de cargos...</p>
+          </div>
+
+          <div class="history-list" *ngIf="!loadingHistory && cargosHistory.length > 0">
+            <div class="history-item-card" *ngFor="let cargo of cargosHistory">
+              <div class="history-item-header">
+                <div class="history-item-title-row">
+                  <mat-icon class="item-icon">military_tech</mat-icon>
+                  <div>
+                    <h4>{{ cargo.tipoCargoDto?.nombre || 'Cargo Desconocido' }}</h4>
+                    <p class="history-item-subtitle">{{ cargo.iglesiaDto?.nombre || 'Sin Iglesia' }}</p>
+                  </div>
+                </div>
+                <span class="status-badge" [ngClass]="cargo.estado ? 'actual' : 'anterior'">
+                  {{ cargo.estado ? 'Vigente' : 'Desvinculado' }}
+                </span>
+              </div>
+
+              <div class="history-item-body">
+                <div class="history-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Desde:</span>
+                    <span class="meta-val">{{ formatDate(cargo.fechaInicio) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Hasta:</span>
+                    <span class="meta-val">{{ cargo.fechaFin ? formatDate(cargo.fechaFin) : 'Presente (Vigente)' }}</span>
+                  </div>
+                </div>
+                <p class="history-item-detail" *ngIf="cargo.detalle">
+                  <strong>Detalles:</strong> {{ cargo.detalle }}
+                </p>
+
+                <!-- Documentos adjuntos -->
+                <div class="history-documents" *ngIf="cargo.uriActaAsignacion || cargo.uriActaDeslindacion">
+                  <span class="doc-section-title">Documentos Adjuntos:</span>
+                  <div class="doc-buttons-row">
+                    <a [href]="cargo.uriActaAsignacion | imageUrl" target="_blank" mat-stroked-button class="doc-btn" *ngIf="cargo.uriActaAsignacion">
+                      <mat-icon>assignment_turned_in</mat-icon>
+                      Acta Asignación
+                    </a>
+                    <a [href]="cargo.uriActaDeslindacion | imageUrl" target="_blank" mat-stroked-button class="doc-btn" *ngIf="cargo.uriActaDeslindacion">
+                      <mat-icon>assignment_late</mat-icon>
+                      Acta Deslindación
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Panel 2: Traslados e Iglesia -->
+      <mat-expansion-panel *ngIf="loadingHistory || getRealTraslados().length > 0"
+                           [ngClass]="{
+                             'panel-actual': hasActiveTraslado(),
+                             'panel-pendiente': hasPendienteTraslado(),
+                             'panel-anterior': !hasActiveTraslado() && !hasPendienteTraslado()
+                           }">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">transfer_within_a_station</mat-icon>
+            Traslados e Iglesia ({{ getRealTraslados().length }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="panel-content">
+          <div class="loading-spinner-wrapper" *ngIf="loadingHistory">
+            <p>Cargando historial de traslados...</p>
+          </div>
+
+          <div class="history-list" *ngIf="!loadingHistory && getRealTraslados().length > 0">
+            <div class="history-item-card" *ngFor="let traslado of getRealTraslados()">
+              <div class="history-item-header">
+                <div class="history-item-title-row">
+                  <mat-icon class="item-icon">church</mat-icon>
+                  <div>
+                    <h4>Registro de Iglesia</h4>
+                    <p class="history-item-subtitle">
+                      Iglesia Origen: <strong>{{ getIglesiaNombre(traslado.iglesiaId) }}</strong>
+                      <span *ngIf="traslado.iglesiaDestinoId"> → Destino: <strong>{{ getIglesiaNombre(traslado.iglesiaDestinoId) }}</strong></span>
+                    </p>
+                  </div>
+                </div>
+                <span class="status-badge" [ngClass]="getTrasladoEstadoLabel(traslado) === 'VIGENTE' ? 'actual' : getTrasladoEstadoLabel(traslado) === 'TRASLADADO PENDIENTE' ? 'pendiente' : 'anterior'">
+                  {{ getTrasladoEstadoLabel(traslado) }}
+                </span>
+              </div>
+
+              <div class="history-item-body">
+                <div class="history-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Fecha Registro:</span>
+                    <span class="meta-val">{{ formatDate(traslado.fecha) }}</span>
+                  </div>
+                  <div class="meta-item" *ngIf="traslado.fechaTraspaso">
+                    <span class="meta-label">Fecha Traspaso:</span>
+                    <span class="meta-val">{{ formatDate(traslado.fechaTraspaso) }}</span>
+                  </div>
+                </div>
+                <p class="history-item-detail" *ngIf="traslado.motivoTraspaso">
+                  <strong>Motivo de Traslado:</strong> {{ traslado.motivoTraspaso }}
+                </p>
+
+                <!-- Carta de traslado -->
+                <div class="history-documents" *ngIf="traslado.uriCartaTraspaso">
+                  <div class="doc-buttons-row">
+                    <a [href]="traslado.uriCartaTraspaso | imageUrl" target="_blank" mat-stroked-button class="doc-btn">
+                      <mat-icon>picture_as_pdf</mat-icon>
+                      Ver Carta de Traslado
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Panel 3: Eventos Organizados -->
+      <mat-expansion-panel *ngIf="loadingHistory || eventosHistory.length > 0"
+                           [ngClass]="{
+                             'panel-actual': hasActiveEvento(),
+                             'panel-anterior': !hasActiveEvento()
+                           }">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">event_available</mat-icon>
+            Eventos Organizados ({{ eventosHistory.length }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="panel-content">
+          <div class="loading-spinner-wrapper" *ngIf="loadingHistory">
+            <p>Cargando historial de eventos...</p>
+          </div>
+
+          <div class="history-list" *ngIf="!loadingHistory && eventosHistory.length > 0">
+            <div class="history-item-card" *ngFor="let resp of eventosHistory">
+              <div class="history-item-header">
+                <div class="history-item-title-row">
+                  <mat-icon class="item-icon">event_note</mat-icon>
+                  <div>
+                    <h4>{{ resp.eventoDto?.nombre || 'Evento sin nombre' }}</h4>
+                    <p class="history-item-subtitle">Ubicación: {{ resp.eventoDto?.ubicacion || 'No especificado' }}</p>
+                  </div>
+                </div>
+                <span class="status-badge" [ngClass]="resp.estado ? 'actual' : 'anterior'">
+                  {{ resp.estado ? 'Vigente' : 'Inactivo' }}
+                </span>
+              </div>
+
+              <div class="history-item-body">
+                <div class="history-meta-grid">
+                  <div class="meta-item">
+                    <span class="meta-label">Fecha Inicio:</span>
+                    <span class="meta-val">{{ formatDate(resp.eventoDto?.fechaInicio) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Fecha Fin:</span>
+                    <span class="meta-val">{{ formatDate(resp.eventoDto?.fechaFin) }}</span>
+                  </div>
+                </div>
+                <p class="history-item-detail" *ngIf="resp.eventoDto?.motivo">
+                  <strong>Motivo del evento:</strong> {{ resp.eventoDto?.motivo }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+    </mat-accordion>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  <button mat-stroked-button class="btn-pdf-download" (click)="downloadPdf()" [disabled]="loadingHistory">
+    <mat-icon>picture_as_pdf</mat-icon>
+    Descargar Historial
+  </button>
 </mat-dialog-actions>
