@@ -43,3 +43,6 @@ Thumbs.db
 
 # Antigravity
 *~
+
+# Config local de tooling (preview / dev server), no compartir
+.claude/launch.json

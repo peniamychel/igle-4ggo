@@ -76,9 +76,11 @@ export class MiembroCreateComponent implements OnInit {
       fechaNac: ['', Validators.required],
       celular: ['', Validators.required],
       sexo: ['', Validators.required],
-      direccion: ['', Validators.required],
+      // Obligatorios: nombre, apellido, CI, fecha de nacimiento, sexo y celular.
+      // El resto es opcional y puede completarse después editando el miembro.
+      direccion: [''],
       fechaConvercion: [''],
-      lugarConvercion: ['', Validators.required],
+      lugarConvercion: [''],
       interventores: [''],
       detalles: [''],
       iglesiaId: [this.isAdmin ? '' : (currentIglesiaId || ''), Validators.required]
@@ -190,7 +192,10 @@ export class MiembroCreateComponent implements OnInit {
           }).toPromise();
         }
 
-        this.dialogRef.close(true);
+        // Se devuelve el miembro creado (con su id) para que quien abrió el diálogo
+        // pueda usarlo directamente, p. ej. seleccionarlo al registrar una participación.
+        // Sigue siendo "truthy", por lo que los usos existentes (if (result)) no cambian.
+        this.dialogRef.close({ ...miembroData, ...(response?.datos || {}), id: miembroId });
       } catch (error: any) {
         console.error('Error al crear el miembro:', error);
         const errorMsg = error?.error?.message || 'Error al crear el miembro. Si el problema persiste, por favor contacte con soporte técnico.';

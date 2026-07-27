@@ -48,6 +48,7 @@
         <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
         <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
         <mat-datepicker #pickerInicio></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-error>{{ getError('fechaInicio') }}</mat-error>
       </mat-form-field>
 
@@ -56,6 +57,7 @@
         <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin">
         <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
         <mat-datepicker #pickerFin></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-error>{{ getError('fechaFin') }}</mat-error>
       </mat-form-field>
     </div>

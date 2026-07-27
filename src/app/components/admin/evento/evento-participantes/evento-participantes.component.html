@@ -17,7 +17,7 @@
   <div class="add-section">
     <mat-form-field appearance="outline" class="select-field">
       <mat-label>Seleccionar Miembro</mat-label>
-      <mat-select [(value)]="selectedMiembroId" (openedChange)="onSelectOpened($event)">
+      <mat-select #miembroSelect [(value)]="selectedMiembroId" (openedChange)="onSelectOpened($event)">
         <!-- Input de búsqueda -->
         <div class="select-search-container">
           <mat-icon class="search-icon">search</mat-icon>
@@ -32,6 +32,14 @@
         <mat-option *ngFor="let m of filteredMiembros" [value]="m.id">
           {{ m.nombre }} {{ m.apellido }} {{ m.ci ? '(CI: ' + m.ci + ')' : '' }}
         </mat-option>
+
+        <!-- El miembro no existe: se registra desde aquí -->
+        <div class="crear-miembro-box" (click)="$event.stopPropagation()">
+          <button type="button" mat-stroked-button class="btn-crear-miembro" (click)="crearNuevoMiembro()">
+            <mat-icon>person_add</mat-icon>
+            <span>Registrar nuevo miembro</span>
+          </button>
+        </div>
       </mat-select>
     </mat-form-field>
     

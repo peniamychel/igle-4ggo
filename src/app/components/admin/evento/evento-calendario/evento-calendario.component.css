@@ -87,6 +87,8 @@
   font-weight: 600;
   font-size: 13px;
   color: #495057;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .days-grid {
@@ -103,6 +105,8 @@
   flex-direction: column;
   background-color: #ffffff;
   transition: background-color 0.2s;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .day-cell:nth-child(7n) {
@@ -189,12 +193,53 @@
 }
 
 @media (max-width: 768px) {
+  .calendar-container {
+    padding: 12px 0;
+    overflow-x: hidden;
+  }
+
   .calendar-header-bar {
     flex-direction: column;
     gap: 12px;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  
+
+  /* La barra de navegación ocupa todo el ancho y reparte el espacio,
+     así el botón "Hoy" no se sale de la tarjeta. */
+  .navigation-controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .month-title {
+    min-width: 0;
+    flex: 1;
+    font-size: 15px;
+  }
+
+  .today-btn {
+    height: 34px;
+    line-height: 32px;
+    padding: 0 12px;
+    flex: 0 0 auto;
+  }
+
+  .weekday-header {
+    padding: 8px 2px;
+    font-size: 11px;
+  }
+
+  .day-cell {
+    padding: 4px 3px;
+  }
+
+  .day-number {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+
   .days-grid {
     grid-auto-rows: minmax(80px, 1fr);
   }

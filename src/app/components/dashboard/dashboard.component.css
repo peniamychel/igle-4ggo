@@ -8,6 +8,17 @@
   background-color: #fafbfc;
   min-height: 100vh;
   font-family: 'Outfit', 'Inter', sans-serif;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden; /* evita que cualquier hijo empuje la página fuera de la ventana */
+}
+
+/* Los ítems de grid deben poder encogerse por debajo de su contenido (charts, calendario),
+   de lo contrario el track del grid se ensancha más que la pantalla en móvil. */
+.kpi-grid > *,
+.charts-section-grid > *,
+.bottom-widgets-row > * {
+  min-width: 0;
 }
 
 /* Header Section */
@@ -58,6 +69,11 @@
   transform: translateY(-4px);
   box-shadow: 0 10px 24px rgba(124, 77, 255, 0.06);
   border-color: rgba(124, 77, 255, 0.3);
+}
+
+/* Tarjetas KPI que navegan a su módulo al hacer clic */
+.kpi-card-clickable:active {
+  transform: translateY(-1px);
 }
 
 .kpi-content {
@@ -161,11 +177,44 @@
   flex-direction: column;
   overflow: hidden;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
 .chart-card-header {
   margin-bottom: 20px;
+}
+
+/* Header con acción a la derecha (p. ej. selector de escala del gráfico) */
+.chart-header-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-header-with-action .chart-title-block {
+  min-width: 0;
+}
+.growth-range-select {
+  width: 130px;
+  flex: 0 0 auto;
+}
+.growth-range-select ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: #f7fafc;
+  border-radius: 10px;
+}
+:host-context(.dark-theme) .growth-range-select ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: #1e1e2e;
+}
+@media (max-width: 599px) {
+  .chart-header-with-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .growth-range-select {
+    width: 100%;
+  }
 }
 
 .chart-title {
@@ -289,6 +338,9 @@
   display: flex;
   flex-direction: column;
   max-height: 480px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .widget-header {
@@ -392,6 +444,61 @@
 
 .activity-icon-box.purple-bg { background-color: #f1edff; color: #7c4dff; }
 .activity-icon-box.teal-bg { background-color: #e6fcf5; color: #00bfa5; }
+.activity-icon-box.blue-bg { background-color: #e7f0ff; color: #2563eb; }
+
+/* Etiqueta del tipo de actividad (Certificado / Evento / Traspaso) */
+.activity-type-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #8792a2;
+  background: #f2f4f7;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Barra para elegir cuántas actividades mostrar (10 / 20 / 30) */
+.activity-more-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 4px 2px;
+  border-top: 1px solid #edf2f7;
+  margin-top: 6px;
+}
+.activity-more-label {
+  font-size: 0.78rem;
+  color: #8792a2;
+  font-weight: 600;
+}
+.activity-more-chip {
+  border: 1px solid #e3e8ee;
+  background: #ffffff;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.activity-more-chip:hover { border-color: #7c4dff; color: #7c4dff; }
+.activity-more-chip.active {
+  background: #7c4dff;
+  border-color: #7c4dff;
+  color: #ffffff;
+}
+.activity-more-total {
+  font-size: 0.75rem;
+  color: #a0aab8;
+  margin-left: auto;
+}
+:host-context(.dark-theme) .activity-type-tag { background: #2a2a35; color: #94a3b8; }
+:host-context(.dark-theme) .activity-more-chip { background: #1e1e2e; border-color: #2d2d3a; color: #cbd5e1; }
+:host-context(.dark-theme) .activity-more-bar { border-top-color: #23232c; }
 
 .activity-icon-box mat-icon {
   font-size: 20px;
@@ -675,6 +782,10 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto; /* si el calendario es más ancho, hace scroll interno */
+  box-sizing: border-box;
 }
 
 /* Responsive grid and mobile layout adjustments */
@@ -820,12 +931,23 @@
    CERT STATS BOXES
    ======================================== */
 .cert-stats-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1.2;
   text-align: center;
-  padding: 20px 30px;
+  padding: 20px 24px;
   background: rgba(124, 77, 255, 0.06);
   border-radius: 16px;
   border: 1px solid rgba(124, 77, 255, 0.12);
   flex: 1;
+  min-width: 0;
+}
+/* El número y la etiqueta con altura de línea propia para que no se solapen */
+.cert-stats-box > div {
+  line-height: 1.2;
 }
 
 .cert-stats-box.delivered-box {

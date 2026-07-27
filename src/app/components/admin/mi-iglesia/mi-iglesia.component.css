@@ -371,16 +371,60 @@
   max-width: 180px !important;
 }
 
-/* 5. Responsive */
-@media (max-width: 1200px) {
+/* 5. Responsive — las columnas se ocultan según el ancho REAL de la tabla
+   (container query), no el de la ventana: el menú lateral resta espacio.
+   Anchos mínimos: miembro 260 · contacto 180 · bautismo 110 · estado 90 · acciones 140 */
+@container (max-width: 860px) {
   .mat-column-bautismo {
     display: none !important;
   }
 }
 
-@media (max-width: 992px) {
+@container (max-width: 700px) {
   .mat-column-contacto {
     display: none !important;
+  }
+}
+
+/* Angosto: se prioriza Miembro + Opciones; "Estado" se oculta. */
+@container (max-width: 560px) {
+  .mat-column-estado {
+    display: none !important;
+  }
+}
+
+@container (max-width: 460px) {
+  .mat-column-miembro {
+    min-width: 130px !important;
+    flex: 2 !important;
+  }
+
+  .mat-column-acciones {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    flex: 0.9 !important;
+  }
+}
+
+/* Respaldo por ancho de ventana (móvil): en el teléfono se ve Miembro + Opciones,
+   igual que en la lista de miembros del administrador. */
+@media (max-width: 768px) {
+  .mat-column-bautismo,
+  .mat-column-contacto,
+  .mat-column-estado {
+    display: none !important;
+  }
+
+  .mat-column-acciones {
+    display: flex !important;
+    min-width: 88px !important;
+    max-width: 110px !important;
+    flex: 0.9 !important;
+  }
+
+  .mat-column-miembro {
+    min-width: 130px !important;
+    flex: 2 !important;
   }
 }
 

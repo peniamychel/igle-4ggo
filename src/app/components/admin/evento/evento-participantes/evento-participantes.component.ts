@@ -1,11 +1,11 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelectModule, MatSelect } from '@angular/material/select';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,6 +22,7 @@ import { CargoService } from '../../../../core/services/cargo.service';
 import { TipoCargoService } from '../../../../core/services/tipo-cargo.service';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { MiembroCreateComponent } from '../../miembro/miembro-create/miembro-create.component';
 
 @Component({
   selector: 'app-evento-participantes',
@@ -44,6 +45,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
   styleUrls: ['./evento-participantes.component.css']
 })
 export class EventoParticipantesComponent implements OnInit {
+  @ViewChild('miembroSelect') miembroSelect!: MatSelect;
   evento: Evento;
   participantes: ParticipacionEvento[] = [];
   miembros: Miembro[] = [];
@@ -150,6 +152,39 @@ export class EventoParticipantesComponent implements OnInit {
     });
 
     this.dataSource.data = [...this.participantes];
+  }
+
+  /**
+   * Si el miembro no existe, se registra uno nuevo sin salir de esta ventana.
+   * Al crearse queda agregado a la lista y seleccionado, listo para "Agregar".
+   */
+  crearNuevoMiembro() {
+    this.miembroSelect?.close();
+
+    const ref = this.dialog.open(MiembroCreateComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile'
+    });
+
+    ref.afterClosed().subscribe((creado: any) => {
+      if (!creado) return;
+
+      // El diálogo devuelve el miembro creado (con id). Si no llegara el objeto,
+      // se recarga la lista para que al menos aparezca disponible.
+      if (creado === true || creado.id == null) {
+        this.loadMiembros();
+        this.messageSnackBar('Miembro creado. Selecciónelo en la lista.', 'success');
+        return;
+      }
+
+      const nuevo = creado as Miembro;
+      this.miembros = [nuevo, ...this.miembros];
+      this.searchQuery = '';
+      this.filterAvailableMiembros();
+      this.selectedMiembroId = nuevo.id ?? null;
+      this.messageSnackBar(`Miembro "${nuevo.nombre} ${nuevo.apellido}" creado y seleccionado.`, 'success');
+    });
   }
 
   filterAvailableMiembros() {

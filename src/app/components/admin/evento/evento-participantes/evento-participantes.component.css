@@ -115,6 +115,34 @@ h2[mat-dialog-title] {
   color: var(--text-secondary, #a3acb9);
 }
 
+/* Acción para registrar un miembro que no existe, sin salir de la ventana */
+.crear-miembro-box {
+  position: sticky;
+  bottom: 0;
+  padding: 8px 12px;
+  background-color: var(--card-bg, #ffffff);
+  border-top: 1px solid var(--border-color, #e3e8ee);
+  z-index: 100;
+}
+
+.btn-crear-miembro {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: 8px;
+  color: var(--primary-color, #7F0B85);
+  border-color: var(--primary-color, #7F0B85);
+}
+
+.btn-crear-miembro mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
 button.btn-action-primary.add-btn {
   background-color: var(--primary-color, #7F0B85);
   color: #ffffff;

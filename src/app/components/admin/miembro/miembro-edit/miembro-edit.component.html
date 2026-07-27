@@ -57,7 +57,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Nacimiento</mat-label>
         <input matInput [matDatepicker]="fechaNacPicker" formControlName="fechaNac" placeholder="Ej: 01/01/2000">
-        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-datepicker-toggle matSuffix [for]="fechaNacPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaNacPicker></mat-datepicker>
       </mat-form-field>
@@ -89,6 +89,7 @@
         <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion">
         <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaConvPicker></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
       </mat-form-field>
 
       <mat-form-field appearance="outline">

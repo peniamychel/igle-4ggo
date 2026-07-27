@@ -7,15 +7,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { AuthService } from '../../core/services/security/auth.service';
 import { MiembroService } from '../../core/services/miembro.service';
 import { IglesiaService } from '../../core/services/iglesia.service';
 import { EventoService } from '../../core/services/evento.service';
+import { TipoEventoService } from '../../core/services/tipo-evento.service';
 import { MiembroIglesiaService } from '../../core/services/miembro-iglesia.service';
 import { UserService } from '../../core/services/user.service';
 import { CertificadoService } from '../../core/services/certificado.service';
+import { ParticipacionEventoService } from '../../core/services/participacion-evento.service';
 import { Evento } from '../../core/models/evento.model';
 import { Certificado } from '../../core/models/certificado.model';
 import { Iglesia } from '../../core/models/iglesia.model';
@@ -36,6 +39,7 @@ import { EventoCalendarioComponent } from '../admin/evento/evento-calendario/eve
     MatSelectModule,
     MatFormFieldModule,
     NgxChartsModule,
+    RouterLink,
     EventoCalendarioComponent
   ]
 })
@@ -44,9 +48,11 @@ export class DashboardComponent implements OnInit {
   private miembroService = inject(MiembroService);
   private iglesiaService = inject(IglesiaService);
   private eventoService = inject(EventoService);
+  private tipoEventoService = inject(TipoEventoService);
   private miembroIglesiaService = inject(MiembroIglesiaService);
   private userService = inject(UserService);
   private certificadoService = inject(CertificadoService);
+  private participacionService = inject(ParticipacionEventoService);
 
   isAdmin = false;
   isPastor = false;
@@ -64,6 +70,7 @@ export class DashboardComponent implements OnInit {
   allMembersCache: any[] = [];
   allEventsCache: Evento[] = [];
   allCertificadosCache: Certificado[] = [];
+  allParticipacionesCache: any[] = [];
 
   // KPIs
   totalMembers = 0;
@@ -78,6 +85,11 @@ export class DashboardComponent implements OnInit {
   activeTab: 'traspasos' | 'certificados' = 'traspasos';
   pendingTraspasosCount = 0;
 
+  // Actividad reciente unificada (certificados + eventos + traspasos)
+  recentActivities: any[] = [];
+  activityLimit = 10;
+  activityOptions = [10, 20, 30];
+
   // Dynamic lists
   recentTraspasos: any[] = [];
   recentCertificados: any[] = [];
@@ -86,6 +98,20 @@ export class DashboardComponent implements OnInit {
   // Chart datasets
   membresiaGrowthData: any[] = [];
   eventosTipoData: any[] = [];
+  // Mapa id->nombre de tipos de evento (el backend solo envía tipoEventoId en la lista)
+  private tiposEventoMap = new Map<number, string>();
+
+  // Selector de escala del gráfico de crecimiento de membresía
+  growthRange: 'semana' | 'mes' | '1a' | '2a' | '3a' | '5a' = 'mes';
+  growthRangeOptions = [
+    { value: 'semana', label: 'Por semana' },
+    { value: 'mes', label: 'Por mes' },
+    { value: '1a', label: '1 año' },
+    { value: '2a', label: '2 años' },
+    { value: '3a', label: '3 años' },
+    { value: '5a', label: '5 años' }
+  ];
+  private growthMembers: any[] = [];
   topIglesiasData: any[] = [];
   certificadosEmitidosData: any[] = [];
 
@@ -144,6 +170,14 @@ export class DashboardComponent implements OnInit {
     this.loadAllData();
   }
 
+  /** Nombre del tipo de evento: se resuelve por id desde el mapa de tipos. */
+  private nombreTipoEvento(e: any): string {
+    if (e?.tipoEventoId != null && this.tiposEventoMap.has(e.tipoEventoId)) {
+      return this.tiposEventoMap.get(e.tipoEventoId)!;
+    }
+    return e?.tipoEventoDto?.nombre || 'Sin tipo';
+  }
+
   loadAllData(): void {
     const obs: any = {};
 
@@ -152,12 +186,17 @@ export class DashboardComponent implements OnInit {
     }
     if (this.canViewEvents) {
       obs.eventos = this.eventoService.getEventos();
+      obs.tiposEvento = this.tipoEventoService.getTipoEventos();
     }
     if (this.authService.hasPrivilegio('Ver Miembros')) {
       obs.miembros = this.miembroService.getMiembros();
     }
     if (this.authService.hasPrivilegio('Ver Certificados')) {
       obs.certificados = this.certificadoService.getCertificados();
+    }
+    // El endpoint de participaciones exige el privilegio de eventos (EVENTOS:VER).
+    if (this.authService.hasPrivilegio('Ver Certificados') && this.authService.hasPrivilegio('Ver Eventos')) {
+      obs.participaciones = this.participacionService.getParticipaciones();
     }
     if (this.isAdmin) {
       obs.users = this.userService.getAllUsers();
@@ -187,6 +226,13 @@ export class DashboardComponent implements OnInit {
           this.allMembersCache = results.miembros.datos;
         }
 
+        if (results.tiposEvento && results.tiposEvento.datos) {
+          this.tiposEventoMap.clear();
+          results.tiposEvento.datos.forEach((t: any) => {
+            if (t.id != null) this.tiposEventoMap.set(t.id, t.nombre);
+          });
+        }
+
         if (results.eventos && results.eventos.datos) {
           this.allEventsCache = results.eventos.datos;
         } else {
@@ -195,6 +241,12 @@ export class DashboardComponent implements OnInit {
 
         if (results.certificados && results.certificados.datos) {
           this.allCertificadosCache = results.certificados.datos;
+        }
+
+        if (results.participaciones && results.participaciones.datos) {
+          this.allParticipacionesCache = results.participaciones.datos;
+        } else {
+          this.allParticipacionesCache = [];
         }
 
         this.loadTopIglesiasChart();
@@ -284,7 +336,7 @@ export class DashboardComponent implements OnInit {
         id: e.id,
         nombre: e.nombre,
         ubicacion: e.ubicacion || 'Templo Central',
-        tipo: e.tipoEventoDto?.nombre || 'General',
+        tipo: this.nombreTipoEvento(e),
         fechaInicio: new Date(e.fechaInicio!),
         participantes: null
       }))
@@ -294,7 +346,7 @@ export class DashboardComponent implements OnInit {
     // Donut chart
     const tiposMap = new Map<string, number>();
     filteredEvents.forEach(e => {
-      const tipoNombre = e.tipoEventoDto?.nombre || 'General';
+      const tipoNombre = this.nombreTipoEvento(e);
       tiposMap.set(tipoNombre, (tiposMap.get(tipoNombre) || 0) + 1);
     });
 
@@ -311,11 +363,26 @@ export class DashboardComponent implements OnInit {
       ];
     }
 
-    // 3. Certificados
+    // 3. Certificados: emitidos vs entregados se cuentan a nivel de PARTICIPACIÓN
+    // (cada participante en un evento con certificado activo). La entrega vive en
+    // participacion_evento.entregado (no en certificado.estado).
     let filteredCerts = [...this.allCertificadosCache];
-    this.totalCertificados = filteredCerts.length;
-    this.entregadosCertificados = filteredCerts.filter(c => c.estado === true).length;
-    this.pendientesCertificados = this.totalCertificados - this.entregadosCertificados;
+    if (this.allParticipacionesCache.length > 0) {
+      const eventosConCertificado = new Set<number>(
+        filteredCerts.filter(c => c.estado !== false && c.eventoId != null).map(c => c.eventoId)
+      );
+      const certParticipaciones = this.allParticipacionesCache.filter(
+        p => p?.eventoId != null && eventosConCertificado.has(p.eventoId)
+      );
+      this.totalCertificados = certParticipaciones.length;
+      this.entregadosCertificados = certParticipaciones.filter(p => p.entregado === true).length;
+      this.pendientesCertificados = this.totalCertificados - this.entregadosCertificados;
+    } else {
+      // Fallback (sin acceso a participaciones): conteo de certificados registrados.
+      this.totalCertificados = filteredCerts.length;
+      this.entregadosCertificados = filteredCerts.filter(c => c.estado === true).length;
+      this.pendientesCertificados = this.totalCertificados - this.entregadosCertificados;
+    }
 
     this.recentCertificados = filteredCerts.slice(0, 4).map((c: any) => ({
       id: c.id,
@@ -339,13 +406,81 @@ export class DashboardComponent implements OnInit {
               iglesiaDestino: this.currentChurchName,
               motivo: item.motivoTraspaso || 'Cambio de filial',
               estado: 'PENDIENTE',
-              fecha: item.fechaTraspaso ? new Date(item.fechaTraspaso).toLocaleDateString('es-ES') : 'Reciente'
+              fecha: item.fechaTraspaso ? new Date(item.fechaTraspaso).toLocaleDateString('es-ES') : 'Reciente',
+              fechaSort: item.fechaTraspaso ? new Date(item.fechaTraspaso).getTime() : Date.now()
             }));
             this.pendingTraspasosCount = this.recentTraspasos.length;
+            this.buildRecentActivities();
           }
         }
       });
     }
+
+    this.buildRecentActivities();
+  }
+
+  /** Actividad reciente unificada: certificados + eventos + traspasos, ordenada por fecha desc. */
+  buildRecentActivities(): void {
+    const acts: any[] = [];
+
+    // Certificados emitidos
+    for (const c of this.allCertificadosCache as any[]) {
+      const d = c.createdAt ? new Date(c.createdAt) : null;
+      acts.push({
+        type: 'certificado',
+        icon: 'workspace_premium',
+        iconClass: 'teal-bg',
+        titulo: c.eventoDto?.nombre || c.motivoCertificado || 'Certificado emitido',
+        descripcion: c.motivoCertificado || 'Certificado del evento',
+        estado: c.estado ? 'Activo' : 'Inactivo',
+        estadoClass: c.estado ? 'delivered' : 'pending',
+        fecha: d ? d.toLocaleDateString('es-ES') : 'Reciente',
+        fechaSort: d ? d.getTime() : 0
+      });
+    }
+
+    // Eventos registrados
+    for (const e of this.allEventsCache as any[]) {
+      const d = e.createdAt ? new Date(e.createdAt) : (e.fechaInicio ? new Date(e.fechaInicio) : null);
+      acts.push({
+        type: 'evento',
+        icon: 'event',
+        iconClass: 'blue-bg',
+        titulo: e.nombre || 'Evento',
+        descripcion: this.nombreTipoEvento(e) + (e.ubicacion ? ' · ' + e.ubicacion : ''),
+        estado: null,
+        fecha: d ? d.toLocaleDateString('es-ES') : 'Reciente',
+        fechaSort: d ? d.getTime() : 0
+      });
+    }
+
+    // Traspasos pendientes (accionables)
+    for (const t of this.recentTraspasos) {
+      acts.push({
+        type: 'traspaso',
+        icon: 'swap_horiz',
+        iconClass: 'purple-bg',
+        titulo: t.miembroNombre,
+        descripcion: `${t.iglesiaOrigen} → ${t.iglesiaDestino}`,
+        estado: t.estado,
+        estadoClass: 'pending',
+        fecha: t.fecha,
+        fechaSort: t.fechaSort ?? Date.now(),
+        accionable: true,
+        raw: t
+      });
+    }
+
+    acts.sort((a, b) => (b.fechaSort || 0) - (a.fechaSort || 0));
+    this.recentActivities = acts;
+  }
+
+  get actividadesVisibles(): any[] {
+    return this.recentActivities.slice(0, this.activityLimit);
+  }
+
+  setActivityLimit(n: number): void {
+    this.activityLimit = n;
   }
 
   loadTopIglesiasChart(): void {
@@ -364,22 +499,81 @@ export class DashboardComponent implements OnInit {
   }
 
   buildMembresiaGrowthChart(members: any[]): void {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const currentMonthIdx = new Date().getMonth();
+    this.growthMembers = Array.isArray(members) ? members : [];
+    this.rebuildGrowthChart();
+  }
 
-    const series = months.map((m, idx) => {
-      if (idx === currentMonthIdx) {
-        return { name: m, value: members.length };
+  onGrowthRangeChange(): void {
+    this.rebuildGrowthChart();
+  }
+
+  /**
+   * Crecimiento ACUMULADO de miembros según la escala elegida. Agrupa por la fecha
+   * de alta (createdAt): por semana, por mes o por año según el rango.
+   */
+  private rebuildGrowthChart(): void {
+    const now = new Date();
+    let unit: 'week' | 'month' | 'year';
+    let count: number;
+    switch (this.growthRange) {
+      case 'semana': unit = 'week'; count = 12; break;
+      case 'mes': unit = 'month'; count = 12; break;
+      case '1a': unit = 'month'; count = 12; break;
+      case '2a': unit = 'month'; count = 24; break;
+      case '3a': unit = 'month'; count = 36; break;
+      case '5a': unit = 'year'; count = 5; break;
+      default: unit = 'month'; count = 12;
+    }
+
+    // Cubetas (inicio + etiqueta), de la más antigua a la más reciente.
+    const buckets: { start: Date; label: string }[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      buckets.push(this.bucketFor(now, unit, i));
+    }
+    const windowStart = buckets[0].start;
+
+    // Cuenta las altas por cubeta; las anteriores a la ventana forman la base acumulada.
+    let baseline = 0;
+    const counts = new Array(count).fill(0);
+    for (const m of this.growthMembers) {
+      const d = m?.createdAt ? new Date(m.createdAt) : null;
+      if (!d || isNaN(d.getTime()) || d < windowStart) { baseline++; continue; }
+      let idx = 0;
+      for (let b = 0; b < buckets.length; b++) {
+        if (d >= buckets[b].start) idx = b; else break;
       }
-      return { name: m, value: 0 };
+      counts[idx]++;
+    }
+
+    let running = baseline;
+    const series = buckets.map((b, i) => {
+      running += counts[i];
+      return { name: b.label, value: running };
     });
 
-    this.membresiaGrowthData = [
-      {
-        name: 'Membresía',
-        series
-      }
-    ];
+    this.membresiaGrowthData = [{ name: 'Membresía', series }];
+  }
+
+  /** Inicio y etiqueta de la cubeta que está `back` periodos antes de la actual. */
+  private bucketFor(now: Date, unit: 'week' | 'month' | 'year', back: number): { start: Date; label: string } {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    if (unit === 'year') {
+      const y = now.getFullYear() - back;
+      return { start: new Date(y, 0, 1), label: String(y) };
+    }
+    if (unit === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+      const soloMes = this.growthRange === 'mes' || this.growthRange === '1a';
+      const label = soloMes ? months[d.getMonth()] : `${months[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
+      return { start: d, label };
+    }
+    // semana: lunes de la semana correspondiente
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    const lunesOffset = (d.getDay() + 6) % 7; // 0 = lunes
+    d.setDate(d.getDate() - lunesOffset - back * 7);
+    const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return { start: d, label };
   }
 
   aprobarTraspaso(traspaso: any): void {
@@ -399,9 +593,6 @@ export class DashboardComponent implements OnInit {
   private removeTraspaso(id: number): void {
     this.recentTraspasos = this.recentTraspasos.filter(t => t.id !== id);
     this.pendingTraspasosCount = this.recentTraspasos.length;
-  }
-
-  selectTab(tab: 'traspasos' | 'certificados'): void {
-    this.activeTab = tab;
+    this.buildRecentActivities();
   }
 }

@@ -51,7 +51,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Nacimiento</mat-label>
         <input matInput [matDatepicker]="fechaNacPicker" formControlName="fechaNac" placeholder="Ej. 15/08/1990">
-        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-datepicker-toggle matSuffix [for]="fechaNacPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaNacPicker></mat-datepicker>
         <mat-error *ngIf="miembroForm.get('fechaNac')?.hasError('required')">La fecha de nacimiento es requerida</mat-error>
@@ -90,7 +90,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Conversión</mat-label>
         <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion" placeholder="Ej. 25/12/2020">
-        <mat-hint>Opcional (MM/DD/YYYY)</mat-hint>
+        <mat-hint>Opcional (DD/MM/YYYY)</mat-hint>
         <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
         <mat-datepicker #fechaConvPicker></mat-datepicker>
       </mat-form-field>

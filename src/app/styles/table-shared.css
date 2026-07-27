@@ -10,6 +10,11 @@
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   transition: background-color 0.25s ease, border-color 0.25s ease;
+  /* Contexto de container query: las columnas se ocultan según el ancho REAL de
+     la tabla (ventana menos el menú lateral), no según el ancho de la ventana. */
+  container-type: inline-size;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* ── Header ── */
@@ -71,6 +76,16 @@
   background: var(--card-bg);
   color: var(--text-primary);
   transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* El paginador de Material tiene un ancho mínimo (~350px) que no se encoge y
+   obliga al .table-container (overflow-x:auto) a mostrar barra horizontal.
+   Aquí se deja envolver y se compacta para que quepa en pantallas angostas. */
+.table-container mat-paginator .mat-mdc-paginator-container {
+  flex-wrap: wrap;
+  min-height: auto;
+  padding: 6px 8px;
+  row-gap: 4px;
 }
 
 /* ── No Data ── */
@@ -141,5 +156,28 @@
 @media (max-width: 768px) {
   .table-container {
     border-radius: 12px;
+  }
+}
+
+/* Contenedor angosto: el paginador se compacta para no forzar scroll horizontal.
+   Se mide el ancho del .table-container, no el de la ventana. */
+@container (max-width: 620px) {
+  mat-paginator .mat-mdc-paginator-container {
+    justify-content: center;
+    padding: 6px 4px;
+  }
+
+  /* "Items por página:" es la etiqueta más ancha; el selector se entiende solo. */
+  mat-paginator .mat-mdc-paginator-page-size-label {
+    display: none;
+  }
+
+  mat-paginator .mat-mdc-paginator-page-size {
+    margin-right: 8px;
+  }
+
+  mat-paginator .mat-mdc-paginator-range-label {
+    margin: 0 8px;
+    font-size: 0.75rem;
   }
 }

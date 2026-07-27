@@ -412,16 +412,65 @@ button.btn-action-primary:hover {
   max-width: 180px !important;
 }
 
-/* 5. Responsive */
-@media (max-width: 1200px) {
+/* 5. Responsive — las columnas se ocultan según el ancho REAL de la tabla
+   (container query), no del de la ventana: el menú lateral resta espacio y
+   con @media la tabla seguía desbordando. Anchos mínimos por columna:
+   miembro 260 · contacto 180 · iglesia 150 · bautismo 110 · estado 90 · acciones 140 */
+@container (max-width: 1000px) {
   .mat-column-bautismo {
     display: none !important;
   }
 }
 
-@media (max-width: 992px) {
+@container (max-width: 820px) {
   .mat-column-contacto {
     display: none !important;
+  }
+}
+
+@container (max-width: 660px) {
+  .mat-column-iglesia {
+    display: none !important;
+  }
+}
+
+/* Angosto: se prioriza Miembro + Opciones; "Estado" se oculta. */
+@container (max-width: 560px) {
+  .mat-column-estado {
+    display: none !important;
+  }
+}
+
+@container (max-width: 460px) {
+  .mat-column-miembro {
+    min-width: 130px !important;
+    flex: 2 !important;
+  }
+
+  .mat-column-acciones {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    flex: 0.9 !important;
+  }
+}
+
+/* Respaldo por ancho de ventana (móvil): garantiza que en el teléfono se vea
+   Miembro + Opciones aunque el navegador no soporte container queries. */
+@media (max-width: 768px) {
+  .mat-column-estado {
+    display: none !important;
+  }
+
+  .mat-column-acciones {
+    display: flex !important;
+    min-width: 88px !important;
+    max-width: 110px !important;
+    flex: 0.9 !important;
+  }
+
+  .mat-column-miembro {
+    min-width: 130px !important;
+    flex: 2 !important;
   }
 }
 
@@ -465,7 +514,4 @@ button.btn-action-primary:hover {
     width: 100% !important;
   }
 
-  .mat-column-iglesia {
-    display: none !important;
-  }
 }

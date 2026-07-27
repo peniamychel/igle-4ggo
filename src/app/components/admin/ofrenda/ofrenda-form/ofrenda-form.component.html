@@ -25,6 +25,7 @@
       <input matInput [matDatepicker]="picker" formControlName="fechaRecaudacion">
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
+      <mat-hint>DD/MM/YYYY</mat-hint>
       <mat-error *ngIf="ofrendaForm.get('fechaRecaudacion')?.hasError('required')">La fecha es obligatoria.</mat-error>
     </mat-form-field>
 

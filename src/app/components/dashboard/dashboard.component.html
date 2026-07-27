@@ -25,7 +25,8 @@
   <!-- KPI Cards (Rejilla de 4 columnas) -->
   <div class="kpi-grid">
     <!-- Miembros Totales -->
-    <div class="kpi-card">
+    <div class="kpi-card kpi-card-clickable" [routerLink]="isAdmin ? ['/miembro'] : ['/mi-iglesia']"
+         [matTooltip]="isAdmin ? 'Ir a Miembros' : 'Ir a Mis Miembros'">
       <div class="kpi-content">
         <span class="kpi-label">{{ isAdmin ? 'Miembros totales' : 'Miembros de la iglesia' }}</span>
         <span class="kpi-value">{{ totalMembers | number:'1.0-0':'es-ES' }}</span>
@@ -42,7 +43,8 @@
     </div>
 
     <!-- Iglesias / Sede -->
-    <div class="kpi-card">
+    <div class="kpi-card kpi-card-clickable" [routerLink]="isAdmin ? ['/iglesia'] : ['/configuracion']"
+         [matTooltip]="isAdmin ? 'Ir a Iglesias' : 'Ir a Mi Iglesia'">
       <div class="kpi-content">
         <span class="kpi-label">{{ isAdmin ? 'Iglesias activas' : 'Sede activa' }}</span>
         <span class="kpi-value">{{ totalChurches }}</span>
@@ -55,7 +57,7 @@
     </div>
 
     <!-- Eventos del Mes -->
-    <div class="kpi-card">
+    <div class="kpi-card kpi-card-clickable" [routerLink]="['/eventos']" matTooltip="Ir a Eventos">
       <div class="kpi-content">
         <span class="kpi-label">Eventos del mes</span>
         <span class="kpi-value">{{ totalEventsMonth }}</span>
@@ -71,7 +73,7 @@
     </div>
 
     <!-- Certificados Emitidos -->
-    <div class="kpi-card">
+    <div class="kpi-card kpi-card-clickable" [routerLink]="['/certificados']" matTooltip="Ir a Certificaciones">
       <div class="kpi-content">
         <span class="kpi-label">Certificados emitidos</span>
         <span class="kpi-value">{{ totalCertificados }}</span>
@@ -87,9 +89,16 @@
   <div class="charts-section-grid">
     <!-- 1. Crecimiento de membresía -->
     <div class="chart-card-wrapper">
-      <div class="chart-card-header">
-        <h3 class="chart-title">Crecimiento de membresía</h3>
-        <p class="chart-subtitle">Histórico y evolución de miembros</p>
+      <div class="chart-card-header chart-header-with-action">
+        <div class="chart-title-block">
+          <h3 class="chart-title">Crecimiento de membresía</h3>
+          <p class="chart-subtitle">Histórico y evolución de miembros</p>
+        </div>
+        <mat-form-field appearance="outline" class="growth-range-select" subscriptSizing="dynamic">
+          <mat-select [(ngModel)]="growthRange" (selectionChange)="onGrowthRangeChange()">
+            <mat-option *ngFor="let opt of growthRangeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
       <div class="chart-body area-chart-wrapper">
         <ngx-charts-area-chart
@@ -203,81 +212,45 @@
         <h3 class="widget-title">Actividad reciente</h3>
       </div>
       
-      <!-- Selector de pestañas -->
-      <div class="tabs-container">
-        <button class="tab-button" [class.active]="activeTab === 'traspasos'" (click)="selectTab('traspasos')">
-          <mat-icon>swap_horiz</mat-icon>
-          <span>Traspasos</span>
-          <span class="tab-badge" *ngIf="pendingTraspasosCount > 0">{{ pendingTraspasosCount }}</span>
-        </button>
-        <button class="tab-button" [class.active]="activeTab === 'certificados'" (click)="selectTab('certificados')">
-          <mat-icon>workspace_premium</mat-icon>
-          <span>Certificados</span>
-        </button>
+      <div class="widget-body tab-content-scroll">
+        <!-- Lista unificada de actividad reciente (certificados + eventos + traspasos) -->
+        <div class="activity-list">
+          <div class="no-activity-placeholder" *ngIf="recentActivities.length === 0">
+            <mat-icon>history</mat-icon>
+            <p>No hay actividad reciente</p>
+          </div>
+
+          <div class="activity-item" *ngFor="let a of actividadesVisibles">
+            <div class="activity-icon-box" [ngClass]="a.iconClass">
+              <mat-icon>{{ a.icon }}</mat-icon>
+            </div>
+            <div class="activity-info">
+              <div class="activity-member-header">
+                <span class="member-name">{{ a.titulo }}</span>
+                <span class="activity-type-tag">{{ a.type === 'certificado' ? 'Certificado' : a.type === 'evento' ? 'Evento' : 'Traspaso' }}</span>
+              </div>
+              <div class="activity-reason">{{ a.descripcion }}</div>
+              <div class="activity-footer">
+                <span class="status-badge" *ngIf="a.estado" [ngClass]="a.estadoClass">{{ a.estado }}</span>
+                <span class="activity-date">{{ a.fecha }}</span>
+              </div>
+            </div>
+            <div class="activity-actions" *ngIf="a.accionable">
+              <button class="btn-approve" (click)="aprobarTraspaso(a.raw)">Aprobar</button>
+              <button class="btn-reject" (click)="rechazarTraspaso(a.raw)">Rechazar</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="widget-body tab-content-scroll">
-        <!-- Contenido de Traspasos -->
-        <div class="activity-list" *ngIf="activeTab === 'traspasos'">
-          <div class="no-activity-placeholder" *ngIf="recentTraspasos.length === 0">
-            <mat-icon>check_circle_outline</mat-icon>
-            <p>No hay solicitudes de traspaso pendientes</p>
-          </div>
-          
-          <div class="activity-item traspaso-row" *ngFor="let t of recentTraspasos">
-            <div class="activity-icon-box purple-bg">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <div class="activity-info">
-              <div class="activity-member-header">
-                <span class="member-name">{{ t.miembroNombre }}</span>
-                <span class="member-ci">CI: {{ t.ci }}</span>
-              </div>
-              <div class="activity-route">
-                <span class="route-church">{{ t.iglesiaOrigen }}</span>
-                <mat-icon>sync_alt</mat-icon>
-                <span class="route-church dest">{{ t.iglesiaDestino }}</span>
-              </div>
-              <div class="activity-reason">{{ t.motivo }}</div>
-              <div class="activity-footer">
-                <span class="status-badge pending">{{ t.estado }}</span>
-                <span class="activity-date">{{ t.fecha }}</span>
-              </div>
-            </div>
-            <div class="activity-actions">
-              <button class="btn-approve" (click)="aprobarTraspaso(t)">Aprobar</button>
-              <button class="btn-reject" (click)="rechazarTraspaso(t)">Rechazar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Contenido de Certificados -->
-        <div class="activity-list" *ngIf="activeTab === 'certificados'">
-          <div class="no-activity-placeholder" *ngIf="recentCertificados.length === 0">
-            <mat-icon>workspace_premium</mat-icon>
-            <p>No hay certificados registrados recientemente</p>
-          </div>
-          <div class="activity-item certificado-row" *ngFor="let c of recentCertificados">
-            <div class="activity-icon-box teal-bg">
-              <mat-icon>workspace_premium</mat-icon>
-            </div>
-            <div class="activity-info">
-              <div class="activity-member-header">
-                <span class="member-name">{{ c.miembroNombre }}</span>
-                <span class="member-ci">CI: {{ c.ci }}</span>
-              </div>
-              <div class="certificado-details">
-                <span class="cert-event">{{ c.evento }}</span>
-              </div>
-              <div class="activity-footer">
-                <span class="status-badge" [class.delivered]="c.estado === 'ENTREGADO'" [class.pending]="c.estado === 'PENDIENTE'">
-                  {{ c.estado }}
-                </span>
-                <span class="activity-date">{{ c.fecha }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Control: cuántas actividades mostrar -->
+      <div class="activity-more-bar" *ngIf="recentActivities.length > activityOptions[0]">
+        <span class="activity-more-label">Mostrar:</span>
+        <button *ngFor="let n of activityOptions" class="activity-more-chip"
+                [class.active]="activityLimit === n" (click)="setActivityLimit(n)">
+          {{ n }}
+        </button>
+        <span class="activity-more-total">de {{ recentActivities.length }}</span>
       </div>
     </div>
 

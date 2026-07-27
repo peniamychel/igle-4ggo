@@ -39,6 +39,7 @@
         <input matInput [matDatepicker]="picker" formControlName="fecha">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
+        <mat-hint>DD/MM/YYYY</mat-hint>
         <mat-error>{{ getError('fecha') }}</mat-error>
       </mat-form-field>
     </div>

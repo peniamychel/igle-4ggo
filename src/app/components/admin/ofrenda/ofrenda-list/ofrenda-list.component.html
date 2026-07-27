@@ -315,6 +315,7 @@
                   <input matInput [matDatepicker]="repDesde" [(ngModel)]="reportStartDate" (dateChange)="generarInforme()">
                   <mat-datepicker-toggle matIconSuffix [for]="repDesde"></mat-datepicker-toggle>
                   <mat-datepicker #repDesde></mat-datepicker>
+                  <mat-hint>DD/MM/YYYY</mat-hint>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="report-field">
@@ -322,6 +323,7 @@
                   <input matInput [matDatepicker]="repHasta" [(ngModel)]="reportEndDate" (dateChange)="generarInforme()">
                   <mat-datepicker-toggle matIconSuffix [for]="repHasta"></mat-datepicker-toggle>
                   <mat-datepicker #repHasta></mat-datepicker>
+                  <mat-hint>DD/MM/YYYY</mat-hint>
                 </mat-form-field>
               </ng-container>
 
