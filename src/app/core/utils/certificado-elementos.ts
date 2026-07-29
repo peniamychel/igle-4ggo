@@ -133,19 +133,23 @@ export function valorElementoCertificado(id: string, participacion: any): string
   const evento: any = participacion?.eventoDto || participacion?.certificadoDto?.eventoDto;
 
   const nacimiento = parseFechaLocal(miembro?.fechaNac);
-  // La fecha de la participación es la de su registro (createdAt)
-  const fechaParticipacion = parseFechaLocal(participacion?.createdAt);
+
+  // Fecha que se imprime como "del evento": la de inicio del evento, no la del
+  // día en que se registró al participante. Si el evento no viniera adjunto se
+  // usa el registro para no dejar el certificado en blanco.
+  const fechaEvento = parseFechaLocal(evento?.fechaInicio)
+    || parseFechaLocal(participacion?.createdAt);
 
   switch (id) {
     case 'nombre_miembro':
       return miembro ? `${miembro.nombre ?? ''} ${miembro.apellido ?? ''}`.trim() : '';
 
     case 'part_dia':
-      return fechaParticipacion ? String(fechaParticipacion.getDate()) : '';
+      return fechaEvento ? String(fechaEvento.getDate()) : '';
     case 'part_mes':
-      return fechaParticipacion ? MESES_ES[fechaParticipacion.getMonth()] : '';
+      return fechaEvento ? MESES_ES[fechaEvento.getMonth()] : '';
     case 'part_anio':
-      return fechaParticipacion ? String(fechaParticipacion.getFullYear()) : '';
+      return fechaEvento ? String(fechaEvento.getFullYear()) : '';
 
     case 'nac_dia':
       return nacimiento ? String(nacimiento.getDate()) : '';

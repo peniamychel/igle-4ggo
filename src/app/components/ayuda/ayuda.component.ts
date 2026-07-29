@@ -115,12 +115,12 @@ export class AyudaComponent {
           steps: [
             { text: 'Navegue a "Miembros" en el menú lateral.', icon: 'menu' },
             { text: 'Haga clic en el botón "Nuevo Miembro" (parte superior derecha).', icon: 'add_circle' },
-            { text: 'Complete el formulario: nombre, apellido, CI, fecha de nacimiento, celular, sexo y dirección.', icon: 'edit' },
-            { text: 'Registre los datos de conversión (fecha, lugar, interventores) si los tiene.', icon: 'volunteer_activism' },
+            { text: 'Complete los datos obligatorios: nombre, apellido, CI, fecha de nacimiento, sexo y celular. Las fechas se escriben día/mes/año.', icon: 'edit' },
+            { text: 'Despliegue "Datos adicionales" para cargar la dirección, la localidad de nacimiento, la provincia, el departamento, los nombres del padre y de la madre, y los datos de conversión (fecha, lugar e interventores).', icon: 'expand_more' },
             { text: 'Opcionalmente, adjunte una fotografía del miembro.', icon: 'photo_camera' },
             { text: 'Haga clic en "Guardar". El miembro queda vinculado a su iglesia activa.', icon: 'save' }
           ],
-          tip: 'Los campos marcados con * son obligatorios. El CI no puede repetirse en el sistema.'
+          tip: 'Solo son obligatorios los seis primeros campos; los de "Datos adicionales" son opcionales, pero hacen falta para emitir certificados: revise la columna Acciones del panel de impresión. El CI no puede repetirse en el sistema.'
         },
         {
           question: '¿Cómo editar los datos de un miembro? (Editar)',
@@ -129,9 +129,10 @@ export class AyudaComponent {
             { text: 'En "Miembros", busque el miembro con la barra de búsqueda.', icon: 'search' },
             { text: 'Abra el menú de tres puntos (⋮) al final de su fila.', icon: 'more_vert' },
             { text: 'Seleccione "Editar".', icon: 'edit' },
-            { text: 'Modifique los campos necesarios en el formulario.', icon: 'tune' },
+            { text: 'Modifique los campos necesarios; recuerde desplegar "Datos adicionales" para los que no se ven al abrir.', icon: 'tune' },
             { text: 'Haga clic en "Guardar" para confirmar los cambios.', icon: 'save' }
-          ]
+          ],
+          tip: 'La columna "Conversión" de la lista muestra la fecha de conversión del miembro, no una fecha de bautismo.'
         },
         {
           question: '¿Cómo eliminar un miembro? (Eliminar)',
@@ -240,7 +241,8 @@ export class AyudaComponent {
           steps: [
             { text: 'Navegue a "Eventos" en el menú lateral.', icon: 'menu' },
             { text: 'Haga clic en "Nuevo Evento".', icon: 'add_circle' },
-            { text: 'Complete el nombre, tipo de evento, fechas de inicio y fin, ubicación y alcance.', icon: 'edit' },
+            { text: 'Complete el nombre, tipo de evento, fechas de inicio y fin, y el alcance.', icon: 'edit' },
+            { text: 'Indique dónde se realiza: la ubicación (por ejemplo "Salón Principal") y, obligatoriamente, la localidad, la provincia y el departamento.', icon: 'place' },
             { text: 'Marque la casilla "Generar certificado" si el evento entregará certificados; se creará automáticamente su certificado en el módulo Certificaciones.', icon: 'workspace_premium' },
             { text: 'Opcionalmente asigne responsables del evento.', icon: 'person_add' },
             { text: 'Haga clic en "Guardar".', icon: 'save' }
@@ -256,7 +258,7 @@ export class AyudaComponent {
             { text: 'Puede activar la generación de certificado si aún no la tenía.', icon: 'workspace_premium' },
             { text: 'Guarde los cambios.', icon: 'save' }
           ],
-          tip: 'Si el evento ya tiene un certificado creado, no se puede quitar esa opción (el formulario lo indica).'
+          tip: 'Si el evento ya tiene un certificado creado, no se puede quitar esa opción (el formulario lo indica). Los eventos registrados antes de que existieran la localidad, la provincia y el departamento le pedirán completarlos al editarlos.'
         },
         {
           question: '¿Cómo eliminar o archivar un evento? (Eliminar / Archivar)',
@@ -276,9 +278,19 @@ export class AyudaComponent {
             { text: 'Calendario anual: vista de calendario con los eventos por fecha y color según su tipo.', icon: 'calendar_month' },
             { text: 'Tipos de evento: administrar las categorías (Bautismo, Talleres, Evangelismo, etc.).', icon: 'category' },
             { text: 'Responsables: gestionar los responsables de los eventos.', icon: 'groups' },
-            { text: 'Participaciones: ver y registrar la participación de los miembros en los eventos.', icon: 'how_to_reg' },
+            { text: 'Participaciones: ver y registrar la participación de los miembros en los eventos. La fecha es la del momento en que se registra, no se elige.', icon: 'how_to_reg' },
             { text: 'Eventos archivados: consultar y restaurar eventos previamente archivados.', icon: 'unarchive' }
           ]
+        },
+        {
+          question: '¿Cómo registrar a los participantes de un evento?',
+          icon: 'how_to_reg',
+          steps: [
+            { text: 'Haga clic en la fila del evento para abrir su lista de participantes.', icon: 'groups' },
+            { text: 'Busque al miembro por nombre o CI y agréguelo.', icon: 'person_search' },
+            { text: 'Si el miembro todavía no existe, use "Crear nuevo miembro" desde la misma ventana: al guardarlo queda seleccionado y listo para agregarlo.', icon: 'person_add' }
+          ],
+          tip: 'La participación queda fechada en el momento en que se registra. Si el evento genera certificado, cada participante aparecerá luego en su panel de impresión.'
         }
       ]
     },
@@ -310,19 +322,67 @@ export class AyudaComponent {
           steps: [
             { text: 'En "Certificaciones", abra el menú (⋮) del certificado.', icon: 'more_vert' },
             { text: 'Seleccione "Diseñar Plantilla".', icon: 'design_services' },
-            { text: 'Configure el diseño (fondo, textos, posición de los datos) y guarde.', icon: 'save' },
-            { text: 'El estado del diseño pasará de "Pendiente" a "Diseñado".', icon: 'check_circle' }
-          ]
+            { text: 'Elija el tamaño de hoja (A4, Carta u Oficio) y la orientación. El lienzo cambia de tamaño al instante.', icon: 'description' },
+            { text: 'Suba las imágenes que necesite: fondo o marca de agua, logo y firma.', icon: 'cloud_upload' },
+            { text: 'Arrastre cada dato a su lugar. Al seleccionar un texto puede cambiar su tamaño, su color y centrarlo dentro de un ancho fijo.', icon: 'drag_indicator' },
+            { text: 'Guarde. El estado del diseño pasará de "Pendiente" a "Diseñado".', icon: 'save' }
+          ],
+          tip: 'Lo que ve en el lienzo es exactamente lo que se imprime, en tamaño real.'
         },
         {
-          question: '¿Cómo imprimir o descargar un certificado?',
+          question: '¿Cómo mover varios elementos a la vez en el diseñador?',
+          icon: 'select_all',
+          steps: [
+            { text: 'Arrastre el mouse sobre una zona vacía del lienzo: se dibuja un recuadro y se seleccionan todos los elementos que toque.', icon: 'highlight_alt' },
+            { text: 'Ctrl + clic agrega o quita un elemento de la selección.', icon: 'add_circle' },
+            { text: 'Arrastre cualquiera de los seleccionados y se mueven todos juntos.', icon: 'open_with' },
+            { text: 'Con las flechas del teclado los desplaza de a 1 píxel, y con Shift + flechas de a 10.', icon: 'keyboard' },
+            { text: 'Ctrl + A selecciona todo y Esc limpia la selección.', icon: 'select_all' }
+          ],
+          tip: 'Con varios elementos seleccionados, cambiar el tamaño de letra o el color los afecta a todos.'
+        },
+        {
+          question: '¿Qué datos se pueden colocar en la plantilla?',
+          icon: 'view_list',
+          steps: [
+            { text: 'Del miembro: nombre completo, día, mes (en letras) y año de nacimiento, localidad, provincia y departamento de nacimiento, y los nombres del padre y de la madre.', icon: 'person' },
+            { text: 'Del evento: día, mes (en letras) y año de su fecha de inicio, y la localidad, provincia y departamento donde se realizó.', icon: 'event' },
+            { text: 'Del registro: número de libro y número de folio.', icon: 'menu_book' },
+            { text: 'De verificación: el código QR y el código de verificación.', icon: 'qr_code_2' }
+          ],
+          tip: 'El día, el mes y el año van separados para que pueda redactar frases como "nacido el 12 de marzo de 1990" intercalando el texto fijo de la plantilla.'
+        },
+        {
+          question: '¿Cómo imprimir los certificados de un evento?',
           icon: 'picture_as_pdf',
           steps: [
-            { text: 'Haga clic en la fila del certificado (o menú ⋮ → "Imprimir").', icon: 'print' },
-            { text: 'Se abrirá la vista previa del certificado.', icon: 'visibility' },
-            { text: 'Descárguelo en PDF desde esa vista.', icon: 'picture_as_pdf' }
+            { text: 'Haga clic en la fila del certificado (o menú ⋮ → "Imprimir"). Se abre la lista de participantes del evento.', icon: 'print' },
+            { text: 'En la columna "Acciones" cada participante muestra el botón de imprimir, o el aviso "Faltan N datos" si su ficha está incompleta.', icon: 'fact_check' },
+            { text: 'Si faltan datos, pulse ese aviso: se abre la edición del miembro y, al guardar, la lista se actualiza.', icon: 'edit_note' },
+            { text: 'Con la ficha completa, pulse imprimir para abrir la vista previa del certificado.', icon: 'visibility' }
           ],
-          tip: 'Solo es posible imprimir si la plantilla ya está "Diseñada".'
+          tip: 'Solo es posible imprimir si la plantilla ya está "Diseñada" y la ficha del miembro está completa.'
+        },
+        {
+          question: '¿Cómo se registra la entrega de un certificado? (Libro y folio)',
+          icon: 'menu_book',
+          steps: [
+            { text: 'En la vista previa del certificado, debajo del diseño, complete el número de libro y el número de folio del registro físico.', icon: 'edit' },
+            { text: 'Los verá aparecer en el certificado a medida que los escribe.', icon: 'visibility' },
+            { text: 'El botón "Descargar PDF" permanece deshabilitado hasta que ambos estén cargados.', icon: 'block' },
+            { text: 'Al descargar, el sistema asienta la entrega (fecha, usuario, libro y folio) y recién entonces genera el PDF.', icon: 'task_alt' }
+          ],
+          tip: 'Es el único momento en que un certificado queda registrado como entregado. Si se reimprime, se conservan la fecha y el usuario de la primera entrega.'
+        },
+        {
+          question: '¿Puedo imprimir varios certificados de una sola vez?',
+          icon: 'library_books',
+          steps: [
+            { text: 'Marque las casillas de los participantes que quiera y pulse "Imprimir seleccionados".', icon: 'checklist' },
+            { text: 'Se genera un PDF por cada uno.', icon: 'picture_as_pdf' },
+            { text: 'La impresión por lote NO registra la entrega, porque ahí no hay dónde cargar el libro y el folio de cada miembro.', icon: 'warning' }
+          ],
+          tip: 'Para dejar constancia de la entrega, abra cada certificado por separado desde la columna Acciones.'
         },
         {
           question: '¿Cómo editar, anular o eliminar un certificado?',
@@ -338,10 +398,22 @@ export class AyudaComponent {
           question: '¿Cómo verificar la validez de un certificado?',
           icon: 'verified',
           steps: [
-            { text: 'En "Certificaciones", haga clic en "Verificar Certificado".', icon: 'verified' },
-            { text: 'Escanee el código QR o ingrese el código único del certificado.', icon: 'qr_code_scanner' },
-            { text: 'El sistema mostrará si el certificado es válido y sus datos.', icon: 'fact_check' }
-          ]
+            { text: 'Cualquier persona puede escanear el código QR del certificado con la cámara del teléfono: no hace falta tener usuario en el sistema.', icon: 'qr_code_scanner' },
+            { text: 'Se abre una página que confirma si el certificado es válido y muestra los datos completos: titular, iglesia, evento, motivo y fecha.', icon: 'fact_check' },
+            { text: 'Desde el sistema también puede usar "Verificar Certificado" en Certificaciones, para escanear o tipear el código.', icon: 'verified' }
+          ],
+          tip: 'La verificación no distingue mayúsculas de minúsculas.'
+        },
+        {
+          question: '¿Por qué al tipear el código veo menos datos que al escanear el QR?',
+          icon: 'shield',
+          steps: [
+            { text: 'El código impreso es corto (4 caracteres) para poder copiarlo a mano, y por eso alguien podría probar códigos al azar hasta acertar.', icon: 'password' },
+            { text: 'Para proteger a los miembros, esa vía confirma la validez del certificado pero muestra el nombre abreviado (por ejemplo "Ronal M.") y no dice la iglesia ni el evento.', icon: 'visibility_off' },
+            { text: 'Además admite un máximo de 20 consultas por minuto desde una misma conexión.', icon: 'timer' },
+            { text: 'El QR lleva un código largo imposible de adivinar, por eso muestra la información completa.', icon: 'qr_code_2' }
+          ],
+          tip: 'Si necesita ver todos los datos, escanee el QR del certificado en lugar de tipear el código.'
         }
       ]
     },
