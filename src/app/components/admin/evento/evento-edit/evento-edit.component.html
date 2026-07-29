@@ -42,6 +42,26 @@
       </mat-form-field>
     </div>
 
+    <div class="form-row lugar-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Localidad</mat-label>
+        <input matInput formControlName="localidad" placeholder="Ej. Palmar">
+        <mat-error>{{ getError('localidad') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Provincia</mat-label>
+        <input matInput formControlName="provincia" placeholder="Ej. Cercado">
+        <mat-error>{{ getError('provincia') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Departamento</mat-label>
+        <input matInput formControlName="departamento" placeholder="Ej. Santa Cruz">
+        <mat-error>{{ getError('departamento') }}</mat-error>
+      </mat-form-field>
+    </div>
+
     <div class="form-row dates-row">
       <mat-form-field appearance="outline">
         <mat-label>Fecha de Inicio</mat-label>

@@ -6,8 +6,10 @@ export interface Evento {
   iglesiaId?: number;
   nombre: string;
   motivo: string;
-  uriFoto: string | null;
   ubicacion: string;
+  localidad?: string;
+  provincia?: string;
+  departamento?: string;
   fechaInicio: string;
   fechaFin: string;
   estado?: boolean;

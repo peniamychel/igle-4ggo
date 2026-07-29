@@ -119,6 +119,9 @@ export class EventoListComponent implements OnInit {
       const matchesText = !textQuery || (
         (data.nombre || '') + ' ' +
         (data.ubicacion || '') + ' ' +
+        (data.localidad || '') + ' ' +
+        (data.provincia || '') + ' ' +
+        (data.departamento || '') + ' ' +
         (data.motivo || '')
       ).toLowerCase().includes(textQuery);
       

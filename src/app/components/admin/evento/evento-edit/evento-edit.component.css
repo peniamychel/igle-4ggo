@@ -50,17 +50,21 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   font-weight: 500;
 }
 
-.dates-row {
+.dates-row,
+.lugar-row {
   display: flex;
   gap: 16px;
 }
 
-.dates-row mat-form-field {
+.dates-row mat-form-field,
+.lugar-row mat-form-field {
   flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 600px) {
-  .dates-row {
+  .dates-row,
+  .lugar-row {
     flex-direction: column;
     gap: 0;
   }

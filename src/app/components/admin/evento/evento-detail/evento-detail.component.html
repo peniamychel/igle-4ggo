@@ -30,6 +30,18 @@
       <span class="val">{{ data.ubicacion }}</span>
     </div>
     <div class="summary-item">
+      <span class="label">Localidad</span>
+      <span class="val">{{ data.localidad || 'Sin registrar' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Provincia</span>
+      <span class="val">{{ data.provincia || 'Sin registrar' }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Departamento</span>
+      <span class="val">{{ data.departamento || 'Sin registrar' }}</span>
+    </div>
+    <div class="summary-item">
       <span class="label">Fecha Inicio</span>
       <span class="val">{{ formatDate(data.fechaInicio) }}</span>
     </div>

@@ -1,221 +1,219 @@
 <div class="container">
-  <div class="tab-content">
-        <!-- 1. Header -->
-        <div class="header-section">
-          <div class="title-meta">
-            <h2 class="page-title">
-              <mat-icon class="icon-primary">event</mat-icon>
-              <span>Gestión de Eventos</span>
-            </h2>
-            <p class="subtitle-text">
-              {{ dataSource.filteredData.length }} eventos registrados
-            </p>
-          </div>
-          <div class="header-actions">
-            <button mat-stroked-button [matMenuTriggerFor]="herramientasMenu" matTooltip="Herramientas de eventos">
-              <mat-icon>tune</mat-icon>
-              <span>Herramientas</span>
-              <mat-icon>arrow_drop_down</mat-icon>
+    <!-- 1. Header -->
+    <div class="header-section">
+      <div class="title-meta">
+        <h2 class="page-title">
+          <mat-icon class="icon-primary">event</mat-icon>
+          <span>Gestión de Eventos</span>
+        </h2>
+        <p class="subtitle-text">
+          {{ dataSource.filteredData.length }} eventos registrados
+        </p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button [matMenuTriggerFor]="herramientasMenu" class="btn-tools-menu" matTooltip="Herramientas de eventos">
+          <mat-icon>tune</mat-icon>
+          <span>Herramientas</span>
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #herramientasMenu="matMenu">
+          <button mat-menu-item (click)="openCalendario()">
+            <mat-icon>calendar_month</mat-icon>
+            <span>Calendario anual</span>
+          </button>
+          <button mat-menu-item *ngIf="isAdmin" (click)="openTiposEvento()">
+            <mat-icon>category</mat-icon>
+            <span>Tipos de evento</span>
+          </button>
+          <button mat-menu-item (click)="openResponsables()">
+            <mat-icon>assignment_ind</mat-icon>
+            <span>Responsables</span>
+          </button>
+          <button mat-menu-item (click)="openParticipaciones()">
+            <mat-icon>group</mat-icon>
+            <span>Participaciones</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="openArchivadosDialog()">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Eventos archivados</span>
+          </button>
+        </mat-menu>
+
+        <button mat-flat-button class="btn-action-primary" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Nuevo Evento
+        </button>
+      </div>
+    </div>
+  
+    <!-- 2. Filtros y Búsqueda -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, ubicación, localidad o motivo..." #searchInput>
+      </div>
+      
+      <div class="select-filters">
+        <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
+          <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
+            <mat-option value="all">Todas las iglesias</mat-option>
+            <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
+            <mat-option value="all">Todos los tipos</mat-option>
+            <mat-option *ngFor="let tp of tiposEvento" [value]="tp.id?.toString()">{{ tp.nombre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
+            <mat-option value="all">Todos los estados</mat-option>
+            <mat-option value="active">Activo</mat-option>
+            <mat-option value="inactive">Inactivo</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Contenedor de la Tabla -->
+    <div class="table-container">
+      <mat-table [dataSource]="dataSource" matSort>
+        
+        <!-- Columna Nombre -->
+        <ng-container matColumnDef="nombre">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Evento </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="evento-info-cell">
+              <span class="evento-name">{{ item.nombre }}</span>
+              <span class="evento-motivo" *ngIf="item.motivo">{{ item.motivo }}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Tipo -->
+        <ng-container matColumnDef="tipoEvento">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="tipo-badge">{{ item.tipoEventoDto?.nombre || 'N/A' }}</span>
+              <span *ngIf="!isAdmin && currentChurchId && item.iglesiaId !== currentChurchId" 
+                    style="background-color: rgba(101, 31, 255, 0.08); color: #651fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(101, 31, 255, 0.15); line-height: 1.2;">
+                Invitado
+              </span>
+              <span *ngIf="!isAdmin && currentChurchId && item.iglesiaId === currentChurchId" 
+                    style="background-color: rgba(46, 125, 50, 0.08); color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(46, 125, 50, 0.15); line-height: 1.2;">
+                Propio
+              </span>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Iglesia -->
+        <ng-container matColumnDef="iglesia">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span style="font-weight: 500; color: var(--text-primary);">{{ getIglesiaNombre(item.iglesiaId) }}</span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Ubicación -->
+        <ng-container matColumnDef="ubicacion">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Ubicación </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="ubicacion-text">
+              <mat-icon class="inline-icon">place</mat-icon>
+              {{ item.ubicacion }}
+            </span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Inicio -->
+        <ng-container matColumnDef="fechaInicio">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Inicio </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="fecha-text">{{ item.fechaInicio | date:'dd/MM/yyyy HH:mm' }}</span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Fin -->
+        <ng-container matColumnDef="fechaFin">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Fin </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="fecha-text">{{ item.fechaFin | date:'dd/MM/yyyy HH:mm' }}</span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Estado -->
+        <ng-container matColumnDef="estado">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <span class="estado-pill" [ngClass]="item.estado ? 'activo' : 'inactivo'">
+              {{ item.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Columna Acciones -->
+        <ng-container matColumnDef="acciones">
+          <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+          <mat-cell *matCellDef="let item" class="acciones-cell">
+            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
             </button>
-            <mat-menu #herramientasMenu="matMenu">
-              <button mat-menu-item (click)="openCalendario()">
-                <mat-icon>calendar_month</mat-icon>
-                <span>Calendario anual</span>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="openDetailDialog(item)">
+                <mat-icon>visibility</mat-icon>
+                <span>Ver detalle</span>
               </button>
-              <button mat-menu-item *ngIf="isAdmin" (click)="openTiposEvento()">
-                <mat-icon>category</mat-icon>
-                <span>Tipos de evento</span>
-              </button>
-              <button mat-menu-item (click)="openResponsables()">
-                <mat-icon>assignment_ind</mat-icon>
-                <span>Responsables</span>
-              </button>
-              <button mat-menu-item (click)="openParticipaciones()">
+              <button mat-menu-item (click)="openParticipantesDialog(item)">
                 <mat-icon>group</mat-icon>
-                <span>Participaciones</span>
+                <span>Participantes</span>
               </button>
-              <mat-divider></mat-divider>
-              <button mat-menu-item (click)="openArchivadosDialog()">
-                <mat-icon>inventory_2</mat-icon>
-                <span>Eventos archivados</span>
-              </button>
-            </mat-menu>
-
-            <button mat-flat-button class="btn-action-primary" *appHasPrivilegio="'Escribir Eventos'" matTooltip="Crear un nuevo evento" (click)="openCreateDialog()">
-              <mat-icon>add</mat-icon>
-              Nuevo Evento
-            </button>
-          </div>
-        </div>
-      
-        <!-- 2. Filtros y Búsqueda -->
-        <div class="filters-bar">
-          <div class="search-box">
-            <mat-icon class="search-icon">search</mat-icon>
-            <input type="text" (keyup)="onSearchChange($event)" placeholder="Buscar por nombre, ubicación o motivo..." #searchInput>
-          </div>
-          
-          <div class="select-filters">
-            <mat-form-field appearance="outline" class="filter-select" *ngIf="isAdmin">
-              <mat-select [(value)]="selectedIglesiaId" (selectionChange)="applyFilters()">
-                <mat-option value="all">Todas las iglesias</mat-option>
-                <mat-option *ngFor="let ig of iglesias" [value]="ig.id">{{ ig.nombre }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="filter-select">
-              <mat-select [(value)]="selectedTipoId" (selectionChange)="applyFilters()">
-                <mat-option value="all">Todos los tipos</mat-option>
-                <mat-option *ngFor="let tp of tiposEvento" [value]="tp.id?.toString()">{{ tp.nombre }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-      
-            <mat-form-field appearance="outline" class="filter-select">
-              <mat-select [(value)]="selectedEstado" (selectionChange)="applyFilters()">
-                <mat-option value="all">Todos los estados</mat-option>
-                <mat-option value="active">Activo</mat-option>
-                <mat-option value="inactive">Inactivo</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-
-        <!-- Contenedor de la Tabla -->
-        <div class="table-container">
-          <mat-table [dataSource]="dataSource" matSort>
-            
-            <!-- Columna Nombre -->
-            <ng-container matColumnDef="nombre">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Evento </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <div class="evento-info-cell">
-                  <span class="evento-name">{{ item.nombre }}</span>
-                  <span class="evento-motivo" *ngIf="item.motivo">{{ item.motivo }}</span>
-                </div>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Tipo -->
-            <ng-container matColumnDef="tipoEvento">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span class="tipo-badge">{{ item.tipoEventoDto?.nombre || 'N/A' }}</span>
-                  <span *ngIf="!isAdmin && currentChurchId && item.iglesiaId !== currentChurchId" 
-                        style="background-color: rgba(101, 31, 255, 0.08); color: #651fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(101, 31, 255, 0.15); line-height: 1.2;">
-                    Invitado
-                  </span>
-                  <span *ngIf="!isAdmin && currentChurchId && item.iglesiaId === currentChurchId" 
-                        style="background-color: rgba(46, 125, 50, 0.08); color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(46, 125, 50, 0.15); line-height: 1.2;">
-                    Propio
-                  </span>
-                </div>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Iglesia -->
-            <ng-container matColumnDef="iglesia">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Iglesia </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span style="font-weight: 500; color: var(--text-primary);">{{ getIglesiaNombre(item.iglesiaId) }}</span>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Ubicación -->
-            <ng-container matColumnDef="ubicacion">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Ubicación </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span class="ubicacion-text">
-                  <mat-icon class="inline-icon">place</mat-icon>
-                  {{ item.ubicacion }}
-                </span>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Inicio -->
-            <ng-container matColumnDef="fechaInicio">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Inicio </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span class="fecha-text">{{ item.fechaInicio | date:'dd/MM/yyyy HH:mm' }}</span>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Fin -->
-            <ng-container matColumnDef="fechaFin">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Fin </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span class="fecha-text">{{ item.fechaFin | date:'dd/MM/yyyy HH:mm' }}</span>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Estado -->
-            <ng-container matColumnDef="estado">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Estado </mat-header-cell>
-              <mat-cell *matCellDef="let item">
-                <span class="estado-pill" [ngClass]="item.estado ? 'activo' : 'inactivo'">
-                  {{ item.estado ? 'Activo' : 'Inactivo' }}
-                </span>
-              </mat-cell>
-            </ng-container>
-
-            <!-- Columna Acciones -->
-            <ng-container matColumnDef="acciones">
-              <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
-              <mat-cell *matCellDef="let item" class="acciones-cell">
-                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-                  <mat-icon>more_vert</mat-icon>
+              <ng-container *appHasPrivilegio="'Escribir Eventos'">
+                <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="openEditDialog(item)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar</span>
                 </button>
-                <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="openDetailDialog(item)">
-                    <mat-icon>visibility</mat-icon>
-                    <span>Ver detalle</span>
-                  </button>
-                  <button mat-menu-item (click)="openParticipantesDialog(item)">
-                    <mat-icon>group</mat-icon>
-                    <span>Participantes</span>
-                  </button>
-                  <ng-container *appHasPrivilegio="'Escribir Eventos'">
-                    <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="openEditDialog(item)">
-                      <mat-icon>edit</mat-icon>
-                      <span>Editar</span>
-                    </button>
-                    <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="toggleEstado(item)">
-                      <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
-                      <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
-                    </button>
-                    <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="archivarEvento(item)">
-                      <mat-icon style="color: #ff9800;">archive</mat-icon>
-                      <span style="color: #ff9800; font-weight: 500;">Archivar evento</span>
-                    </button>
-                    <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="deleteEvento(item)">
-                      <mat-icon style="color: #dc3545;">delete</mat-icon>
-                      <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
-                    </button>
-                    <button mat-menu-item *ngIf="!isAdmin && currentChurchId && item.iglesiaId !== currentChurchId" (click)="archivarInvitacion(item)">
-                      <mat-icon style="color: #ff9800;">archive</mat-icon>
-                      <span style="color: #ff9800; font-weight: 500;">Archivar</span>
-                    </button>
-                  </ng-container>
-                </mat-menu>
-              </mat-cell>
-            </ng-container>
+                <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="toggleEstado(item)">
+                  <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
+                  <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>
+                </button>
+                <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="archivarEvento(item)">
+                  <mat-icon style="color: #ff9800;">archive</mat-icon>
+                  <span style="color: #ff9800; font-weight: 500;">Archivar evento</span>
+                </button>
+                <button mat-menu-item *ngIf="isAdmin || item.iglesiaId === currentChurchId" (click)="deleteEvento(item)">
+                  <mat-icon style="color: #dc3545;">delete</mat-icon>
+                  <span style="color: #dc3545; font-weight: 500;">Eliminar</span>
+                </button>
+                <button mat-menu-item *ngIf="!isAdmin && currentChurchId && item.iglesiaId !== currentChurchId" (click)="archivarInvitacion(item)">
+                  <mat-icon style="color: #ff9800;">archive</mat-icon>
+                  <span style="color: #ff9800; font-weight: 500;">Archivar</span>
+                </button>
+              </ng-container>
+            </mat-menu>
+          </mat-cell>
+        </ng-container>
 
-            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openParticipantesDialog(row)" class="clickable-row"></mat-row>
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openParticipantesDialog(row)" class="clickable-row"></mat-row>
 
-            <!-- Hilera para cuando no hay resultados -->
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell no-data-cell" colspan="7">
-                <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
-                <div class="no-results" *ngIf="!isLoading">
-                  <mat-icon>search_off</mat-icon>
-                  <span>No se encontraron eventos que coincidan con la búsqueda.</span>
-                </div>
-              </td>
-            </tr>
-          </mat-table>
+        <!-- Hilera para cuando no hay resultados -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data-cell" colspan="7">
+            <app-loading-spinner *ngIf="isLoading" message="Cargando..."></app-loading-spinner>
+            <div class="no-results" *ngIf="!isLoading">
+              <mat-icon>search_off</mat-icon>
+              <span>No se encontraron eventos que coincidan con la búsqueda.</span>
+            </div>
+          </td>
+        </tr>
+      </mat-table>
 
-          <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de eventos"></mat-paginator>
-        </div>
-  </div>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Seleccionar página de eventos"></mat-paginator>
+    </div>
 </div>
