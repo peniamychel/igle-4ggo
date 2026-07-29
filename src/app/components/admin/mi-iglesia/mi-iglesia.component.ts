@@ -55,7 +55,7 @@ import { HasPrivilegioDirective } from '../../../core/directives/has-privilegio.
   styleUrls: ['./mi-iglesia.component.css']
 })
 export class MiIglesiaComponent implements OnInit {
-  displayedColumns: string[] = ['miembro', 'contacto', 'bautismo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['miembro', 'contacto', 'conversion', 'estado', 'acciones'];
   dataSource: MatTableDataSource<Miembro>;
   
   selectedIglesia?: Iglesia;
@@ -149,7 +149,8 @@ export class MiIglesiaComponent implements OnInit {
   addNewMiembro() {
     if (this.selectedIglesia) {
       const dialogRef = this.dialog.open(MiembroIglesiaCrearMiembroComponent, {
-        width: '750px',
+        // Mismo ancho que los demás formularios de miembro (crear/editar)
+        width: '600px',
         maxWidth: '95vw',
         panelClass: 'dialog-fullscreen-mobile',
         data: { iglesia: this.selectedIglesia }
@@ -374,7 +375,7 @@ export class MiIglesiaComponent implements OnInit {
           return (item.nombre || '').toLowerCase() + ' ' + (item.apellido || '').toLowerCase();
         case 'contacto':
           return item.celular || '';
-        case 'bautismo':
+        case 'conversion':
           return item.fechaConvercion ? new Date(item.fechaConvercion).getTime() : 0;
         case 'estado':
           return item.estado ? 'activo' : 'inactivo';

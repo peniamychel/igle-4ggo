@@ -10,6 +10,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Miembro } from '../../../../core/models/miembro.model';
@@ -36,6 +37,7 @@ import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
     MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
+    MatExpansionModule,
     MatSnackBarModule,
     ImageUrlPipe
   ]
@@ -65,11 +67,19 @@ export class MiembroIglesiaCrearMiembroComponent implements OnInit {
       fechaNac: ['', Validators.required],
       celular: ['', Validators.required],
       sexo: ['', Validators.required],
-      direccion: ['', Validators.required],
+      // Obligatorios: nombre, apellido, CI, fecha de nacimiento, sexo y celular.
+      // El resto es opcional (puede completarse más adelante).
+      direccion: [''],
       fechaConvercion: [''],
-      lugarConvercion: ['', Validators.required],
-      interventores: ['', Validators.required],
-      detalles: ['', Validators.required]
+      lugarConvercion: [''],
+      interventores: [''],
+      detalles: [''],
+      // Datos adicionales (opcionales) — sección desplegable
+      localidadNacimiento: [''],
+      provincia: [''],
+      departamento: [''],
+      nombrePadre: [''],
+      nombreMadre: ['']
     });
   }
 
@@ -109,6 +119,12 @@ export class MiembroIglesiaCrearMiembroComponent implements OnInit {
         lugarConvercion: formValue.lugarConvercion,
         interventores: formValue.interventores,
         detalles: formValue.detalles,
+        // Datos adicionales (opcionales)
+        localidadNacimiento: formValue.localidadNacimiento,
+        provincia: formValue.provincia,
+        departamento: formValue.departamento,
+        nombrePadre: formValue.nombrePadre,
+        nombreMadre: formValue.nombreMadre,
         uriFoto: ''
       };
 

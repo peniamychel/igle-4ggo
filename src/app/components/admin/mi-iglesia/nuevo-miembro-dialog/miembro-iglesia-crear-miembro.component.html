@@ -4,7 +4,7 @@
 </h2>
 
 <form [formGroup]="miembroForm" (ngSubmit)="onSubmit()">
-  <mat-dialog-content class="dialog-content">
+  <mat-dialog-content class="dialog-content miembro-form">
     
     <!-- Sección de Foto -->
     <div class="photo-section">
@@ -60,15 +60,15 @@
 
     <!-- Fila 3: Sexo y Celular -->
     <div class="row align-center">
-      <div class="gender-selection-container">
-        <span class="gender-label">Sexo:</span>
-        <mat-button-toggle-group formControlName="sexo" aria-label="Sexo" class="gender-toggle-group">
+      <div class="gender-field" [class.gender-invalid]="miembroForm.get('sexo')?.touched && miembroForm.get('sexo')?.hasError('required')">
+        <span class="gender-field-label">Sexo *</span>
+        <mat-button-toggle-group formControlName="sexo" aria-label="Sexo" class="gender-toggle">
           <mat-button-toggle value="Hombre">Hombre</mat-button-toggle>
           <mat-button-toggle value="Mujer">Mujer</mat-button-toggle>
         </mat-button-toggle-group>
-        <mat-error *ngIf="miembroForm.get('sexo')?.touched && miembroForm.get('sexo')?.hasError('required')" class="gender-error">
-          Seleccione sexo
-        </mat-error>
+        <span class="gender-error" *ngIf="miembroForm.get('sexo')?.touched && miembroForm.get('sexo')?.hasError('required')">
+          Seleccione el sexo
+        </span>
       </div>
 
       <mat-form-field appearance="outline">
@@ -82,41 +82,76 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Dirección</mat-label>
       <input matInput formControlName="direccion" placeholder="Ej. Av. Principal #123">
-      <mat-error *ngIf="miembroForm.get('direccion')?.hasError('required')">La dirección es requerida</mat-error>
     </mat-form-field>
 
-    <!-- Fila 5: Fecha Conversión y Lugar Conversión -->
-    <div class="row">
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha de Conversión</mat-label>
-        <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion" placeholder="Ej. 25/12/2020">
-        <mat-hint>Opcional (DD/MM/YYYY)</mat-hint>
-        <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
-        <mat-datepicker #fechaConvPicker></mat-datepicker>
-      </mat-form-field>
+    <!-- Datos adicionales (opcionales): se despliegan solo si se quieren completar -->
+    <mat-expansion-panel class="datos-adicionales-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon class="panel-icon">person_pin_circle</mat-icon>
+          Completar registro (datos adicionales)
+        </mat-panel-title>
+        <mat-panel-description class="panel-desc-opcional">Opcional</mat-panel-description>
+      </mat-expansion-panel-header>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Lugar de Conversión</mat-label>
-        <input matInput formControlName="lugarConvercion" placeholder="Ej. Templo Central">
-        <mat-error *ngIf="miembroForm.get('lugarConvercion')?.hasError('required')">El lugar de conversión es requerido</mat-error>
-      </mat-form-field>
-    </div>
+      <div class="panel-content">
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Localidad de Nacimiento</mat-label>
+            <input matInput formControlName="localidadNacimiento">
+          </mat-form-field>
 
-    <!-- Fila 6: Interventores -->
-    <div class="row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Interventores / Pastores que oficiaron</mat-label>
-        <input matInput formControlName="interventores" placeholder="Ej. Pastor Juan Maldonado">
-        <mat-error *ngIf="miembroForm.get('interventores')?.hasError('required')">Este campo es requerido</mat-error>
-      </mat-form-field>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Provincia</mat-label>
+            <input matInput formControlName="provincia">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Departamento</mat-label>
+          <input matInput formControlName="departamento">
+        </mat-form-field>
+
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre del Padre</mat-label>
+            <input matInput formControlName="nombrePadre">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de la Madre</mat-label>
+            <input matInput formControlName="nombreMadre">
+          </mat-form-field>
+        </div>
+
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de Conversión</mat-label>
+            <input matInput [matDatepicker]="fechaConvPicker" formControlName="fechaConvercion" placeholder="Ej. 25/12/2020">
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matSuffix [for]="fechaConvPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fechaConvPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Lugar de Conversión</mat-label>
+            <input matInput formControlName="lugarConvercion" placeholder="Ej. Templo Central">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Interventores / Pastores que oficiaron</mat-label>
+          <input matInput formControlName="interventores" placeholder="Ej. Pastor Juan Maldonado">
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
 
     <!-- Fila 7: Detalles -->
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Detalles / Observaciones</mat-label>
       <textarea matInput formControlName="detalles" rows="3" placeholder="Ej. Viene transferido, activo en el ministerio de alabanza..."></textarea>
-      <mat-error *ngIf="miembroForm.get('detalles')?.hasError('required')">Los detalles son requeridos</mat-error>
     </mat-form-field>
+
 
   </mat-dialog-content>
 

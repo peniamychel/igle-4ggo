@@ -43,7 +43,7 @@
     <!-- Nombre del Activo -->
     <mat-form-field appearance="outline">
       <mat-label>Nombre del Activo / Bien</mat-label>
-      <input matInput formControlName="nombre" placeholder="Ej. Equipo de sonido Yamaha, Sillas de plástico">
+      <input matInput formControlName="nombre" placeholder="Ej. Equipo de sonido Yamaha, Sillas de plástico" cdkFocusInitial>
       <mat-error *ngIf="activoForm.get('nombre')?.hasError('required')">El nombre es requerido</mat-error>
     </mat-form-field>
 

@@ -11,6 +11,12 @@ export interface Miembro {
   celular: string;
   sexo: string;
   direccion: string;
+  // Datos adicionales (opcionales), se completan en la sección desplegable del formulario
+  localidadNacimiento?: string;
+  provincia?: string;
+  departamento?: string;
+  nombrePadre?: string;
+  nombreMadre?: string;
   uriFoto: string;
   iglesiaNombre?: string;
   cargoNombre?: string;

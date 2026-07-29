@@ -61,7 +61,7 @@ export class MiembroListComponent implements OnInit {
   iglesias: Iglesia[] = [];
   
   // Columnas actualizadas segun el mockup
-  displayedColumns: string[] = ['miembro', 'contacto', 'iglesia', 'bautismo', 'estado', 'acciones'];
+  displayedColumns: string[] = ['miembro', 'contacto', 'iglesia', 'conversion', 'estado', 'acciones'];
 
   isAdmin = false;
   isLoading = true;

@@ -114,12 +114,12 @@
         </mat-cell>
       </ng-container>
 
-      <!-- Columna Bautismo / Conversión -->
-      <ng-container matColumnDef="bautismo">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Bautismo </mat-header-cell>
+      <!-- Columna Conversión (fecha de conversión del miembro, no de bautismo) -->
+      <ng-container matColumnDef="conversion">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Conversión </mat-header-cell>
         <mat-cell *matCellDef="let item">
-          <div class="bautismo-info">
-            <mat-icon class="bautismo-icon">water_drop</mat-icon>
+          <div class="conversion-info">
+            <mat-icon class="conversion-icon">volunteer_activism</mat-icon>
             <span>{{ formatDate(item.fechaConvercion) }}</span>
           </div>
         </mat-cell>

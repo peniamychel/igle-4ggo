@@ -645,6 +645,19 @@ mat-expansion-panel-header {
 }
 
 /* ══════════════════════════════════════════════════
+   Tooltip multilínea: respeta los saltos de línea del
+   texto y ensancha el globo para listas de campos.
+   Va aquí porque el tooltip se renderiza en el overlay,
+   fuera del componente que lo declara.
+   ══════════════════════════════════════════════════ */
+.tooltip-multilinea .mdc-tooltip__surface {
+  white-space: pre-line;
+  text-align: left;
+  max-width: 340px;
+  line-height: 1.45;
+}
+
+/* ══════════════════════════════════════════════════
    Impresión: ocultar overlays de Angular Material
    (menús, tooltips, snackbars) para que no se cuelen
    en la vista previa de impresión de los informes.
@@ -662,4 +675,231 @@ mat-expansion-panel-header {
 .preview-dialog-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface {
   padding: 0 !important;
   overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════
+   Campo "Sexo" (selector Hombre/Mujer)
+   Estilo ÚNICO y global para todos los formularios de
+   miembro (crear admin, crear pastor y editar), para que
+   no vuelva a verse distinto en cada uno. Es global porque
+   los estilos internos de mat-button-toggle no son
+   alcanzables desde el CSS encapsulado del componente.
+   ══════════════════════════════════════════════════ */
+.gender-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  /* Reserva el mismo espacio inferior que el subscript (hint/error) de los
+     mat-form-field vecinos, para que la fila tenga una única altura. */
+  margin-bottom: 22px;
+}
+
+/* La etiqueta flota sobre el borde superior, igual que en un mat-form-field
+   con appearance="outline". Así el borde del selector queda EXACTAMENTE a la
+   misma altura que el de los campos de al lado (p. ej. "Celular"). */
+.gender-field .gender-field-label {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  z-index: 2;
+  padding: 0 5px;
+  background: var(--card-bg, #ffffff);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 16px;
+  color: var(--text-secondary, #697386);
+  pointer-events: none;
+}
+
+.gender-field .gender-toggle {
+  width: 100%;
+  height: 56px;
+  /* border-box: los 56px incluyen el borde, para que coincida al píxel
+     con la caja de un mat-form-field outline. */
+  box-sizing: border-box;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e3e8ee);
+  background: var(--card-bg, #ffffff);
+}
+
+.gender-field .gender-toggle .mat-button-toggle {
+  flex: 1 1 0;
+  min-width: 0;
+  background: transparent;
+  color: var(--text-secondary, #697386);
+}
+
+.gender-field .gender-toggle .mat-button-toggle-label-content {
+  line-height: 54px;
+  padding: 0 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Opción seleccionada: color institucional */
+.gender-field .gender-toggle .mat-button-toggle-checked {
+  background-color: rgba(127, 11, 133, 0.10);
+  color: var(--primary-color, #7F0B85);
+}
+
+/* Estado inválido (no se eligió sexo y el campo fue tocado) */
+.gender-field.gender-invalid .gender-toggle {
+  border-color: #f44336;
+}
+
+/* El error se posiciona en el espacio reservado abajo, sin alterar la altura */
+.gender-field .gender-error {
+  position: absolute;
+  bottom: -19px;
+  left: 4px;
+  font-size: 0.75rem;
+  color: #f44336;
+}
+
+/* ══════════════════════════════════════════════════
+   Diseño ESTÁNDAR de cajas (mat-form-field outline), para
+   TODA la aplicación: mismo borde, radio y color de foco en
+   cualquier módulo, y sin la línea vertical que Material deja
+   en el centro del campo. Es la base por defecto; los selectores
+   "píldora" de las barras de filtro (.filter-select, .filter-field,
+   etc.) siguen intactos porque anulan el borde con su propio
+   ::ng-deep más específico.
+   ══════════════════════════════════════════════════ */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border-radius: 8px;
+  background-color: var(--card-bg, #ffffff);
+}
+
+/* Borde: SOLO se cambia el color. No se toca el grosor: Material decide qué
+   lado lleva borde en cada pieza (leading/notch/trailing) y forzar el grosor
+   en los cuatro lados dibujaba líneas verticales dentro del campo. */
+.mdc-notched-outline__leading,
+.mdc-notched-outline__notch,
+.mdc-notched-outline__trailing {
+  border-color: var(--border-color, #e3e8ee) !important;
+}
+
+/* La pieza central del borde nunca lleva laterales: si los lleva, aparece una
+   línea vertical dentro del campo al escribir/enfocar. */
+.mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.mdc-notched-outline__leading {
+  border-right: none !important;
+  border-radius: 8px 0 0 8px !important;
+}
+
+.mdc-notched-outline__trailing {
+  border-left: none !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+/* Al enfocar o pasar el cursor: color institucional */
+.mat-mdc-form-field:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: rgba(127, 11, 133, 0.35) !important;
+}
+
+/* Al enfocar, Material ya engrosa el borde a 2px por su cuenta: aquí solo
+   se le da el color institucional. */
+.mat-focused .mdc-notched-outline__leading,
+.mat-focused .mdc-notched-outline__notch,
+.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--primary-color, #7F0B85) !important;
+}
+
+/* Campo inválido: rojo */
+.mat-form-field-invalid .mdc-notched-outline__leading,
+.mat-form-field-invalid .mdc-notched-outline__notch,
+.mat-form-field-invalid .mdc-notched-outline__trailing {
+  border-color: #f44336 !important;
+}
+
+/* El selector de Sexo reacciona igual al pasar el cursor */
+.gender-field .gender-toggle:hover {
+  border-color: rgba(127, 11, 133, 0.35);
+}
+
+/* En móvil la fila se apila: el control ocupa todo el ancho */
+@media (max-width: 599px) {
+  .gender-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .gender-field .gender-toggle {
+    height: 52px;
+  }
+
+  .gender-field .gender-toggle .mat-button-toggle-label-content {
+    line-height: 50px;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   Botón "Herramientas" (menú de acciones secundarias),
+   diseño ÚNICO para toda la app. Antes cada módulo lo
+   definía en su propio CSS de componente y, si faltaba
+   (mi-iglesia.component, evento-list.component), el botón
+   caía en el estilo azul por defecto de Angular Material
+   en vez del gris institucional — por eso se veía distinto
+   según el módulo/rol. Con esta regla global basta con
+   poner class="btn-tools-menu" en cualquier botón.
+   ══════════════════════════════════════════════════ */
+button.mat-mdc-outlined-button.btn-tools-menu {
+  border: 1px solid var(--border-color, #e3e8ee);
+  color: var(--text-secondary, #697386);
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 10px;
+  font-weight: 600;
+  height: 42px;
+  padding: 0 16px;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button.mat-mdc-outlined-button.btn-tools-menu:hover {
+  background-color: var(--border-color, #e3e8ee);
+  color: var(--text-primary, #1a1f36);
+}
+
+.dark-theme button.mat-mdc-outlined-button.btn-tools-menu {
+  background-color: var(--card-bg, #1e1e2e);
+  border-color: var(--border-color, #2d2d3a);
+  color: var(--text-secondary, #94a3b8);
+}
+
+button.mat-mdc-outlined-button.btn-tools-menu:disabled,
+button.mat-mdc-outlined-button.btn-tools-menu.mat-mdc-button-disabled {
+  background-color: #f2f2f2 !important;
+  border-color: #e0e0e0 !important;
+  color: #b0b0b0 !important;
+  cursor: not-allowed !important;
+}
+
+.btn-tools-menu:disabled mat-icon,
+.btn-tools-menu.mat-mdc-button-disabled mat-icon {
+  color: #b0b0b0 !important;
+}
+
+.dark-theme button.mat-mdc-outlined-button.btn-tools-menu:disabled,
+.dark-theme button.mat-mdc-outlined-button.btn-tools-menu.mat-mdc-button-disabled {
+  background-color: #2a2a35 !important;
+  border-color: #33333f !important;
+  color: #5c5c68 !important;
+}
+
+.dark-theme .btn-tools-menu:disabled mat-icon {
+  color: #5c5c68 !important;
 }

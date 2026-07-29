@@ -11,6 +11,7 @@ import {MatNativeDateModule} from '@angular/material/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, MatDialog} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatExpansionModule} from '@angular/material/expansion';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {MiembroService} from '../../../../core/services/miembro.service';
 import {ImageUrlPipe} from '../../../../shared/pipes/image-url.pipe';
@@ -34,6 +35,7 @@ import { ImageCropDialogComponent } from '../../../../shared/components/image-cr
     MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
+    MatExpansionModule,
     ImageUrlPipe
   ]
 })
@@ -62,11 +64,19 @@ export class MiembroFormEditarComponent implements OnInit {
       fechaNac: ['', Validators.required],
       celular: ['', Validators.required],
       sexo: ['', Validators.required],
-      direccion: ['', Validators.required],
+      // Obligatorios: nombre, apellido, CI, fecha de nacimiento, sexo y celular.
+      // El resto es opcional (puede completarse más adelante).
+      direccion: [''],
       fechaConvercion: [''],
-      lugarConvercion: ['', Validators.required],
-      interventores: ['', Validators.required],
-      detalles: ['', Validators.required]
+      lugarConvercion: [''],
+      interventores: [''],
+      detalles: [''],
+      // Datos adicionales (opcionales) — sección desplegable
+      localidadNacimiento: [''],
+      provincia: [''],
+      departamento: [''],
+      nombrePadre: [''],
+      nombreMadre: ['']
     });
   }
 
@@ -138,6 +148,12 @@ export class MiembroFormEditarComponent implements OnInit {
         lugarConvercion: formValue.lugarConvercion,
         interventores: formValue.interventores,
         detalles: formValue.detalles,
+        // Datos adicionales (opcionales)
+        localidadNacimiento: formValue.localidadNacimiento,
+        provincia: formValue.provincia,
+        departamento: formValue.departamento,
+        nombrePadre: formValue.nombrePadre,
+        nombreMadre: formValue.nombreMadre,
         id: this.data.id
       };
 

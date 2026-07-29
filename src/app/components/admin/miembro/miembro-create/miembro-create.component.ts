@@ -10,6 +10,7 @@ import {MatNativeDateModule} from '@angular/material/core';
 import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog} from '@angular/material/dialog';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatExpansionModule} from '@angular/material/expansion';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {Miembro} from '../../../../core/models/miembro.model';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
@@ -39,6 +40,7 @@ import { ImageCropDialogComponent } from '../../../../shared/components/image-cr
     MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
+    MatExpansionModule,
     MatSnackBarModule,
     ImageUrlPipe
   ]
@@ -83,6 +85,12 @@ export class MiembroCreateComponent implements OnInit {
       lugarConvercion: [''],
       interventores: [''],
       detalles: [''],
+      // Datos adicionales (opcionales) — sección desplegable
+      localidadNacimiento: [''],
+      provincia: [''],
+      departamento: [''],
+      nombrePadre: [''],
+      nombreMadre: [''],
       iglesiaId: [this.isAdmin ? '' : (currentIglesiaId || ''), Validators.required]
     });
   }
@@ -170,6 +178,12 @@ export class MiembroCreateComponent implements OnInit {
         lugarConvercion: formValue.lugarConvercion,
         interventores: formValue.interventores,
         detalles: formValue.detalles,
+        // Datos adicionales (opcionales)
+        localidadNacimiento: formValue.localidadNacimiento,
+        provincia: formValue.provincia,
+        departamento: formValue.departamento,
+        nombrePadre: formValue.nombrePadre,
+        nombreMadre: formValue.nombreMadre,
         uriFoto: ''
       };
 

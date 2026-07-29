@@ -268,8 +268,8 @@
   color: var(--text-secondary, #8792a2);
 }
 
-/* Columna Bautismo */
-.bautismo-info {
+/* Columna Conversión */
+.conversion-info {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -277,7 +277,7 @@
   color: var(--text-primary, #1a1f36);
 }
 
-.bautismo-icon {
+.conversion-icon {
   font-size: 16px;
   width: 16px;
   height: 16px;
@@ -320,7 +320,8 @@
 .acciones-cell {
   display: flex;
   gap: 4px;
-  justify-content: flex-start;
+  /* Centrado: el mismo aire a la izquierda que a la derecha del botón */
+  justify-content: center;
   align-items: center;
 }
 
@@ -353,7 +354,7 @@
   min-width: 180px !important;
 }
 
-.mat-column-bautismo {
+.mat-column-conversion {
   flex: 1.0 !important;
   min-width: 110px !important;
   max-width: 150px !important;
@@ -365,17 +366,26 @@
   max-width: 120px !important;
 }
 
+/* Acciones: ancho fijo, ajustado al botón de tres puntos. No crece con el resto
+   de columnas para no desperdiciar espacio horizontal.
+   El margen derecho se mantiene en 24px — el mismo que Material aplica a la
+   izquierda de la primera columna (mat-cell:first-of-type) — para que el aire
+   de los dos extremos de la tabla se vea igual. */
 .mat-column-acciones {
-  flex: 1.2 !important;
-  min-width: 140px !important;
-  max-width: 180px !important;
+  flex: 0 0 96px !important;
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 96px !important;
+  justify-content: center !important;
+  padding-left: 8px !important;
+  padding-right: 24px !important;
 }
 
 /* 5. Responsive — las columnas se ocultan según el ancho REAL de la tabla
    (container query), no el de la ventana: el menú lateral resta espacio.
-   Anchos mínimos: miembro 260 · contacto 180 · bautismo 110 · estado 90 · acciones 140 */
+   Anchos mínimos: miembro 260 · contacto 180 · conversión 110 · estado 90 · acciones 76 */
 @container (max-width: 860px) {
-  .mat-column-bautismo {
+  .mat-column-conversion {
     display: none !important;
   }
 }
@@ -398,18 +408,12 @@
     min-width: 130px !important;
     flex: 2 !important;
   }
-
-  .mat-column-acciones {
-    min-width: 88px !important;
-    max-width: 110px !important;
-    flex: 0.9 !important;
-  }
 }
 
 /* Respaldo por ancho de ventana (móvil): en el teléfono se ve Miembro + Opciones,
    igual que en la lista de miembros del administrador. */
 @media (max-width: 768px) {
-  .mat-column-bautismo,
+  .mat-column-conversion,
   .mat-column-contacto,
   .mat-column-estado {
     display: none !important;
@@ -417,9 +421,6 @@
 
   .mat-column-acciones {
     display: flex !important;
-    min-width: 88px !important;
-    max-width: 110px !important;
-    flex: 0.9 !important;
   }
 
   .mat-column-miembro {

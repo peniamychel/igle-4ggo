@@ -53,25 +53,8 @@
   flex-wrap: wrap;
 }
 
-button.mat-mdc-outlined-button.btn-tools-menu {
-  border: 1px solid var(--border-color, #e3e8ee);
-  color: var(--text-secondary, #697386);
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 10px;
-  font-weight: 600;
-  height: 42px;
-  padding: 0 16px;
-  font-size: 0.88rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-button.mat-mdc-outlined-button.btn-tools-menu:hover {
-  background-color: var(--border-color, #e3e8ee);
-  color: var(--text-primary, #1a1f36);
-}
+/* El botón "Herramientas" (.btn-tools-menu) usa el estilo global compartido
+   de styles.css, igual que en Inventario y Mis Miembros. */
 
 button.btn-action-primary {
   background-color: var(--primary-color, #7F0B85);
@@ -304,8 +287,8 @@ button.btn-action-primary:hover {
   color: var(--text-primary, #1a1f36);
 }
 
-/* Columna Bautismo */
-.bautismo-info {
+/* Columna Conversión */
+.conversion-info {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -313,7 +296,7 @@ button.btn-action-primary:hover {
   color: var(--text-primary, #1a1f36);
 }
 
-.bautismo-icon {
+.conversion-icon {
   font-size: 16px;
   width: 16px;
   height: 16px;
@@ -356,7 +339,8 @@ button.btn-action-primary:hover {
 .acciones-cell {
   display: flex;
   gap: 4px;
-  justify-content: flex-start;
+  /* Centrado: el mismo aire a la izquierda que a la derecha del botón */
+  justify-content: center;
   align-items: center;
 }
 
@@ -394,7 +378,7 @@ button.btn-action-primary:hover {
   min-width: 150px !important;
 }
 
-.mat-column-bautismo {
+.mat-column-conversion {
   flex: 1.0 !important;
   min-width: 110px !important;
   max-width: 150px !important;
@@ -406,36 +390,47 @@ button.btn-action-primary:hover {
   max-width: 120px !important;
 }
 
+/* Acciones: ancho fijo, ajustado al botón de tres puntos. No crece con el resto
+   de columnas para no desperdiciar espacio horizontal.
+   El margen derecho se mantiene en 24px — el mismo que Material aplica a la
+   izquierda de la primera columna (mat-cell:first-of-type) — para que el aire
+   de los dos extremos de la tabla se vea igual. */
 .mat-column-acciones {
-  flex: 1.2 !important;
-  min-width: 140px !important;
-  max-width: 180px !important;
+  flex: 0 0 96px !important;
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 96px !important;
+  justify-content: center !important;
+  padding-left: 8px !important;
+  padding-right: 24px !important;
 }
 
 /* 5. Responsive — las columnas se ocultan según el ancho REAL de la tabla
    (container query), no del de la ventana: el menú lateral resta espacio y
    con @media la tabla seguía desbordando. Anchos mínimos por columna:
-   miembro 260 · contacto 180 · iglesia 150 · bautismo 110 · estado 90 · acciones 140 */
-@container (max-width: 1000px) {
-  .mat-column-bautismo {
+   miembro 260 · contacto 180 · iglesia 150 · conversión 110 · estado 90 · acciones 96
+   (suma = 886px). Los umbrales bajaron 44px respecto de la versión anterior,
+   lo mismo que se angostó la columna Acciones. */
+@container (max-width: 950px) {
+  .mat-column-conversion {
     display: none !important;
   }
 }
 
-@container (max-width: 820px) {
+@container (max-width: 780px) {
   .mat-column-contacto {
     display: none !important;
   }
 }
 
-@container (max-width: 660px) {
+@container (max-width: 620px) {
   .mat-column-iglesia {
     display: none !important;
   }
 }
 
 /* Angosto: se prioriza Miembro + Opciones; "Estado" se oculta. */
-@container (max-width: 560px) {
+@container (max-width: 520px) {
   .mat-column-estado {
     display: none !important;
   }
@@ -445,12 +440,6 @@ button.btn-action-primary:hover {
   .mat-column-miembro {
     min-width: 130px !important;
     flex: 2 !important;
-  }
-
-  .mat-column-acciones {
-    min-width: 88px !important;
-    max-width: 110px !important;
-    flex: 0.9 !important;
   }
 }
 
@@ -463,9 +452,6 @@ button.btn-action-primary:hover {
 
   .mat-column-acciones {
     display: flex !important;
-    min-width: 88px !important;
-    max-width: 110px !important;
-    flex: 0.9 !important;
   }
 
   .mat-column-miembro {

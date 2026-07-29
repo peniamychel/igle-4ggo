@@ -2,7 +2,6 @@ import {ApplicationConfig, importProvidersFrom, provideZoneChangeDetection, LOCA
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {authInterceptor} from './core/interceptors/auth.interceptor';
 import {provideAnimations} from '@angular/platform-browser/animations';
@@ -13,8 +12,8 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'es-ES' },
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideAnimationsAsync(),
-
+    // Un solo proveedor de animaciones: registrar además provideAnimationsAsync()
+    // dejaba animaciones a medias (p. ej. el panel expansible nunca abría su cuerpo).
     provideAnimations(),
     importProvidersFrom(MatNativeDateModule),
 
