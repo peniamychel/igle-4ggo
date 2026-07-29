@@ -134,15 +134,8 @@
   flex-shrink: 0;
 }
 
-.canvas.horizontal {
-  width: 1123px;
-  height: 794px;
-}
-
-.canvas.vertical {
-  width: 794px;
-  height: 1123px;
-}
+/* El tamaño del lienzo se calcula según formato y orientación (ver
+   dimensionesCanvas en core/utils/certificado-elementos.ts). */
 
 .drag-element {
   position: absolute;
@@ -153,6 +146,12 @@
   border: 1px dashed transparent;
   font-family: 'Arial', sans-serif;
   color: #000000; /* Fallback for text elements in canvas */
+}
+
+/* Texto centrado dentro de un ancho fijo: el valor real (más corto que la
+   etiqueta) queda centrado en el mismo punto que se diseñó. */
+.drag-element.texto-centrado {
+  text-align: center;
 }
 
 .drag-element:hover {
@@ -172,16 +171,48 @@
   max-height: 200px;
 }
 
-.qr-placeholder {
-  border: 2px dashed #000;
-  color: #000000;
+.qr-container {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+/* El componente qrcode dibuja un canvas con su propio tamaño intrínseco: se lo
+   fuerza al ancho del elemento para que diseño e impresión coincidan. */
+:host ::ng-deep .qr-container canvas,
+:host ::ng-deep .qr-container img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
 .drag-element.selected {
   border-color: #ff4081;
+  border-style: solid;
   background: rgba(255, 64, 129, 0.1);
   z-index: 100;
+}
+
+/* Rectángulo que se dibuja al arrastrar sobre el lienzo vacío */
+.marquesina {
+  position: absolute;
+  border: 1px dashed #2196f3;
+  background: rgba(33, 150, 243, 0.12);
+  pointer-events: none;
+  z-index: 200;
+}
+
+.ayuda-seleccion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #697386);
+}
+
+.ayuda-seleccion mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
 }

@@ -19,10 +19,17 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
+        <mat-label>Tamaño de hoja</mat-label>
+        <mat-select [(ngModel)]="formatoHoja">
+          <mat-option *ngFor="let f of formatos" [value]="f.valor">{{ f.etiqueta }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
         <mat-label>Orientación</mat-label>
         <mat-select [(ngModel)]="orientacion">
-          <mat-option value="horizontal">Horizontal (A4)</mat-option>
-          <mat-option value="vertical">Vertical (A4)</mat-option>
+          <mat-option value="horizontal">Horizontal</mat-option>
+          <mat-option value="vertical">Vertical</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -42,18 +49,38 @@
       </div>
 
       <div class="properties-panel mat-elevation-z1" *ngIf="selectedElement">
-        <h4><mat-icon>tune</mat-icon> {{ selectedElement.type === 'text' ? 'Texto' : 'Imagen' }}</h4>
-        
+        <h4>
+          <mat-icon>tune</mat-icon>
+          <span *ngIf="selectedElements.length < 2">{{ selectedElement.type === 'text' ? 'Texto' : 'Imagen' }}</span>
+          <span *ngIf="selectedElements.length > 1">{{ selectedElements.length }} seleccionados</span>
+        </h4>
+
         <div *ngIf="selectedElement.type === 'text'" class="props-row">
           <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
             <mat-label>Tamaño (px)</mat-label>
-            <input matInput type="number" [(ngModel)]="selectedElement.fontSize" />
+            <input matInput type="number" [(ngModel)]="selectedElement.fontSize"
+                   (ngModelChange)="aplicarASeleccion('fontSize', $event)" />
           </mat-form-field>
           <div class="color-picker-wrapper">
-             <input type="color" [(ngModel)]="selectedElement.color" title="Color de Texto" />
+             <input type="color" [(ngModel)]="selectedElement.color"
+                    (ngModelChange)="aplicarASeleccion('color', $event)" title="Color de Texto" />
           </div>
+          <button mat-icon-button
+                  [color]="selectedElement.centrado ? 'primary' : undefined"
+                  (click)="alternarCentrado()"
+                  matTooltip="Centrar el texto dentro de un ancho fijo">
+            <mat-icon>format_align_center</mat-icon>
+          </button>
         </div>
-        
+
+        <div *ngIf="selectedElement.type === 'text' && selectedElement.centrado" class="props-row">
+          <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
+            <mat-label>Ancho del texto (px)</mat-label>
+            <input matInput type="number" [(ngModel)]="selectedElement.width"
+                   (ngModelChange)="aplicarASeleccion('width', $event)" />
+          </mat-form-field>
+        </div>
+
         <div *ngIf="selectedElement.type === 'logo' || selectedElement.type === 'firma' || selectedElement.type === 'qr' || selectedElement.type === 'marcaAgua'" class="props-row">
           <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
             <mat-label>Ancho (px)</mat-label>
@@ -64,37 +91,58 @@
           </button>
         </div>
       </div>
+
+      <p class="ayuda-seleccion">
+        <mat-icon>touch_app</mat-icon>
+        Arrastre sobre el lienzo para seleccionar varios · Ctrl + clic agrega o quita ·
+        flechas para mover (Shift = 10px) · Ctrl+A todo · Esc limpia
+      </p>
     </div>
   </div>
 
-  <div class="canvas-wrapper" (click)="selectedElement = null">
-    <div class="canvas" 
-         [ngClass]="orientacion"
-         [style.zoom]="scale"
-         id="certificate-canvas">
+  <div class="canvas-wrapper">
+    <div class="canvas"
+         id="certificate-canvas"
+         [style.width.px]="anchoCanvas"
+         [style.height.px]="altoCanvas"
+         (mousedown)="iniciarMarquesina($event)">
 
          <!-- Elementos arrastrables -->
-         <div *ngFor="let element of elements" 
-              class="drag-element" 
-              [class.selected]="selectedElement === element"
+         <div *ngFor="let element of elements"
+              class="drag-element"
+              [class.selected]="estaSeleccionado(element)"
               [style.zIndex]="element.type === 'marcaAgua' ? 0 : 10"
-              cdkDrag 
+              cdkDrag
               [cdkDragFreeDragPosition]="{x: element.x, y: element.y}"
+              (cdkDragStarted)="onDragStarted(element)"
+              (cdkDragMoved)="onDragMoved($event, element)"
               (cdkDragEnded)="onDragEnded($event, element)"
-              (click)="$event.stopPropagation(); selectElement(element)"
+              (mousedown)="$event.stopPropagation()"
+              (click)="$event.stopPropagation(); selectElement(element, $event)"
+              [class.texto-centrado]="element.type === 'text' && element.centrado"
+              [style.width.px]="element.type === 'text' && element.centrado ? (element.width || 200) : null"
               [style.fontSize.px]="element.fontSize"
               [style.color]="element.color">
-              
+
               <span *ngIf="element.type === 'text'">{{ element.label }}</span>
               
-              <div *ngIf="element.type === 'qr'" class="qr-placeholder" [style.width.px]="element.width">
-                  <mat-icon [style.fontSize.px]="element.width" [style.width.px]="element.width" [style.height.px]="element.width">qr_code_2</mat-icon>
+              <!-- Se dibuja un QR real, no un icono: así el diseñador muestra el
+                   mismo tamaño y márgenes que tendrá el certificado impreso. -->
+              <div *ngIf="element.type === 'qr'" class="qr-container" [style.width.px]="element.width">
+                  <qrcode [qrdata]="qrPreviewData" [width]="element.width || 100" [errorCorrectionLevel]="'M'"></qrcode>
               </div>
 
               <img *ngIf="element.type === 'logo' && logoPreview" [src]="logoPreview" [style.width.px]="element.width" />
               <img *ngIf="element.type === 'firma' && firmaPreview" [src]="firmaPreview" [style.width.px]="element.width" />
               <img *ngIf="element.type === 'marcaAgua' && marcaAguaPreview" [src]="marcaAguaPreview" [style.width.px]="element.width" />
          </div>
+
+         <!-- Rectángulo de selección múltiple -->
+         <div class="marquesina" *ngIf="marquesina"
+              [style.left.px]="marquesina.x"
+              [style.top.px]="marquesina.y"
+              [style.width.px]="marquesina.ancho"
+              [style.height.px]="marquesina.alto"></div>
     </div>
   </div>
 </div>
