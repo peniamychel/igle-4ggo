@@ -2,13 +2,21 @@
   <h2>Vista Previa del Certificado</h2>
   
   <div class="canvas-wrapper">
-    <!-- El lienzo real (no visible directamente sino su contenido) -->
-    <div class="canvas" 
-         [ngClass]="orientacion"
-         id="render-canvas">
+    <!-- Contenedor que solo reduce el lienzo visualmente para que quepa -->
+    <div class="canvas-scaler"
+         [style.width.px]="anchoCanvas * previewScale"
+         [style.height.px]="altoCanvas * previewScale"
+         [style.transform]="'scale(' + previewScale + ')'">
+    <!-- El lienzo real, a tamaño de hoja en píxeles (96 DPI) -->
+    <div class="canvas"
+         id="render-canvas"
+         [style.width.px]="anchoCanvas"
+         [style.height.px]="altoCanvas">
          
-         <div *ngFor="let element of elements" 
-              class="render-element" 
+         <div *ngFor="let element of elements"
+              class="render-element"
+              [class.texto-centrado]="element.type === 'text' && element.centrado"
+              [style.width.px]="element.type === 'text' && element.centrado ? (element.width || 200) : null"
               [style.left.px]="element.x"
               [style.top.px]="element.y"
               [style.fontSize.px]="element.fontSize"
@@ -26,12 +34,44 @@
               <img *ngIf="element.type === 'marcaAgua' && marcaAguaUrl" [src]="marcaAguaUrl" [style.width.px]="element.width" />
          </div>
     </div>
+    </div>
+  </div>
+
+  <!-- Registro físico: sin libro y folio no se emite el PDF -->
+  <div class="registro-entrega">
+    <div class="registro-campos">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>N° de Libro</mat-label>
+        <input matInput [(ngModel)]="numeroLibro" (ngModelChange)="sincronizarRegistro()"
+               maxlength="50" placeholder="Ej. 3" cdkFocusInitial>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>N° de Folio</mat-label>
+        <input matInput [(ngModel)]="numeroFolio" (ngModelChange)="sincronizarRegistro()"
+               maxlength="50" placeholder="Ej. 128">
+      </mat-form-field>
+    </div>
+
+    <p class="registro-nota" [class.pendiente]="!datosRegistroCompletos">
+      <mat-icon>{{ datosRegistroCompletos ? 'check_circle' : 'info' }}</mat-icon>
+      <span *ngIf="!datosRegistroCompletos">
+        Complete el libro y el folio para generar el PDF.
+      </span>
+      <span *ngIf="datosRegistroCompletos">
+        Al generar el PDF el certificado quedará registrado como entregado.
+      </span>
+    </p>
   </div>
 
   <div class="actions">
-    <button mat-button (click)="dialogRef.close()">Cerrar</button>
-    <button mat-raised-button color="primary" (click)="downloadPdf()">
-      <mat-icon>download</mat-icon> Descargar PDF
+    <button mat-button (click)="dialogRef.close()" [disabled]="guardando">Cerrar</button>
+    <button mat-raised-button color="primary"
+            (click)="downloadPdf()"
+            [disabled]="!datosRegistroCompletos || guardando"
+            [matTooltip]="datosRegistroCompletos ? 'Registrar entrega y descargar el PDF' : 'Debe registrar el N° de libro y el N° de folio'">
+      <mat-icon>download</mat-icon>
+      {{ guardando ? 'Registrando...' : 'Descargar PDF' }}
     </button>
   </div>
 </div>

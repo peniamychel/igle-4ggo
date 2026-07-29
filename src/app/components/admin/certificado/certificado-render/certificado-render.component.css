@@ -23,20 +23,30 @@
   /* simulate paper A4 at 96 DPI */
 }
 
-.canvas.horizontal {
-  width: 1123px;
-  height: 794px;
-}
-
-.canvas.vertical {
-  width: 794px;
-  height: 1123px;
-}
+/* El tamaño del lienzo lo calcula el componente según formato y orientación. */
 
 .render-element {
   position: absolute;
   font-family: 'Arial', sans-serif;
   white-space: nowrap;
+  /* Mismo relleno y borde (invisible) que .drag-element del diseñador: sin esto
+     cada texto aparecería 5px arriba y a la izquierda respecto del diseño. */
+  padding: 4px;
+  border: 1px solid transparent;
+}
+
+/* Texto centrado dentro de un ancho fijo (ver .texto-centrado del diseñador) */
+.render-element.texto-centrado {
+  text-align: center;
+  white-space: normal;
+}
+
+/* El lienzo se dibuja a tamaño real y se reduce solo visualmente para que quepa
+   en el diálogo. Al generar el PDF se restaura a escala 1 para capturarlo
+   completo y sin deformación. */
+.canvas-scaler {
+  transform-origin: top left;
+  flex-shrink: 0;
 }
 
 .logo-preview, .firma-preview {
@@ -51,11 +61,67 @@
   align-items: center;
 }
 
+/* El componente qrcode dibuja un canvas con su propio tamaño intrínseco: se lo
+   fuerza al ancho del elemento para que coincida con el diseñador. */
+:host ::ng-deep .qr-container canvas,
+:host ::ng-deep .qr-container img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* Registro físico del certificado (libro y folio) */
+.registro-entrega {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 10px;
+  background-color: var(--card-bg, #ffffff);
+}
+
+.registro-campos {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.registro-campos mat-form-field {
+  flex: 1;
+  min-width: 160px;
+}
+
+.registro-nota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #0b857f;
+}
+
+.registro-nota.pendiente {
+  color: #e65100;
+}
+
+.registro-nota mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
   margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .registro-campos {
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 
 .loading-state, .error-state {

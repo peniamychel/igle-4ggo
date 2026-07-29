@@ -58,7 +58,6 @@ export class ParticipacionEventoCreateComponent implements OnInit {
       miembroId: ['', Validators.required],
       eventoId: ['', Validators.required],
       certificadoId: [null],
-      fecha: ['', Validators.required],
     });
   }
 

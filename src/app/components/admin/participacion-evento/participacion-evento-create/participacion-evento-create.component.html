@@ -46,16 +46,7 @@
       </mat-form-field>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha de Participación</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="fecha">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-hint>DD/MM/YYYY</mat-hint>
-        <mat-error>{{ getError('fecha') }}</mat-error>
-      </mat-form-field>
-    </div>
+    <!-- La fecha de participación ya no se pide: es la del registro (createdAt) -->
 
     <div class="form-row">
       <mat-form-field appearance="outline">

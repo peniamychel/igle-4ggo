@@ -53,8 +53,8 @@
       </ng-container>
 
       <ng-container matColumnDef="fecha">
-        <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</mat-header-cell>
-        <mat-cell *matCellDef="let item" class="fecha-cell">{{ item.fecha | date:'dd/MM/yyyy' }}</mat-cell>
+        <mat-header-cell *matHeaderCellDef mat-sort-header>Fecha de Registro</mat-header-cell>
+        <mat-cell *matCellDef="let item" class="fecha-cell">{{ item.createdAt | date:'dd/MM/yyyy' }}</mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="certificado">

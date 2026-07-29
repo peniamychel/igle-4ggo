@@ -35,7 +35,10 @@
           <mat-cell *matCellDef="let row" class="checkbox-cell">
             <mat-checkbox (click)="$event.stopPropagation()"
                           (change)="$event ? selection.toggle(row) : null"
-                          [checked]="selection.isSelected(row)">
+                          [checked]="selection.isSelected(row)"
+                          [disabled]="!puedeImprimir(row)"
+                          matTooltipClass="tooltip-multilinea"
+                          [matTooltip]="puedeImprimir(row) ? '' : detalleFaltantes(row)">
             </mat-checkbox>
           </mat-cell>
         </ng-container>
@@ -86,6 +89,9 @@
               <span class="entrega-date" *ngIf="item.entregado && item.fechaEntrega">
                 {{ item.fechaEntrega | date:'dd/MM/yyyy HH:mm' }}
               </span>
+              <span class="entrega-date" *ngIf="item.numeroLibro || item.numeroFolio">
+                Libro {{ item.numeroLibro || '—' }} · Folio {{ item.numeroFolio || '—' }}
+              </span>
             </div>
           </mat-cell>
         </ng-container>
@@ -94,8 +100,25 @@
         <ng-container matColumnDef="acciones">
           <mat-header-cell *matHeaderCellDef class="acciones-header"> Acciones </mat-header-cell>
           <mat-cell *matCellDef="let item" class="acciones-cell">
-            <button mat-icon-button class="btn-action-primary print-icon-btn" (click)="printCertificado(item)" matTooltip="Imprimir Certificado">
+            <!-- Ficha del miembro completa: recién aquí aparece la impresión -->
+            <button *ngIf="puedeImprimir(item)"
+                    mat-icon-button class="btn-action-primary print-icon-btn"
+                    (click)="printCertificado(item)"
+                    matTooltip="Imprimir Certificado">
               <mat-icon>print</mat-icon>
+            </button>
+
+            <!-- Faltan datos: en lugar del botón de imprimir se ofrece completarlos.
+                 En naranja si falta algún dato obligatorio, en azul si solo faltan
+                 datos adicionales. -->
+            <button *ngIf="!puedeImprimir(item)"
+                    mat-stroked-button
+                    [ngClass]="datosCompletos(item) ? 'btn-datos-parciales' : 'btn-completar-datos'"
+                    (click)="completarDatos(item)"
+                    matTooltipClass="tooltip-multilinea"
+                    [matTooltip]="detalleFaltantes(item)">
+              <mat-icon>{{ datosCompletos(item) ? 'info' : 'edit_note' }}</mat-icon>
+              <span>{{ etiquetaFaltantes(item) }}</span>
             </button>
           </mat-cell>
         </ng-container>
@@ -139,9 +162,13 @@
 
 <!-- Lienzo oculto para renderizado masivo en PDF -->
 <div *ngIf="plantilla && currentPrintingPart" style="position: absolute; left: -9999px; top: -9999px; overflow: hidden; width: 0; height: 0;">
-  <div class="canvas" [ngClass]="orientacion" id="hidden-render-canvas" style="background-color: white; position: relative;">
-    <div *ngFor="let el of printingElements" 
-         class="render-element" 
+  <div class="canvas" id="hidden-render-canvas"
+       [style.width.px]="anchoCanvas" [style.height.px]="altoCanvas"
+       style="background-color: white; position: relative;">
+    <div *ngFor="let el of printingElements"
+         class="render-element"
+         [class.texto-centrado]="el.type === 'text' && el.centrado"
+         [style.width.px]="el.type === 'text' && el.centrado ? (el.width || 200) : null"
          [style.left.px]="el.x"
          [style.top.px]="el.y"
          [style.fontSize.px]="el.fontSize"

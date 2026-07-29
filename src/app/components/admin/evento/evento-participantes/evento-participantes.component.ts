@@ -237,11 +237,11 @@ export class EventoParticipantesComponent implements OnInit {
   addParticipant() {
     if (!this.selectedMiembroId) return;
 
+    // La fecha la sella el backend en createdAt al registrar la participación
     const newPart: ParticipacionEvento = {
       eventoId: this.evento.id!,
       miembroId: this.selectedMiembroId,
-      certificadoId: null,
-      fecha: new Date().toISOString()
+      certificadoId: null
     };
 
     this.participacionService.createParticipacion(newPart).subscribe({

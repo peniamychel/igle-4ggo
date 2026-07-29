@@ -58,7 +58,6 @@ export class ParticipacionEventoEditComponent implements OnInit {
       miembroId: ['', Validators.required],
       eventoId: ['', Validators.required],
       certificadoId: [null],
-      fecha: ['', Validators.required],
     });
     this.participacion = data.participacion;
   }
@@ -82,7 +81,6 @@ export class ParticipacionEventoEditComponent implements OnInit {
         miembroId: this.participacion.miembroId,
         eventoId: this.participacion.eventoId,
         certificadoId: this.participacion.certificadoId,
-        fecha: this.participacion.fecha,
       });
     }
   }

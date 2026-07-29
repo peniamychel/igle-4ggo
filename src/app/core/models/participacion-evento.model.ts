@@ -7,12 +7,17 @@ export interface ParticipacionEvento {
   miembroId: number;
   eventoId: number;
   certificadoId: number | null;
-  fecha: string;
   entregadoPorId?: number;
+  /** Código corto impreso; verificación limitada y con datos reducidos. */
   codigoUnico?: string;
+  /** Token del QR (UUID): verificación completa. */
+  tokenVerificacion?: string;
   estado?: boolean;
   entregado?: boolean;
   fechaEntrega?: string;
+  /** Libro y folio del registro físico, se asientan al generar el PDF. */
+  numeroLibro?: string;
+  numeroFolio?: string;
   createdAt?: string;
   updatedAt?: string;
 

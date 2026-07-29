@@ -37,8 +37,12 @@ export class ParticipacionEventoService {
     return this.http.put(`${this.apiUrl}/entregado/${id}`, {});
   }
 
-  toggleEntregadoConCertificado(id: number, certificadoId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/entregado/${id}/${certificadoId}`, {});
+  /**
+   * Asienta la entrega con libro y folio. Es el único punto que marca una
+   * participación como entregada: se llama al generar el PDF del certificado.
+   */
+  registrarEntrega(id: number, certificadoId: number, numeroLibro: string, numeroFolio: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/entregar/${id}`, { certificadoId, numeroLibro, numeroFolio });
   }
 
   deleteParticipacion(id: number): Observable<any> {

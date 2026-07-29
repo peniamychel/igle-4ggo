@@ -126,15 +126,21 @@ export class CertificadoVerificarDialogComponent implements OnInit, OnDestroy, A
     // Detener escaneo inmediatamente para evitar lanzamientos múltiples
     this.stopScanner();
 
-    // Extraer el código único (los últimos caracteres después de la barra)
+    // Extraer el código único (el último tramo de la URL)
     // Ej: http://localhost:8092/verificar-certificado/N5LK -> N5LK
     let code = scannedText.trim();
     if (code.includes('/')) {
-      const parts = code.split('/');
-      code = parts[parts.length - 1];
+      // Se descartan los tramos vacíos para tolerar una barra final
+      const parts = code.split('/').filter(p => p.trim().length > 0);
+      code = parts[parts.length - 1] || '';
     }
+    code = code.trim().toUpperCase();
 
-    if (code && code.length === 4) {
+    // El QR lleva el token de verificación (UUID). Se acepta también el código
+    // corto impreso: 4 caracteres de base, más si al generarlo hubo choques, y
+    // hasta 9 en los registros antiguos.
+    const esToken = /^[A-Za-z0-9_-]{14,40}$/.test(code);
+    if (esToken || /^[A-Z0-9]{4,12}$/.test(code)) {
       this.verifyCode(code);
     } else {
       this.showSnackBar('El código QR escaneado no tiene un formato válido.', 'error');

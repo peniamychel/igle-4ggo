@@ -174,9 +174,47 @@ h2[mat-dialog-title] {
 }
 
 /* Acciones */
-.acciones-header, .acciones-cell {
-  justify-content: flex-end;
-  padding-right: 16px;
+/* La columna Acciones aloja el botón de imprimir o, si la ficha del miembro está
+   incompleta, el botón "Faltan N datos": necesita ancho fijo para que ese texto
+   no se corte ni se parta en dos líneas.
+   Se repite el selector de table-shared.css (`.table-container mat-cell.mat-column-acciones`,
+   que fija 80px) porque tiene más especificidad que una clase suelta y ganaba. */
+.table-container mat-header-cell.mat-column-acciones,
+.table-container mat-cell.mat-column-acciones,
+.acciones-header,
+.acciones-cell {
+  flex: 0 0 200px !important;
+  width: 200px !important;
+  min-width: 200px !important;
+  max-width: 200px !important;
+  justify-content: center !important;
+  padding-left: 8px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Botones de datos incompletos: mismo alto y forma que el resto del diálogo */
+button.btn-datos-parciales,
+button.btn-completar-datos {
+  /* Sin max-width: el botón de Material recorta (overflow:hidden) su contenido,
+     y al limitarlo al ancho de la celda desaparecía el icono. */
+  min-width: 0 !important;
+  flex: 0 0 auto;
+  padding: 0 12px !important;
+  letter-spacing: 0 !important;
+}
+
+/* El espaciado icono-texto lo da el gap del botón; se anula el margen que
+   Material aplica por defecto a los iconos dentro de un botón. */
+button.btn-datos-parciales mat-icon,
+button.btn-completar-datos mat-icon {
+  margin: 0 !important;
+}
+
+button.btn-datos-parciales .mdc-button__label,
+button.btn-completar-datos .mdc-button__label {
+  white-space: nowrap;
 }
 
 button.btn-action-primary.print-btn {
@@ -294,6 +332,82 @@ button.btn-action-primary.print-icon-btn mat-icon {
   height: 14px;
 }
 
+/* ── Estado de los datos del miembro (requisito para emitir el certificado) ── */
+/* Faltan solo datos adicionales (los obligatorios están completos) */
+button.btn-datos-parciales {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  line-height: 30px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #1565c0 !important;
+  border-color: rgba(21, 101, 192, 0.35) !important;
+  background-color: rgba(21, 101, 192, 0.06) !important;
+}
+
+button.btn-datos-parciales:hover {
+  background-color: rgba(21, 101, 192, 0.14) !important;
+}
+
+button.btn-datos-parciales mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #1565c0 !important;
+}
+
+/* Acción para completar los datos faltantes del miembro */
+button.btn-completar-datos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  line-height: 30px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #e65100 !important;
+  border-color: rgba(230, 81, 0, 0.4) !important;
+  background-color: rgba(230, 81, 0, 0.06) !important;
+}
+
+button.btn-completar-datos:hover {
+  background-color: rgba(230, 81, 0, 0.14) !important;
+}
+
+button.btn-completar-datos mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #e65100 !important;
+}
+
+/* Botón de impresión deshabilitado: gris, sin color de acción */
+.print-icon-btn:disabled,
+.print-icon-btn.mat-mdc-button-disabled {
+  background-color: #f2f2f2 !important;
+  color: #b0b0b0 !important;
+  cursor: not-allowed !important;
+}
+
+.print-icon-btn:disabled mat-icon,
+.print-icon-btn.mat-mdc-button-disabled mat-icon {
+  color: #b0b0b0 !important;
+}
+
+:host-context(.dark-theme) .print-icon-btn:disabled,
+:host-context(.dark-theme) .print-icon-btn.mat-mdc-button-disabled {
+  background-color: #2a2a35 !important;
+  color: #5c5c68 !important;
+}
+
 .entrega-date {
   font-size: 0.72rem;
   color: var(--text-secondary, #697386);
@@ -366,26 +480,37 @@ button.btn-action-primary.print-selected-btn-bottom[disabled] {
   box-shadow: none;
 }
 
-.canvas.horizontal {
-  width: 1123px;
-  height: 794px;
-}
-
-.canvas.vertical {
-  width: 794px;
-  height: 1123px;
-}
+/* El tamaño del lienzo lo calcula el componente según formato y orientación. */
 
 .render-element {
   position: absolute;
   font-family: 'Arial', sans-serif;
   white-space: nowrap;
+  /* Mismo relleno y borde (invisible) que .drag-element del diseñador, para que
+     lo impreso coincida exactamente con lo diseñado. */
+  padding: 4px;
+  border: 1px solid transparent;
 }
 
 .qr-container {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Texto centrado dentro de un ancho fijo (ver .texto-centrado del diseñador) */
+.render-element.texto-centrado {
+  text-align: center;
+  white-space: normal;
+}
+
+/* El componente qrcode dibuja un canvas con su propio tamaño intrínseco: se lo
+   fuerza al ancho del elemento para que coincida con el diseñador. */
+:host ::ng-deep .qr-container canvas,
+:host ::ng-deep .qr-container img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
 }
 
 /* Checkbox Column Styling */

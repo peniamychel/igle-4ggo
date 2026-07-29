@@ -8,7 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { Certificado } from '../../../../core/models/certificado.model';
 import { ParticipacionEvento } from '../../../../core/models/participacion-evento.model';
 import { ParticipacionEventoService } from '../../../../core/services/participacion-evento.service';
@@ -16,7 +16,12 @@ import { MiembroService } from '../../../../core/services/miembro.service';
 import { PlantillaCertificadoService } from '../../../../core/services/plantilla-certificado.service';
 import { PlantillaCertificado } from '../../../../core/models/plantilla-certificado.model';
 import { CertificadoRenderComponent } from '../certificado-render/certificado-render.component';
+import { MiembroFormEditarComponent } from '../../miembro/miembro-edit/miembro-edit.component';
 import { ImageUrlPipe } from '../../../../shared/pipes/image-url.pipe';
+import {
+  normalizarElementos, valorElementoCertificado, dimensionesCanvas, formatoPdf,
+  FormatoHoja, OrientacionHoja
+} from '../../../../core/utils/certificado-elementos';
 import { QRCodeModule } from 'angularx-qrcode';
 import { environment } from '../../../../../environments/environment';
 import html2canvas from 'html2canvas';
@@ -31,6 +36,7 @@ export interface DragElement {
   fontSize?: number;
   color?: string;
   width?: number;
+  centrado?: boolean;
   value?: string;
 }
 
@@ -62,7 +68,16 @@ export class CertificadoPrintDialogComponent implements OnInit {
 
   // Configuración de la plantilla para el canvas invisible
   plantilla?: PlantillaCertificado;
-  orientacion: 'horizontal' | 'vertical' = 'horizontal';
+  orientacion: OrientacionHoja = 'horizontal';
+  formatoHoja: FormatoHoja = 'a4';
+
+  get anchoCanvas(): number {
+    return dimensionesCanvas(this.formatoHoja, this.orientacion).ancho;
+  }
+
+  get altoCanvas(): number {
+    return dimensionesCanvas(this.formatoHoja, this.orientacion).alto;
+  }
   logoUrl?: string;
   marcaAguaUrl?: string;
   firmaUrl?: string;
@@ -75,6 +90,36 @@ export class CertificadoPrintDialogComponent implements OnInit {
   dataSource = new MatTableDataSource<ParticipacionEvento>([]);
   displayedColumns: string[] = ['select', 'miembro', 'contacto', 'entrega', 'acciones'];
   selection = new SelectionModel<ParticipacionEvento>(true, []);
+
+  /**
+   * Datos del miembro que deben estar completos para poder emitir su certificado.
+   * Son los mismos campos obligatorios del registro de miembros.
+   */
+  private readonly camposRequeridos: { campo: string; etiqueta: string }[] = [
+    { campo: 'nombre', etiqueta: 'Nombre' },
+    { campo: 'apellido', etiqueta: 'Apellido' },
+    { campo: 'ci', etiqueta: 'CI' },
+    { campo: 'fechaNac', etiqueta: 'Fecha de nacimiento' },
+    { campo: 'sexo', etiqueta: 'Sexo' },
+    { campo: 'celular', etiqueta: 'Celular' }
+  ];
+
+  /**
+   * Datos complementarios del miembro (sección "Datos adicionales" del registro).
+   * No bloquean la impresión, pero se informan en la columna para saber qué falta
+   * por completar en la ficha del miembro.
+   */
+  private readonly camposAdicionales: { campo: string; etiqueta: string }[] = [
+    { campo: 'direccion', etiqueta: 'Dirección' },
+    { campo: 'localidadNacimiento', etiqueta: 'Localidad de nacimiento' },
+    { campo: 'provincia', etiqueta: 'Provincia' },
+    { campo: 'departamento', etiqueta: 'Departamento' },
+    { campo: 'nombrePadre', etiqueta: 'Nombre del padre' },
+    { campo: 'nombreMadre', etiqueta: 'Nombre de la madre' },
+    { campo: 'fechaConvercion', etiqueta: 'Fecha de conversión' },
+    { campo: 'lugarConvercion', etiqueta: 'Lugar de conversión' },
+    { campo: 'interventores', etiqueta: 'Interventores' }
+  ];
 
   constructor(
     private dialogRef: MatDialogRef<CertificadoPrintDialogComponent>,
@@ -131,6 +176,7 @@ export class CertificadoPrintDialogComponent implements OnInit {
             try {
               const config = JSON.parse(this.plantilla.configuracionJson);
               if (config.orientacion) this.orientacion = config.orientacion;
+              if (config.formatoHoja) this.formatoHoja = config.formatoHoja;
             } catch (e) {
               console.error('Error al parsear orientación:', e);
             }
@@ -147,19 +193,124 @@ export class CertificadoPrintDialogComponent implements OnInit {
     }
   }
 
+  /** Etiquetas de la lista indicada que el miembro no tiene cargadas. */
+  private faltantesDe(item: ParticipacionEvento, lista: { campo: string; etiqueta: string }[]): string[] {
+    const m: any = item?.miembroDto;
+    if (!m) return lista.map(c => c.etiqueta);
+    return lista
+      .filter(c => {
+        const valor = m[c.campo];
+        return valor === null || valor === undefined || String(valor).trim() === '';
+      })
+      .map(c => c.etiqueta);
+  }
+
+  /** Campos obligatorios que le faltan al miembro de una participación. */
+  camposFaltantes(item: ParticipacionEvento): string[] {
+    return this.faltantesDe(item, this.camposRequeridos);
+  }
+
+  /** Campos de la sección "Datos adicionales" que le faltan al miembro. */
+  adicionalesFaltantes(item: ParticipacionEvento): string[] {
+    return this.faltantesDe(item, this.camposAdicionales);
+  }
+
+  /** Cantidad total de datos pendientes en la ficha del miembro. */
+  totalFaltantes(item: ParticipacionEvento): number {
+    return this.camposFaltantes(item).length + this.adicionalesFaltantes(item).length;
+  }
+
+  /** Etiqueta corta del botón de la columna Acciones. */
+  etiquetaFaltantes(item: ParticipacionEvento): string {
+    const n = this.totalFaltantes(item);
+    return n === 1 ? 'Falta 1 dato' : `Faltan ${n} datos`;
+  }
+
+  /** True si el miembro tiene todos sus datos obligatorios. */
+  datosCompletos(item: ParticipacionEvento): boolean {
+    return this.camposFaltantes(item).length === 0;
+  }
+
+  /** True si la ficha del miembro está completa: obligatorios y adicionales. */
+  perfilCompleto(item: ParticipacionEvento): boolean {
+    return this.datosCompletos(item) && this.adicionalesFaltantes(item).length === 0;
+  }
+
+  /**
+   * El certificado solo se emite con la ficha del miembro completa: mientras falte
+   * cualquier dato, la columna Acciones muestra "Faltan N dato(s)" en vez del botón
+   * de imprimir.
+   */
+  puedeImprimir(item: ParticipacionEvento): boolean {
+    return this.perfilCompleto(item);
+  }
+
+  /** Texto para el tooltip: detalle de lo que falta, separado por tipo de dato. */
+  detalleFaltantes(item: ParticipacionEvento): string {
+    const obligatorios = this.camposFaltantes(item);
+    const adicionales = this.adicionalesFaltantes(item);
+
+    if (!obligatorios.length && !adicionales.length) {
+      return 'Ficha del miembro completa';
+    }
+
+    const partes: string[] = [];
+    if (obligatorios.length) {
+      partes.push(`Obligatorios (impiden imprimir): ${obligatorios.join(', ')}`);
+    }
+    if (adicionales.length) {
+      partes.push(`Datos adicionales: ${adicionales.join(', ')}`);
+    }
+    return partes.join('\n');
+  }
+
+  /** Participaciones que sí pueden imprimirse (ficha del miembro completa). */
+  get participantesImprimibles(): ParticipacionEvento[] {
+    return this.dataSource.data.filter(p => this.puedeImprimir(p));
+  }
+
+  /** Abre la edición del miembro para completar sus datos y recarga al guardar. */
+  completarDatos(item: ParticipacionEvento) {
+    if (!item?.miembroDto) {
+      this.messageSnackBar('No se encontraron los datos del miembro.', 'error');
+      return;
+    }
+
+    const ref = this.dialog.open(MiembroFormEditarComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: item.miembroDto
+    });
+
+    ref.afterClosed().subscribe(result => {
+      if (result) {
+        // Se recargan los participantes para reflejar los datos actualizados.
+        this.loadData();
+        this.messageSnackBar('Datos del miembro actualizados.', 'success');
+      }
+    });
+  }
+
   isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
+    // Solo se consideran las filas que se pueden imprimir.
+    const imprimibles = this.participantesImprimibles;
+    return imprimibles.length > 0 && imprimibles.every(row => this.selection.isSelected(row));
   }
 
   masterToggle() {
     this.isAllSelected() ?
         this.selection.clear() :
-        this.dataSource.data.forEach(row => this.selection.select(row));
+        this.participantesImprimibles.forEach(row => this.selection.select(row));
   }
 
   printCertificado(participacion: ParticipacionEvento) {
+    // No se emite el certificado mientras la ficha del miembro esté incompleta.
+    if (!this.puedeImprimir(participacion)) {
+      this.messageSnackBar(this.detalleFaltantes(participacion), 'warning');
+      return;
+    }
+
     // Vincular el certificado actual a la participación para el renderizado
     participacion.certificadoDto = this.certificado;
     participacion.eventoDto = this.certificado.eventoDto;
@@ -179,8 +330,20 @@ export class CertificadoPrintDialogComponent implements OnInit {
   }
 
   async printSelectedCertificates() {
-    const selectedParts = this.selection.selected;
-    if (selectedParts.length === 0) return;
+    // Se excluyen los miembros con datos incompletos (no se les puede emitir certificado).
+    const selectedParts = this.selection.selected.filter(p => this.puedeImprimir(p));
+    const omitidos = this.selection.selected.length - selectedParts.length;
+
+    if (selectedParts.length === 0) {
+      if (omitidos > 0) {
+        this.messageSnackBar('Los miembros seleccionados tienen datos incompletos. Complete sus datos para imprimir.', 'warning');
+      }
+      return;
+    }
+
+    if (omitidos > 0) {
+      this.messageSnackBar(`${omitidos} certificado(s) omitido(s) por datos incompletos del miembro.`, 'warning');
+    }
 
     if (!this.plantilla) {
       this.messageSnackBar('Este certificado no tiene una plantilla asociada para imprimir.', 'error');
@@ -202,33 +365,10 @@ export class CertificadoPrintDialogComponent implements OnInit {
         try {
           const config = JSON.parse(this.plantilla.configuracionJson);
           if (config.elements) {
-            const hasCodigo = config.elements.some((el: any) => el.id === 'codigo_verificacion');
-            const finalElements = [...config.elements];
-            if (!hasCodigo) {
-              finalElements.push({
-                id: 'codigo_verificacion',
-                type: 'text',
-                label: '[Código de Verificación]',
-                x: 100,
-                y: 300,
-                fontSize: 12,
-                color: '#666666'
-              });
-            }
-
-            this.printingElements = finalElements.map((el: any) => {
+            this.printingElements = normalizarElementos(config.elements).map((el: any) => {
               const newEl = { ...el };
-              if (newEl.id === 'nombre_miembro') {
-                newEl.value = `${part.miembroDto?.nombre} ${part.miembroDto?.apellido}`;
-              }
-              if (newEl.id === 'nombre_evento') {
-                newEl.value = part.eventoDto?.nombre || this.certificado.eventoDto?.nombre || '';
-              }
-              if (newEl.id === 'fecha') {
-                newEl.value = new Date(part.fecha).toLocaleDateString();
-              }
-              if (newEl.id === 'codigo_verificacion') {
-                newEl.value = part.codigoUnico || '';
+              if (newEl.type === 'text') {
+                newEl.value = valorElementoCertificado(newEl.id, part);
               }
               return newEl;
             });
@@ -238,8 +378,10 @@ export class CertificadoPrintDialogComponent implements OnInit {
         }
       }
       
-      const uniqueCode = part.codigoUnico || '';
-      this.printingQrData = `${environment.apiUrl}/verificar-certificado/${uniqueCode}`;
+      // El QR lleva el token; el código corto solo como respaldo. Ruta corta /v/
+      // para que el dibujo tenga menos módulos.
+      const claveVerificacion = part.tokenVerificacion || part.codigoUnico || '';
+      this.printingQrData = `${environment.apiUrl}/v/${claveVerificacion}`;
       
       // Esperar brevemente a que el DOM dibuje el canvas oculto y carguen las imágenes
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -247,13 +389,24 @@ export class CertificadoPrintDialogComponent implements OnInit {
       const canvasElement = document.getElementById('hidden-render-canvas');
       if (canvasElement) {
         try {
-          const canvas = await html2canvas(canvasElement, { scale: 2, useCORS: true });
+          // Se fija el área exacta del lienzo (tamaño de hoja a 96 DPI) para que
+          // la captura no dependa del scroll ni del tamaño de la ventana.
+          const canvas = await html2canvas(canvasElement, {
+            scale: 2,
+            useCORS: true,
+            width: this.anchoCanvas,
+            height: this.altoCanvas,
+            windowWidth: this.anchoCanvas,
+            windowHeight: this.altoCanvas,
+            scrollX: 0,
+            scrollY: 0
+          });
           const imgData = canvas.toDataURL('image/png');
           
           const pdf = new jsPDF({
             orientation: this.orientacion === 'horizontal' ? 'l' : 'p',
             unit: 'mm',
-            format: 'a4'
+            format: formatoPdf(this.formatoHoja)
           });
 
           const width = pdf.internal.pageSize.getWidth();
@@ -261,11 +414,9 @@ export class CertificadoPrintDialogComponent implements OnInit {
           
           pdf.addImage(imgData, 'PNG', 0, 0, width, height);
           pdf.save(`Certificado_${part.miembroDto?.nombre || 'Miembro'}_${part.miembroDto?.apellido || 'Apellido'}.pdf`);
-          
-          // Registrar entrega y vincular certificado
-          if (part.id && this.certificado.id) {
-            await firstValueFrom(this.participacionService.toggleEntregadoConCertificado(part.id, this.certificado.id));
-          }
+
+          // La entrega NO se registra aquí: se asienta al generar el PDF desde la
+          // vista previa individual, que es donde se cargan el libro y el folio.
         } catch (error) {
           console.error('Error generando PDF para el participante:', part, error);
         }
@@ -275,7 +426,10 @@ export class CertificadoPrintDialogComponent implements OnInit {
     this.printingAll = false;
     this.currentPrintingPart = null;
     this.printingProgress = '';
-    this.messageSnackBar('Los certificados seleccionados se han generado e impreso exitosamente.');
+    this.messageSnackBar(
+      'PDFs generados. La entrega no queda registrada en lote: ábralos uno por uno para asentar libro y folio.',
+      'warning'
+    );
     this.loadData();
   }
 
