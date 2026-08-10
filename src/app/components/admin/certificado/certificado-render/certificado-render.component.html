@@ -21,7 +21,7 @@
               [style.top.px]="element.y"
               [style.fontSize.px]="element.fontSize"
               [style.color]="element.color"
-              [style.zIndex]="element.type === 'marcaAgua' ? 0 : 10">
+              [style.zIndex]="10">
               
               <span *ngIf="element.type === 'text'">{{ element.value }}</span>
               
@@ -29,9 +29,6 @@
                   <qrcode [qrdata]="qrData" [width]="element.width || 80" [errorCorrectionLevel]="'M'"></qrcode>
               </div>
 
-              <img *ngIf="element.type === 'logo' && logoUrl" [src]="logoUrl" [style.width.px]="element.width" />
-              <img *ngIf="element.type === 'firma' && firmaUrl" [src]="firmaUrl" [style.width.px]="element.width" />
-              <img *ngIf="element.type === 'marcaAgua' && marcaAguaUrl" [src]="marcaAguaUrl" [style.width.px]="element.width" />
          </div>
     </div>
     </div>

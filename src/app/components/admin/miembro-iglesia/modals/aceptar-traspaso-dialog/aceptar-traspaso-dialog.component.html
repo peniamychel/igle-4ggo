@@ -1,0 +1,87 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon class="title-icon">how_to_reg</mat-icon>
+  Aceptar traspaso
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <p class="dialog-message">
+    Está por aceptar el traspaso de <strong>{{ data.miembroNombre }}</strong>.
+    El miembro dejará de pertenecer a <strong>{{ data.iglesiaOrigenNombre }}</strong>
+    y pasará a <strong>{{ data.iglesiaDestinoNombre }}</strong>.
+  </p>
+
+  <!-- Detalle de la solicitud -->
+  <div class="detalle-solicitud">
+    <div class="detalle-fila">
+      <span class="detalle-label">Miembro</span>
+      <span class="detalle-valor">{{ data.miembroNombre }}</span>
+    </div>
+    <div class="detalle-fila" *ngIf="data.miembroCi">
+      <span class="detalle-label">CI</span>
+      <span class="detalle-valor">{{ data.miembroCi }}</span>
+    </div>
+    <div class="detalle-fila" *ngIf="data.miembroCargo">
+      <span class="detalle-label">Cargo</span>
+      <span class="detalle-valor">{{ data.miembroCargo }}</span>
+    </div>
+    <div class="detalle-fila">
+      <span class="detalle-label">Origen</span>
+      <span class="detalle-valor">
+        {{ data.iglesiaOrigenNombre }}
+        <span class="detalle-extra" *ngIf="pastorOrigenLimpio">· Pastor {{ pastorOrigenLimpio }}</span>
+      </span>
+    </div>
+    <div class="detalle-fila">
+      <span class="detalle-label">Destino</span>
+      <span class="detalle-valor">{{ data.iglesiaDestinoNombre }}</span>
+    </div>
+    <div class="detalle-fila" *ngIf="fechaSolicitudTexto">
+      <span class="detalle-label">Solicitado</span>
+      <span class="detalle-valor">{{ fechaSolicitudTexto }}</span>
+    </div>
+    <div class="detalle-fila motivo" *ngIf="data.motivoTraspaso">
+      <span class="detalle-label">Motivo</span>
+      <span class="detalle-valor">{{ data.motivoTraspaso }}</span>
+    </div>
+  </div>
+
+  <div class="carta-section">
+    <label class="section-label">Carta de traspaso firmada (opcional)</label>
+
+    <input type="file" #inputCarta hidden accept="image/*,application/pdf"
+           (change)="seleccionarArchivo($event)">
+
+    <button mat-stroked-button type="button" class="btn-adjuntar" (click)="inputCarta.click()">
+      <mat-icon>photo_camera</mat-icon>
+      {{ nombreArchivo ? 'Reemplazar carta' : 'Adjuntar foto de la carta' }}
+    </button>
+
+    <div class="archivo-badge" *ngIf="nombreArchivo">
+      <mat-icon class="archivo-icon">description</mat-icon>
+      <span class="archivo-nombre">{{ nombreArchivo }}</span>
+      <button mat-icon-button type="button" class="archivo-quitar" (click)="quitarArchivo()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <p class="carta-error" *ngIf="errorArchivo">{{ errorArchivo }}</p>
+
+    <p class="carta-hint" *ngIf="!errorArchivo">
+      <ng-container *ngIf="data.uriCartaTraspaso && !nombreArchivo">
+        Esta solicitud ya tiene una carta adjunta; si sube otra, la reemplazará.
+      </ng-container>
+      <ng-container *ngIf="!data.uriCartaTraspaso && !nombreArchivo">
+        Suba una foto o el PDF de la carta que le entregó la iglesia de origen. Puede aceptar
+        sin adjuntarla y cargarla más tarde.
+      </ng-container>
+    </p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close class="btn-cancel">Cancelar</button>
+  <button mat-raised-button class="btn-confirm" (click)="aceptar()">
+    <mat-icon>check</mat-icon>
+    Aceptar traspaso
+  </button>
+</mat-dialog-actions>

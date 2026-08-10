@@ -1,0 +1,313 @@
+:host {
+  display: block;
+  max-width: 520px;
+}
+
+/* ── Encabezado ── */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #e3e8ee);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.header-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(127, 11, 133, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-icon {
+  color: var(--primary-color, #7F0B85);
+}
+
+h2[mat-dialog-title] {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary, #1a1f36);
+}
+
+.header-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #697386);
+}
+
+/* ── Contenido ── */
+.dialog-content {
+  padding: 20px 24px 4px 24px !important;
+  max-height: 70vh;
+  overflow-x: hidden;
+}
+
+/* Miembro */
+.miembro-bloque {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 18px;
+}
+
+.miembro-foto,
+.miembro-iniciales {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.miembro-iniciales {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(127, 11, 133, 0.08);
+  color: var(--primary-color, #7F0B85);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.miembro-datos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.miembro-nombre {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary, #1a1f36);
+  overflow-wrap: anywhere;
+}
+
+.miembro-meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #697386);
+}
+
+.estado-badge {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.estado-badge.aceptado { background: rgba(46, 125, 50, 0.1); color: #2e7d32; }
+.estado-badge.rechazado { background: rgba(198, 40, 40, 0.1); color: #c62828; }
+.estado-badge.cancelado { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
+.estado-badge.pendiente { background: rgba(230, 129, 0, 0.12); color: #e08600; }
+
+/* Recorrido */
+.recorrido {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 18px;
+}
+
+.recorrido-card {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.recorrido-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #697386);
+}
+
+.recorrido-iglesia {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary, #1a1f36);
+}
+
+.recorrido-pastor {
+  font-size: 0.74rem;
+  color: var(--text-secondary, #697386);
+}
+
+.recorrido-flecha {
+  align-self: center;
+  color: var(--primary-color, #7F0B85);
+  flex-shrink: 0;
+}
+
+/* Detalle */
+.detalle-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-color, #e3e8ee);
+}
+
+.detalle-fila {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.detalle-fila.motivo {
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* En la fila del motivo el eje principal es vertical: sin esto, el ancho fijo
+   de 78px de la etiqueta se interpreta como ALTO y deja un hueco enorme. */
+.detalle-fila.motivo .detalle-label {
+  flex: 0 0 auto;
+}
+
+.detalle-label {
+  flex: 0 0 78px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary, #697386);
+}
+
+.detalle-valor {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text-primary, #1a1f36);
+  overflow-wrap: anywhere;
+}
+
+/* Carta */
+.carta-bloque {
+  padding: 18px 0 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.carta-titulo {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary-color, #7F0B85);
+}
+
+.carta-preview {
+  position: relative;
+  display: block;
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card-bg, #ffffff);
+}
+
+.carta-preview img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  background: #f5f6f8;
+}
+
+.carta-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-color, #7F0B85);
+  border-top: 1px solid var(--border-color, #e3e8ee);
+}
+
+.carta-zoom mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.carta-boton {
+  align-self: flex-start;
+  border-radius: 8px !important;
+  height: 38px !important;
+  font-size: 0.82rem !important;
+  color: var(--primary-color, #7F0B85) !important;
+  border-color: rgba(127, 11, 133, 0.35) !important;
+}
+
+.carta-vacia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed var(--border-color, #c4c6d0);
+  border-radius: 10px;
+  color: var(--text-secondary, #697386);
+  font-size: 0.82rem;
+}
+
+/* ── Acciones ── */
+.dialog-actions {
+  padding: 12px 24px 20px 24px !important;
+}
+
+.btn-cerrar {
+  border-radius: 20px;
+  padding: 0 24px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ── Modo oscuro ── */
+:host-context(.dark-theme) h2[mat-dialog-title],
+:host-context(.dark-theme) .miembro-nombre,
+:host-context(.dark-theme) .recorrido-iglesia,
+:host-context(.dark-theme) .detalle-valor {
+  color: #e3e2e6;
+}
+
+:host-context(.dark-theme) .dialog-header,
+:host-context(.dark-theme) .detalle-lista,
+:host-context(.dark-theme) .recorrido-card,
+:host-context(.dark-theme) .carta-preview,
+:host-context(.dark-theme) .carta-vacia {
+  border-color: #23232c;
+}
+
+:host-context(.dark-theme) .carta-preview img {
+  background: #1c1c24;
+}

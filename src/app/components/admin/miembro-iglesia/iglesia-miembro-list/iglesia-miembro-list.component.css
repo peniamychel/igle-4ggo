@@ -311,12 +311,23 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
+}
+
+/* El avatar nunca se deforma: sin flex-shrink 0 el nombre largo lo comprime a
+   lo ancho y el círculo sale ovalado. */
+.avatar-circle,
+.avatar-image {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
+  box-sizing: border-box;
 }
 
 .avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%);
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   display: flex;
@@ -328,9 +339,6 @@
 }
 
 .avatar-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   object-fit: cover;
   border: 1.5px solid var(--border-color);
 }
@@ -338,6 +346,7 @@
 .member-details {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .member-name {
@@ -365,6 +374,9 @@
   padding: 4px 10px;
   border-radius: 12px;
   text-transform: uppercase;
+  /* Ni se parte en dos líneas ni le roba ancho al nombre */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .status-dot {
@@ -450,44 +462,13 @@
   justify-content: center;
 }
 
-/* Motivo del Traspaso */
-.transfer-reason {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.reason-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 0.5px;
-}
-
-.reason-label mat-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-}
-
-.reason-text {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--text-primary);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+/* El motivo y el pastor de origen salieron de la tarjeta: se consultan en el
+   detalle del traspaso. Con eso la tarjeta baja de alto y entran más por fila. */
 
 /* Footer de la tarjeta */
 .card-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   border-top: 1px solid var(--border-color);
   padding-top: 10px;
@@ -508,10 +489,6 @@
   font-size: 16px;
   width: 16px;
   height: 16px;
-}
-
-.font-pastor {
-  font-weight: 600;
 }
 
 /* Acciones de la tarjeta */
@@ -1046,6 +1023,16 @@
   flex: 1;
 }
 
+/* La tarjeta y la fila abren el detalle del traspaso */
+.clickable-card,
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: rgba(127, 11, 133, 0.03);
+}
+
 .mat-column-acciones {
   flex: 1.8 !important;
   min-width: 150px !important;
@@ -1060,10 +1047,19 @@
   gap: 10px;
 }
 
-.avatar-circle-sm {
+/* Mismo criterio que en las tarjetas: el avatar no se deforma */
+.avatar-circle-sm,
+.avatar-image-sm {
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  flex: 0 0 32px;
   border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.avatar-circle-sm {
   background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%);
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   display: flex;
@@ -1075,9 +1071,6 @@
 }
 
 .avatar-image-sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--border-color, #e2e8f0);
 }
@@ -1085,6 +1078,7 @@
 .member-meta-sm {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .member-name-sm {

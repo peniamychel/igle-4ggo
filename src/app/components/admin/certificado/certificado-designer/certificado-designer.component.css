@@ -27,12 +27,52 @@
 
 .title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.title-icon {
+  color: var(--primary-color, #7F0B85);
+  flex-shrink: 0;
+}
+
+/* El nombre de la plantilla hace las veces de título: se ve como texto hasta
+   que se pasa por encima o se enfoca. */
+.titulo-input {
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--text-primary);
+  font-family: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 4px 10px;
+  width: 100%;
+  max-width: 420px;
+  min-width: 0;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.titulo-input:hover {
+  border-color: var(--border-color);
+}
+
+.titulo-input:focus {
+  border-color: var(--primary-color, #7F0B85);
+  background: var(--card-bg);
+}
+
+.titulo-input::placeholder {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.btn-ayuda {
+  border-radius: 8px !important;
 }
 
 .action-buttons {
@@ -49,12 +89,20 @@
   background-color: var(--bg-app);
 }
 
+/* Los tres campos de la barra comparten ancho; 210px evita que "Carta
+   (216 × 279 mm)" salga cortado. */
 .form-field-sm {
-  width: 180px;
+  width: 210px;
 }
 
 .form-field-xs {
-  width: 100px;
+  width: 110px;
+}
+
+/* Material da 56px de alto a los campos outline: el resto de los controles de
+   la barra se alinea a esa medida para que la fila se vea pareja. */
+.controls > * {
+  min-height: 56px;
 }
 
 .upload-group {
@@ -70,39 +118,55 @@
 .properties-panel {
   background: var(--card-bg);
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 0 14px;
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
 }
 
 .properties-panel h4 {
   margin: 0;
-  font-size: 14px;
-  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  white-space: nowrap;
   border-right: 1px solid var(--border-color);
-  padding-right: 16px;
+  padding-right: 14px;
+  align-self: stretch;
+}
+
+.properties-panel h4 mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--primary-color, #7F0B85);
 }
 
 .props-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
+/* Muestra de color: mismo tamaño y redondeo que los botones de icono, para que
+   no destaque como un cuadrado suelto. */
 .color-picker-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
-  width: 40px;
-  border-radius: 4px;
+  height: 36px;
+  width: 36px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .color-picker-wrapper input[type="color"] {
@@ -202,17 +266,46 @@
   z-index: 200;
 }
 
-.ayuda-seleccion {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Contenido del menú de ayuda (botón junto a Cancelar / Guardar) */
+::ng-deep .menu-ayuda .mat-mdc-menu-content {
+  padding: 0 !important;
+}
+
+.ayuda-contenido {
+  max-width: 340px;
+  padding: 14px 16px;
+  cursor: default;
+}
+
+.ayuda-contenido h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary-color, #7F0B85);
+}
+
+.ayuda-contenido ul {
   margin: 0;
-  font-size: 0.75rem;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ayuda-contenido li {
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--text-secondary, #697386);
 }
 
-.ayuda-seleccion mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+.ayuda-contenido strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Panel de propiedades sin nada seleccionado */
+.properties-panel.sin-seleccion {
+  opacity: 0.6;
 }

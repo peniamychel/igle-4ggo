@@ -646,6 +646,54 @@ mat-table {
   color: #03a9f4 !important;
 }
 
+/* Respuesta del destino a un traspaso solicitado por esta iglesia */
+.notification-icon-wrapper.notification-aceptado {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: #2e7d32;
+}
+
+.notification-icon-wrapper.notification-rechazado {
+  background-color: rgba(198, 40, 40, 0.1);
+  color: #c62828;
+}
+
+.miembro-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.respuesta-badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.respuesta-badge.aceptado {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: #2e7d32;
+}
+
+.respuesta-badge.rechazado {
+  background-color: rgba(198, 40, 40, 0.1);
+  color: #c62828;
+}
+
+:host-context(.dark-theme) .respuesta-badge.aceptado {
+  background-color: rgba(46, 125, 50, 0.18);
+  color: #81c784;
+}
+
+:host-context(.dark-theme) .respuesta-badge.rechazado {
+  background-color: rgba(198, 40, 40, 0.18);
+  color: #e57373;
+}
+
 :host-context(.dark-theme) .notification-icon-wrapper.notification-traspaso {
   background-color: rgba(229, 107, 247, 0.12) ;
   color: #e56bf7 ;

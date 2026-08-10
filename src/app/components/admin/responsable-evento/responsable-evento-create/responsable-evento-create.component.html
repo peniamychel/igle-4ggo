@@ -37,6 +37,28 @@
     </div>
   </form>
 
+  <!-- Responsables que el evento ya tiene guardados -->
+  <div class="asignados-section" *ngIf="responsableForm.get('eventoId')?.value">
+    <h3 class="asignados-title">
+      <mat-icon>how_to_reg</mat-icon>
+      Responsables actuales
+      <span class="asignados-count" *ngIf="!cargandoAsignados">({{ asignados.length }})</span>
+    </h3>
+
+    <p class="asignados-hint" *ngIf="cargandoAsignados">Cargando responsables del evento...</p>
+
+    <ng-container *ngIf="!cargandoAsignados">
+      <div class="asignado-item" *ngFor="let responsable of asignados">
+        <mat-icon class="asignado-icon">person</mat-icon>
+        <span class="asignado-nombre">{{ nombreAsignado(responsable) }}</span>
+      </div>
+
+      <p class="asignados-hint" *ngIf="asignados.length === 0">
+        Este evento todavía no tiene responsables asignados.
+      </p>
+    </ng-container>
+  </div>
+
   <div class="pending-section" *ngIf="pendingList.length > 0">
     <h3 class="pending-title">Responsables a asignar ({{ pendingList.length }})</h3>
     <div class="pending-item" *ngFor="let item of pendingList; let i = index">

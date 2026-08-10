@@ -1,0 +1,237 @@
+:host {
+  display: block;
+  max-width: 460px;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 24px 24px 0 24px;
+  line-height: 1.4;
+  color: var(--text-primary, #1a1f36);
+}
+
+.title-icon {
+  color: var(--primary-color, #7F0B85);
+}
+
+.dialog-content {
+  padding: 14px 24px 0 24px !important;
+}
+
+.dialog-message {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #44474e);
+  line-height: 1.55;
+  margin: 0 0 18px 0;
+}
+
+/* ── Detalle de la solicitud ── */
+.detalle-solicitud {
+  border: 1px solid var(--border-color, #e3e8ee);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  background: rgba(127, 11, 133, 0.02);
+}
+
+.detalle-fila {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.detalle-fila.motivo {
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* En la fila del motivo el eje principal es vertical: sin esto, el ancho fijo
+   de 78px de la etiqueta se interpreta como ALTO y deja un hueco enorme. */
+.detalle-fila.motivo .detalle-label {
+  flex: 0 0 auto;
+}
+
+.detalle-label {
+  flex: 0 0 78px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary, #697386);
+}
+
+.detalle-valor {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  color: var(--text-primary, #1a1f36);
+  overflow-wrap: anywhere;
+}
+
+.detalle-extra {
+  color: var(--text-secondary, #697386);
+  font-size: 0.78rem;
+}
+
+:host-context(.dark-theme) .detalle-solicitud {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #23232c;
+}
+
+:host-context(.dark-theme) .detalle-valor {
+  color: #e3e2e6;
+}
+
+/* ── Carta ── */
+.carta-section {
+  border-top: 1px solid var(--border-color, #e3e8ee);
+  padding-top: 16px;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary-color, #7F0B85);
+  margin-bottom: 10px;
+}
+
+.btn-adjuntar {
+  border: 1px dashed var(--border-color, #c4c6d0) !important;
+  border-radius: 8px !important;
+  color: var(--text-secondary, #44474e) !important;
+  background: transparent !important;
+  height: 40px !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+}
+
+.btn-adjuntar:hover {
+  border-color: var(--primary-color, #7F0B85) !important;
+  color: var(--primary-color, #7F0B85) !important;
+  background-color: rgba(127, 11, 133, 0.03) !important;
+}
+
+.archivo-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 8px;
+  background-color: rgba(127, 11, 133, 0.06);
+  max-width: 100%;
+}
+
+.archivo-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--primary-color, #7F0B85);
+}
+
+.archivo-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--text-primary, #1a1f36);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archivo-quitar {
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+}
+
+.archivo-quitar mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.carta-hint {
+  margin: 10px 0 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #697386);
+}
+
+.carta-error {
+  margin: 10px 0 0 0;
+  font-size: 0.75rem;
+  color: #ba1a1a;
+}
+
+/* ── Acciones ── */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px 24px 24px !important;
+}
+
+.btn-cancel {
+  border-radius: 20px;
+  padding: 0 24px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #44474e);
+  border-color: var(--border-color, #c4c6d0);
+}
+
+.btn-cancel:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.btn-confirm {
+  border-radius: 20px;
+  padding: 0 24px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff !important;
+  background-color: #2e7d32 !important;
+}
+
+.btn-confirm:hover {
+  background-color: #1b5e20 !important;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25) !important;
+}
+
+/* ── Modo oscuro ── */
+:host-context(.dark-theme) .dialog-title {
+  color: #e3e2e6;
+}
+
+:host-context(.dark-theme) .dialog-message,
+:host-context(.dark-theme) .carta-hint {
+  color: #90a4ae;
+}
+
+:host-context(.dark-theme) .archivo-nombre {
+  color: #e3e2e6;
+}
+
+:host-context(.dark-theme) .btn-cancel {
+  color: #e3e2e6;
+  border-color: #23232c;
+}
+
+:host-context(.dark-theme) .btn-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}

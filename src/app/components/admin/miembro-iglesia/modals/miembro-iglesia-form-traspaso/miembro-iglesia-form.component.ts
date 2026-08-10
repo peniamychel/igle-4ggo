@@ -18,6 +18,7 @@ import { Iglesia } from '../../../../../core/models/iglesia.model';
 import { Miembro } from '../../../../../core/models/miembro.model';
 import { Cargo } from '../../../../../core/models/cargo.model';
 import { forkJoin } from 'rxjs';
+import { generarCartaTraspasoPdf } from '../../../../../core/utils/carta-traspaso.util';
 
 @Component({
   selector: 'app-miembro-iglesia-form',
@@ -48,8 +49,6 @@ export class MiembroIglesiaFormTraspasoComponent implements OnInit {
   
   resolvedOriginIglesia?: Iglesia;
   selectedDestinoIglesia?: Iglesia;
-  selectedFile: File | null = null;
-  selectedFileName: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -73,14 +72,8 @@ export class MiembroIglesiaFormTraspasoComponent implements OnInit {
       miembroId: [this.data?.miembro?.id || '', Validators.required],
       iglesiaId: [req?.iglesiaDestinoId || '', Validators.required],
       motivoTraspaso: [req?.motivoTraspaso || '', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      fechaTraspaso: [req?.fechaTraspaso ? new Date(req.fechaTraspaso) : new Date(), Validators.required],
-      uriCartaTraspaso: [req?.uriCartaTraspaso || '']
+      fechaTraspaso: [req?.fechaTraspaso ? new Date(req.fechaTraspaso) : new Date(), Validators.required]
     });
-
-    if (isEdit && req?.uriCartaTraspaso) {
-      const parts = req.uriCartaTraspaso.split('/');
-      this.selectedFileName = parts[parts.length - 1];
-    }
   }
 
   ngOnInit() {
@@ -237,23 +230,40 @@ export class MiembroIglesiaFormTraspasoComponent implements OnInit {
     this.form.get('iglesiaId')?.markAsTouched();
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      this.selectedFileName = file.name;
-      this.form.patchValue({
-        uriCartaTraspaso: file.name
-      });
-      this.form.get('uriCartaTraspaso')?.markAsTouched();
-    }
+  /**
+   * La carta se puede emitir en cuanto estén el miembro, el destino y un motivo
+   * válido: es un documento para imprimir y firmar, no depende de haber enviado
+   * la solicitud.
+   */
+  get puedeGenerarCarta(): boolean {
+    const motivo = this.form.get('motivoTraspaso');
+    return !!this.resolvedOriginIglesia
+      && !!this.selectedDestinoIglesia
+      && !!this.form.get('miembroId')?.valid
+      && !!motivo?.valid;
   }
 
-  removeFile() {
-    this.selectedFile = null;
-    this.selectedFileName = '';
-    this.form.patchValue({
-      uriCartaTraspaso: ''
+  generarCarta() {
+    if (!this.puedeGenerarCarta) return;
+
+    const miembro = this.miembros.find(m => m.id === this.form.get('miembroId')?.value)
+      || this.data?.miembro;
+    if (!miembro) {
+      this.snackBar.open('No se encontraron los datos del miembro.', 'Cerrar', { duration: 4000 });
+      return;
+    }
+
+    generarCartaTraspasoPdf({
+      miembroNombre: `${miembro.nombre} ${miembro.apellido}`.trim(),
+      miembroCi: miembro.ci,
+      iglesiaOrigen: this.resolvedOriginIglesia!.nombre,
+      direccionOrigen: this.resolvedOriginIglesia!.direccion,
+      pastorOrigen: this.getPastorName(this.resolvedOriginIglesia!.id),
+      iglesiaDestino: this.selectedDestinoIglesia!.nombre,
+      direccionDestino: this.selectedDestinoIglesia!.direccion,
+      pastorDestino: this.getPastorName(this.selectedDestinoIglesia!.id),
+      motivo: this.form.get('motivoTraspaso')?.value || '',
+      fecha: this.form.get('fechaTraspaso')?.value || new Date()
     });
   }
 
@@ -282,21 +292,10 @@ export class MiembroIglesiaFormTraspasoComponent implements OnInit {
         : this.miembroIglesiaService.traspaso(payload);
 
       requestObservable.subscribe({
-        next: (response) => {
-          const requestId = response.datos?.id || req?.id;
-          if (this.selectedFile && requestId) {
-            this.miembroIglesiaService.uploadCartaTraspaso(requestId, this.selectedFile).subscribe({
-              next: () => {
-                this.dialogRef.close(true);
-              },
-              error: (err) => {
-                console.error('Error al subir la carta de traspaso', err);
-                this.dialogRef.close(true);
-              }
-            });
-          } else {
-            this.dialogRef.close(true);
-          }
+        next: () => {
+          // La carta ya no se adjunta aquí: la iglesia destino sube la foto de
+          // la carta firmada cuando recibe la solicitud.
+          this.dialogRef.close(true);
         },
         error: (err) => {
           console.error('Error al procesar el traspaso', err);

@@ -23,8 +23,26 @@ export class AuthService {
 
   private loadStoredUser(): void {
     const storedUser = localStorage.getItem(this.USER_KEY);
-    if (storedUser) {
+    if (!storedUser) {
+      return;
+    }
+    try {
       this.currentUserSubject.next(JSON.parse(storedUser));
+    } catch (err) {
+      // Si `user_data` quedó con JSON inválido no se puede restaurar el usuario
+      // guardado, pero eso NO debe impedir que la aplicación arranque: este
+      // método corre en el constructor de un servicio `providedIn: 'root'` que
+      // inyectan el interceptor, los guards y muchos componentes, así que una
+      // excepción acá dejaba la app entera en blanco y sin salida para el
+      // usuario (sólo se recuperaba borrando los datos del sitio a mano).
+      //
+      // Se descarta la clave corrupta para que el fallo no se repita en cada
+      // recarga. El token NO se toca a propósito: la sesión sigue siendo
+      // válida, porque `isAuthenticated()` depende del token y no de
+      // `user_data`. Quedar con `currentUser` en null es un estado ya normal
+      // (es el valor inicial del BehaviorSubject, antes de iniciar sesión).
+      console.error('user_data inválido en localStorage; se descarta', err);
+      localStorage.removeItem(this.USER_KEY);
     }
   }
 

@@ -98,7 +98,13 @@ export const ELEMENTOS_CERTIFICADO: ElementoCertificadoDef[] = [
 export const ELEMENTOS_OBSOLETOS: string[] = [
   'nombre_evento',
   // La fecha completa se sustituyó por el desglose part_dia / part_mes / part_anio
-  'fecha'
+  'fecha',
+  // Se retiró la carga de imágenes en la plantilla (logo, firma y marca de agua):
+  // el fondo del certificado es el papel preimpreso, el sistema solo escribe los
+  // datos encima.
+  'logo',
+  'firma',
+  'marcaAgua'
 ];
 
 const MESES_ES = [
@@ -191,9 +197,9 @@ export function valorElementoCertificado(id: string, participacion: any): string
 }
 
 /**
- * Normaliza los elementos guardados en una plantilla: descarta los obsoletos,
- * deduce el `type` de las plantillas antiguas que no lo guardaban, aplica los
- * anchos por defecto de las imágenes y da de alta los elementos de texto que
+ * Normaliza los elementos guardados en una plantilla: descarta los obsoletos
+ * (incluidas las imágenes, que ya no forman parte del diseño), deduce el `type`
+ * de las plantillas antiguas que no lo guardaban y da de alta los elementos que
  * aún no existían cuando se guardó la plantilla.
  */
 export function normalizarElementos(guardados: any[]): any[] {
@@ -201,16 +207,9 @@ export function normalizarElementos(guardados: any[]): any[] {
     .filter(el => !ELEMENTOS_OBSOLETOS.includes(el.id))
     .map(el => {
       if (!el.type) {
-        if (el.id === 'qr') el.type = 'qr';
-        else if (el.id === 'logo') el.type = 'logo';
-        else if (el.id === 'firma') el.type = 'firma';
-        else if (el.id === 'marcaAgua') el.type = 'marcaAgua';
-        else el.type = 'text';
+        el.type = el.id === 'qr' ? 'qr' : 'text';
       }
       if (el.type === 'qr' && !el.width) el.width = 100;
-      if (el.type === 'logo' && !el.width) el.width = 100;
-      if (el.type === 'firma' && !el.width) el.width = 150;
-      if (el.type === 'marcaAgua' && !el.width) el.width = 400;
 
       // La etiqueta es solo el texto guía del diseñador: se toma siempre del
       // catálogo para que un cambio de nombre alcance a las plantillas viejas.

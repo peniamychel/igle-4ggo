@@ -173,7 +173,7 @@
          [style.top.px]="el.y"
          [style.fontSize.px]="el.fontSize"
          [style.color]="el.color"
-         [style.zIndex]="el.type === 'marcaAgua' ? 0 : 10">
+         [style.zIndex]="10">
          
          <span *ngIf="el.type === 'text'">{{ el.value }}</span>
          
@@ -181,9 +181,6 @@
              <qrcode [qrdata]="printingQrData" [width]="el.width || 80" [errorCorrectionLevel]="'M'"></qrcode>
          </div>
 
-         <img *ngIf="el.type === 'logo' && logoUrl" [src]="logoUrl" [style.width.px]="el.width" />
-         <img *ngIf="el.type === 'firma' && firmaUrl" [src]="firmaUrl" [style.width.px]="el.width" />
-         <img *ngIf="el.type === 'marcaAgua' && marcaAguaUrl" [src]="marcaAguaUrl" [style.width.px]="el.width" />
     </div>
   </div>
 </div>

@@ -29,7 +29,7 @@ import { jsPDF } from 'jspdf';
 
 export interface DragElement {
   id: string;
-  type?: 'text' | 'qr' | 'logo' | 'firma' | 'marcaAgua';
+  type?: 'text' | 'qr';
   label: string;
   x: number;
   y: number;
@@ -78,9 +78,6 @@ export class CertificadoPrintDialogComponent implements OnInit {
   get altoCanvas(): number {
     return dimensionesCanvas(this.formatoHoja, this.orientacion).alto;
   }
-  logoUrl?: string;
-  marcaAguaUrl?: string;
-  firmaUrl?: string;
 
   // Variables reactivas para el renderizado por participante en el bucle
   currentPrintingPart: ParticipacionEvento | null = null;
@@ -181,10 +178,6 @@ export class CertificadoPrintDialogComponent implements OnInit {
               console.error('Error al parsear orientación:', e);
             }
           }
-          const baseUrl = `${environment.apiUrl}/uploads/plantillas/`;
-          if (this.plantilla?.uriLogo) this.logoUrl = baseUrl + this.plantilla.uriLogo;
-          if (this.plantilla?.uriMarcaAgua) this.marcaAguaUrl = baseUrl + this.plantilla.uriMarcaAgua;
-          if (this.plantilla?.uriFirma) this.firmaUrl = baseUrl + this.plantilla.uriFirma;
         },
         error: (err) => {
           console.error('Error al cargar plantilla:', err);

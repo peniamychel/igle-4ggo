@@ -24,7 +24,7 @@ import {
 
 export interface DragElement {
   id: string;
-  type?: 'text' | 'qr' | 'logo' | 'firma' | 'marcaAgua';
+  type?: 'text' | 'qr';
   label: string;
   x: number;
   y: number;
@@ -54,10 +54,6 @@ export class CertificadoRenderComponent implements OnInit {
   elements: DragElement[] = [];
   orientacion: OrientacionHoja = 'horizontal';
   formatoHoja: FormatoHoja = 'a4';
-
-  logoUrl?: string;
-  marcaAguaUrl?: string;
-  firmaUrl?: string;
 
   qrData: string = '';
   loading = true;
@@ -142,10 +138,6 @@ export class CertificadoRenderComponent implements OnInit {
         console.error("Error parsing config JSON", e);
       }
     }
-    const baseUrl = `${environment.apiUrl}/uploads/plantillas/`;
-    if (this.plantilla.uriLogo) this.logoUrl = baseUrl + this.plantilla.uriLogo;
-    if (this.plantilla.uriMarcaAgua) this.marcaAguaUrl = baseUrl + this.plantilla.uriMarcaAgua;
-    if (this.plantilla.uriFirma) this.firmaUrl = baseUrl + this.plantilla.uriFirma;
   }
 
   /** Calcula cuánto hay que encoger el lienzo para que entre en el diálogo. */

@@ -9,10 +9,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { PlantillaCertificado } from '../../../../core/models/plantilla-certificado.model';
 import { PlantillaCertificadoService } from '../../../../core/services/plantilla-certificado.service';
 import { FormsModule } from '@angular/forms';
-import { NgxImageCompressService } from 'ngx-image-compress';
 import { environment } from '../../../../../environments/environment';
 import {
   ELEMENTOS_CERTIFICADO, normalizarElementos, dimensionesCanvas,
@@ -22,7 +22,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 
 export interface DragElement {
   id: string;
-  type?: 'text' | 'qr' | 'logo' | 'firma' | 'marcaAgua';
+  type?: 'text' | 'qr';
   label: string;
   x: number;
   y: number;
@@ -38,7 +38,7 @@ export interface DragElement {
   imports: [
     CommonModule, MatDialogModule, DragDropModule, MatButtonModule, MatIconModule, FormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatDividerModule, MatTooltipModule,
-    QRCodeModule
+    MatMenuModule, QRCodeModule
   ],
   templateUrl: './certificado-designer.component.html',
   styleUrls: ['./certificado-designer.component.css']
@@ -46,7 +46,6 @@ export interface DragElement {
 export class CertificadoDesignerComponent implements OnInit {
 
   private plantillaService = inject(PlantillaCertificadoService);
-  private imageCompress = inject(NgxImageCompressService);
 
   plantilla: PlantillaCertificado;
   
@@ -56,6 +55,18 @@ export class CertificadoDesignerComponent implements OnInit {
 
   /** Elemento que gobierna el panel de propiedades (el último tocado). */
   selectedElement: DragElement | null = null;
+
+  /**
+   * Marcador para el panel de propiedades cuando no hay nada seleccionado: así
+   * los controles siguen visibles (deshabilitados) y la barra no cambia de alto.
+   */
+  private readonly elementoPlaceholder: DragElement = {
+    id: '', type: 'text', label: '', x: 0, y: 0, fontSize: 16, color: '#000000'
+  };
+
+  get elementoPanel(): DragElement {
+    return this.selectedElement ?? this.elementoPlaceholder;
+  }
 
   /** Selección múltiple: con Ctrl/Shift + clic o con marquesina del mouse. */
   selectedElements: DragElement[] = [];
@@ -90,16 +101,9 @@ export class CertificadoDesignerComponent implements OnInit {
     return dimensionesCanvas(this.formatoHoja, this.orientacion).alto;
   }
 
-  // Files to upload
-  imageUploadType: 'logo' | 'marcaAgua' | 'firma' = 'marcaAgua';
-  logoFile?: File;
-  marcaAguaFile?: File;
-  firmaFile?: File;
-
-  // Local previews
-  logoPreview?: string;
-  marcaAguaPreview?: string;
-  firmaPreview?: string;
+  // La plantilla ya no admite imágenes (logo, firma ni marca de agua): el
+  // certificado se imprime sobre papel preimpreso y el sistema solo coloca los
+  // datos encima.
 
   constructor(
     public dialogRef: MatDialogRef<CertificadoDesignerComponent>,
@@ -132,25 +136,6 @@ export class CertificadoDesignerComponent implements OnInit {
       } catch (e) {
         console.error("Error parsing config JSON", e);
       }
-    }
-    const baseUrl = `${environment.apiUrl}/uploads/plantillas/`;
-    if (this.plantilla.uriLogo) {
-      this.logoPreview = baseUrl + this.plantilla.uriLogo;
-      this.ensureElementExists('logo', 'logo', 50, 50, 100);
-    }
-    if (this.plantilla.uriMarcaAgua) {
-      this.marcaAguaPreview = baseUrl + this.plantilla.uriMarcaAgua;
-      this.ensureElementExists('marcaAgua', 'marcaAgua', 0, 0, 800);
-    }
-    if (this.plantilla.uriFirma) {
-      this.firmaPreview = baseUrl + this.plantilla.uriFirma;
-      this.ensureElementExists('firma', 'firma', 400, 300, 150);
-    }
-  }
-
-  ensureElementExists(id: string, type: 'logo' | 'firma' | 'marcaAgua', defaultX: number, defaultY: number, defaultWidth: number) {
-    if (!this.elements.find(e => e.id === id)) {
-      this.elements.push({ id, type, label: '', x: defaultX, y: defaultY, width: defaultWidth });
     }
   }
 
@@ -369,60 +354,6 @@ export class CertificadoDesignerComponent implements OnInit {
     });
   }
 
-  async onFileSelected(event: any, type: 'logo' | 'marcaAgua' | 'firma') {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (e: any) => {
-        // Compress image before storing
-        const compressedImage = await this.imageCompress.compressFile(e.target.result, -1, 50, 50);
-        // convert base64 back to file
-        const res = await fetch(compressedImage);
-        const blob = await res.blob();
-        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-        
-        if (type === 'logo') {
-          this.logoFile = compressedFile;
-          this.logoPreview = compressedImage;
-          this.ensureElementExists('logo', 'logo', 50, 50, 100);
-        } else if (type === 'marcaAgua') {
-          this.marcaAguaFile = compressedFile;
-          this.marcaAguaPreview = compressedImage;
-          this.ensureElementExists('marcaAgua', 'marcaAgua', 0, 0, 800);
-        } else {
-          this.firmaFile = compressedFile;
-          this.firmaPreview = compressedImage;
-          this.ensureElementExists('firma', 'firma', 400, 300, 150);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  removeImage(type: string) {
-    // Remove from elements array
-    this.elements = this.elements.filter(e => e.type !== type);
-    
-    // Clear preview and file
-    if (type === 'logo') {
-      this.logoPreview = undefined;
-      this.logoFile = undefined;
-      this.plantilla.uriLogo = ''; // So the backend deletes it
-    } else if (type === 'marcaAgua') {
-      this.marcaAguaPreview = undefined;
-      this.marcaAguaFile = undefined;
-      this.plantilla.uriMarcaAgua = '';
-    } else if (type === 'firma') {
-      this.firmaPreview = undefined;
-      this.firmaFile = undefined;
-      this.plantilla.uriFirma = '';
-    }
-    
-    if (this.selectedElement?.type === type) {
-      this.selectedElement = null;
-    }
-  }
-
   save() {
     const config = {
       orientacion: this.orientacion,
@@ -431,30 +362,13 @@ export class CertificadoDesignerComponent implements OnInit {
     };
     this.plantilla.configuracionJson = JSON.stringify(config);
 
-    const request$ = this.plantilla.id 
+    const request$ = this.plantilla.id
       ? this.plantillaService.update(this.plantilla.id, this.plantilla)
       : this.plantillaService.create(this.plantilla);
 
     request$.subscribe(res => {
-      const savedId = res.datos.id!;
-      
-      // Handle uploads sequentially if there are files
-      this.uploadFiles(savedId).then(() => {
-        this.dialogRef.close(savedId);
-      });
+      this.dialogRef.close(res.datos.id!);
     });
-  }
-
-  async uploadFiles(id: number) {
-    if (this.logoFile) {
-      await this.plantillaService.uploadLogo(id, this.logoFile).toPromise();
-    }
-    if (this.marcaAguaFile) {
-      await this.plantillaService.uploadMarcaAgua(id, this.marcaAguaFile).toPromise();
-    }
-    if (this.firmaFile) {
-      await this.plantillaService.uploadFirma(id, this.firmaFile).toPromise();
-    }
   }
 
 }

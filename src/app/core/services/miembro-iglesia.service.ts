@@ -68,6 +68,17 @@ export class MiembroIglesiaService {
     return this.http.get<MiembroIglesiaResponse>(`${this.apiUrl}/traspaso/pendientes/${iglesiaId}`);
   }
 
+  /** Traspasos que esta iglesia solicitó y el destino ya aceptó o rechazó, aún sin ver. */
+  getRespuestasSinVer(iglesiaId: number): Observable<MiembroIglesiaResponse> {
+    return this.http.get<MiembroIglesiaResponse>(`${this.apiUrl}/traspaso/respuestas/${iglesiaId}`);
+  }
+
+  marcarRespuestaVista(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/traspaso/${id}/respuesta-vista`, {}).pipe(
+      tap(() => this.notifySolicitudesChanged())
+    );
+  }
+
   getHistorialMiembro(miembroId: number): Observable<MiembroIglesiaResponse> {
     return this.http.get<MiembroIglesiaResponse>(`${this.apiUrl}/historial/${miembroId}`);
   }
@@ -75,7 +86,9 @@ export class MiembroIglesiaService {
   uploadCartaTraspaso(id: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${id}/carta-traspaso`, formData);
+    return this.http.post(`${this.apiUrl}/${id}/carta-traspaso`, formData).pipe(
+      tap(() => this.notifySolicitudesChanged())
+    );
   }
 
   datosGrafico(cant: number): Observable<any> {

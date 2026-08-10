@@ -54,6 +54,35 @@
         </div>
       </ng-container>
 
+      <!-- Caso 1b: Respuesta a un traspaso que solicitó esta iglesia -->
+      <ng-container *ngIf="row.tipo === 'RESPUESTA_TRASPASO'">
+        <div class="notification-icon-wrapper"
+             [ngClass]="row.resultado === 'ACEPTADO' ? 'notification-aceptado' : 'notification-rechazado'">
+          <mat-icon>{{ row.resultado === 'ACEPTADO' ? 'check_circle' : 'cancel' }}</mat-icon>
+        </div>
+        <div class="notification-text-content">
+          <p class="notification-message">
+            <strong>{{row.iglesiaDestinoNombre}}</strong>
+            {{ row.resultado === 'ACEPTADO' ? 'aceptó' : 'rechazó' }} el traspaso de
+            <strong>{{row.miembroNombre}}</strong>
+          </p>
+          <span class="notification-meta-info">
+            {{ row.resultado === 'ACEPTADO'
+                ? 'El miembro ya pertenece a la iglesia destino.'
+                : 'El miembro continúa en su iglesia.' }}
+          </span>
+          <div class="notification-actions" style="margin-top: 10px;">
+            <button mat-stroked-button
+                    style="height: 32px; line-height: 32px; padding: 0 12px; font-size: 13px;"
+                    (click)="marcarVista(row); $event.stopPropagation();"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">done_all</mat-icon>
+              Entendido
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
       <!-- Caso 2: Invitación a Evento -->
       <ng-container *ngIf="row.tipo === 'EVENTO_INVITACION'">
         <div class="notification-icon-wrapper notification-evento">
@@ -85,7 +114,15 @@
       <!-- Miembro Column -->
       <ng-container matColumnDef="miembro">
         <mat-header-cell *matHeaderCellDef>Miembro</mat-header-cell>
-        <mat-cell *matCellDef="let row">{{row.miembroNombre}}</mat-cell>
+        <mat-cell *matCellDef="let row">
+          <div class="miembro-cell-content">
+            <span>{{row.miembroNombre}}</span>
+            <span class="respuesta-badge" *ngIf="row.tipo === 'RESPUESTA_TRASPASO'"
+                  [ngClass]="row.resultado === 'ACEPTADO' ? 'aceptado' : 'rechazado'">
+              {{ row.resultado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado' }} por {{row.iglesiaDestinoNombre}}
+            </span>
+          </div>
+        </mat-cell>
       </ng-container>
 
       <!-- Origen Column -->
@@ -121,8 +158,14 @@
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef class="actions-header">Acciones</mat-header-cell>
         <mat-cell *matCellDef="let row" class="actions-cell">
-          <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
-          <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+          <!-- Recibe el traspaso o es Admin: Adjuntar carta / Aceptar / Rechazar -->
+          <ng-container *ngIf="row.tipo === 'TRASPASO' && (!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId)">
+            <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                    (click)="adjuntarCarta(row); $event.stopPropagation()"
+                    matTooltip="Adjuntar carta firmada"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>attach_file</mat-icon>
+            </button>
             <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
                     (click)="aceptar(row); $event.stopPropagation()"
                     matTooltip="Aceptar Traspaso"
@@ -138,7 +181,7 @@
           </ng-container>
 
           <!-- Solicitó el traspaso: Modificar / Cancelar -->
-          <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+          <ng-container *ngIf="row.tipo === 'TRASPASO' && currentIglesiaId === row.iglesiaOrigenId">
             <button mat-icon-button class="mac-mini-btn mac-btn-edit"
                     (click)="modificar(row); $event.stopPropagation()"
                     matTooltip="Modificar Solicitud"
@@ -150,6 +193,16 @@
                     matTooltip="Cancelar Solicitud"
                     *appHasPrivilegio="'Escribir MiembroIglesia'">
               <mat-icon>block</mat-icon>
+            </button>
+          </ng-container>
+
+          <!-- Respuesta del destino: solo queda darse por enterado -->
+          <ng-container *ngIf="row.tipo === 'RESPUESTA_TRASPASO'">
+            <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
+                    (click)="marcarVista(row); $event.stopPropagation()"
+                    matTooltip="Marcar como visto"
+                    *appHasPrivilegio="'Escribir MiembroIglesia'">
+              <mat-icon>done_all</mat-icon>
             </button>
           </ng-container>
         </mat-cell>
@@ -167,6 +220,10 @@
         <div class="card-header">
           <span class="member-name">{{row.miembroNombre}}</span>
           <span class="member-ci">CI: {{row.miembroCI}}</span>
+          <span class="respuesta-badge" *ngIf="row.tipo === 'RESPUESTA_TRASPASO'"
+                [ngClass]="row.resultado === 'ACEPTADO' ? 'aceptado' : 'rechazado'">
+            {{ row.resultado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado' }}
+          </span>
         </div>
         <div class="card-body">
           <div class="info-row">
@@ -194,8 +251,14 @@
         </div>
         <div class="card-actions" (click)="$event.stopPropagation()">
           <div class="mac-actions-right">
-            <!-- Recibe el traspaso o es Admin: Aceptar / Rechazar -->
-            <ng-container *ngIf="!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId">
+            <!-- Recibe el traspaso o es Admin: Adjuntar carta / Aceptar / Rechazar -->
+            <ng-container *ngIf="row.tipo === 'TRASPASO' && (!currentIglesiaId || currentIglesiaId === row.iglesiaDestinoId)">
+              <button mat-icon-button class="mac-mini-btn mac-btn-edit"
+                      (click)="adjuntarCarta(row)"
+                      matTooltip="Adjuntar carta firmada"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>attach_file</mat-icon>
+              </button>
               <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
                       (click)="aceptar(row)"
                       matTooltip="Aceptar"
@@ -210,8 +273,18 @@
               </button>
             </ng-container>
 
+            <!-- Respuesta del destino: darse por enterado -->
+            <ng-container *ngIf="row.tipo === 'RESPUESTA_TRASPASO'">
+              <button mat-icon-button class="mac-mini-btn mac-btn-reactivate"
+                      (click)="marcarVista(row)"
+                      matTooltip="Marcar como visto"
+                      *appHasPrivilegio="'Escribir MiembroIglesia'">
+                <mat-icon>done_all</mat-icon>
+              </button>
+            </ng-container>
+
             <!-- Solicitó el traspaso: Modificar / Cancelar -->
-            <ng-container *ngIf="currentIglesiaId === row.iglesiaOrigenId">
+            <ng-container *ngIf="row.tipo === 'TRASPASO' && currentIglesiaId === row.iglesiaOrigenId">
               <button mat-icon-button class="mac-mini-btn mac-btn-edit"
                       (click)="modificar(row)"
                       matTooltip="Modificar"

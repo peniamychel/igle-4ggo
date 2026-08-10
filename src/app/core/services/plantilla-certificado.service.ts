@@ -37,21 +37,6 @@ export class PlantillaCertificadoService {
     return this.http.put<ApiResponse<PlantillaCertificado>>(`${this.apiUrl}/estado/${id}`, {});
   }
 
-  uploadLogo(id: number, file: File): Observable<ApiResponse<string>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/${id}/logo`, formData);
-  }
-
-  uploadMarcaAgua(id: number, file: File): Observable<ApiResponse<string>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/${id}/marca-agua`, formData);
-  }
-
-  uploadFirma(id: number, file: File): Observable<ApiResponse<string>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/${id}/firma`, formData);
-  }
+  // La plantilla ya no admite imágenes: se retiraron uploadLogo, uploadMarcaAgua
+  // y uploadFirma junto con sus endpoints en el backend.
 }

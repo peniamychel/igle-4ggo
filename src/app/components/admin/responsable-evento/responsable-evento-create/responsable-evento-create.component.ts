@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResponsableEventoService } from '../../../../core/services/responsable-evento.service';
 import { Evento } from '../../../../core/models/evento.model';
 import { Cargo } from '../../../../core/models/cargo.model';
+import { ResponsableEvento } from '../../../../core/models/responsable-evento.model';
 import { forkJoin } from 'rxjs';
 
 interface PendingResponsable {
@@ -48,6 +49,10 @@ export class ResponsableEventoCreateComponent implements OnInit {
   pendingList: PendingResponsable[] = [];
   saving = false;
 
+  /** Responsables que el evento seleccionado ya tiene guardados. */
+  asignados: ResponsableEvento[] = [];
+  cargandoAsignados = false;
+
   constructor(
     private fb: FormBuilder,
     private responsableService: ResponsableEventoService,
@@ -66,11 +71,60 @@ export class ResponsableEventoCreateComponent implements OnInit {
       this.cargos = this.data.cargos.filter(c => c.estado);
       this.applyFilter();
     }
+
+    // Al elegir un evento se traen los responsables que ya tiene: se muestran y
+    // se descuentan de la lista para no volver a asignarlos.
+    this.responsableForm.get('eventoId')?.valueChanges.subscribe(eventoId => {
+      this.responsableForm.patchValue({ cargoId: '' }, { emitEvent: false });
+      this.cargarAsignados(eventoId);
+    });
   }
 
+  private cargarAsignados(eventoId: number) {
+    this.asignados = [];
+    if (!eventoId) {
+      this.applyFilter();
+      return;
+    }
+
+    this.cargandoAsignados = true;
+    this.responsableService.getResponsablesPorEvento(eventoId).subscribe({
+      next: (res) => {
+        this.asignados = res.datos || [];
+        this.cargandoAsignados = false;
+        this.applyFilter();
+      },
+      error: () => {
+        this.cargandoAsignados = false;
+        this.applyFilter();
+      }
+    });
+  }
+
+  /** Nombre a mostrar de un responsable ya guardado. */
+  nombreAsignado(responsable: ResponsableEvento): string {
+    if (responsable.nombreCompleto) {
+      return responsable.nombreCargo
+        ? `${responsable.nombreCompleto} (${responsable.nombreCargo})`
+        : responsable.nombreCompleto;
+    }
+    if (responsable.cargoDto) return this.getCargoNombreCompleto(responsable.cargoDto);
+    const cargo = this.cargos.find(c => c.id === responsable.cargoId);
+    return cargo ? this.getCargoNombreCompleto(cargo) : 'Responsable';
+  }
+
+  /**
+   * Cargos elegibles: se quitan los que el evento ya tiene guardados y los que
+   * están en la lista pendiente PARA ESE MISMO evento (para otro evento siguen
+   * disponibles).
+   */
   private get availableCargos(): Cargo[] {
-    const selectedIds = new Set(this.pendingList.map(p => p.cargoId));
-    return this.cargos.filter(c => !selectedIds.has(c.id!));
+    const eventoId = this.responsableForm.get('eventoId')?.value;
+    const ocupados = new Set<number>([
+      ...this.asignados.map(a => a.cargoId),
+      ...this.pendingList.filter(p => p.eventoId === eventoId).map(p => p.cargoId)
+    ]);
+    return this.cargos.filter(c => !ocupados.has(c.id!));
   }
 
   applyFilter(searchTerm?: string) {

@@ -27,7 +27,6 @@ import { Miembro } from '../../../../core/models/miembro.model';
 import { Iglesia } from '../../../../core/models/iglesia.model';
 import { ResponsableEventoCreateComponent } from '../responsable-evento-create/responsable-evento-create.component';
 import { ResponsableEventoDetailComponent } from '../responsable-evento-detail/responsable-evento-detail.component';
-import { ResponsableEventoEditComponent } from '../responsable-evento-edit/responsable-evento-edit.component';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
@@ -179,25 +178,9 @@ export class ResponsableEventoListComponent implements OnInit {
     });
   }
 
-  openEditDialog(responsable: ResponsableEvento) {
-    const dialogRef = this.dialog.open(ResponsableEventoEditComponent, {
-      width: '600px',
-      maxWidth: '95vw',
-      panelClass: 'dialog-fullscreen-mobile',
-      data: {
-        responsable,
-        eventos: this.eventos,
-        cargos: this.cargos
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadResponsables();
-        this.messageSnackBar('Responsable modificado exitosamente');
-      }
-    });
-  }
+  // La edición se retiró: una asignación solo relaciona un evento con un
+  // responsable, así que cambiarle cualquiera de los dos es en realidad otra
+  // asignación. Se elimina la existente y se crea la nueva.
 
   openDetailDialog(responsable: ResponsableEvento) {
     this.dialog.open(ResponsableEventoDetailComponent, {

@@ -66,6 +66,67 @@ mat-dialog-actions button[mat-raised-button][color="primary"] {
   height: 48px;
 }
 
+/* Responsables ya guardados del evento seleccionado */
+.asignados-section {
+  margin-top: 8px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.asignados-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 8px 0;
+}
+
+.asignados-title mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--accent-color, #0B857F);
+}
+
+.asignados-count {
+  font-weight: 700;
+}
+
+.asignado-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  background: rgba(11, 133, 127, 0.06);
+  min-width: 0;
+}
+
+.asignado-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color, #0B857F);
+  flex-shrink: 0;
+}
+
+.asignado-nombre {
+  font-size: 13px;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.asignados-hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 .pending-section {
   margin-top: 8px;
   border-top: 1px solid var(--border-color);

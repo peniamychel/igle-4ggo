@@ -65,12 +65,15 @@ h2[mat-dialog-title] {
   flex-direction: column;
   gap: 24px;
   overflow-y: auto;
+  /* Nada debe desbordar a lo ancho: el modal solo se desplaza en vertical */
+  overflow-x: hidden;
 }
 
 .form-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .section-label {
@@ -91,11 +94,15 @@ h2[mat-dialog-title] {
   align-items: stretch;
   gap: 16px;
   width: 100%;
+  min-width: 0;
   margin-top: 4px;
 }
 
 .flow-card {
-  flex: 1;
+  /* min-width 0: sin esto, un nombre largo de iglesia ensancha la tarjeta y
+     obliga al modal a desplazarse en horizontal. */
+  flex: 1 1 0;
+  min-width: 0;
   border-radius: 14px;
   padding: 16px;
   display: flex;
@@ -167,6 +174,9 @@ h2[mat-dialog-title] {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  /* Un nombre o dirección muy largo se parte en vez de estirar la tarjeta */
+  overflow-wrap: anywhere;
 }
 
 .flow-card-body.empty-body {
@@ -229,7 +239,9 @@ h2[mat-dialog-title] {
 /* Grid de Selección de Iglesias */
 .iglesias-selection-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, 1fr) en vez de 1fr: una celda 1fr nunca baja de su contenido
+     mínimo, así que una dirección larga desbordaba la rejilla. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
   margin-top: 4px;
 }
@@ -238,6 +250,7 @@ h2[mat-dialog-title] {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   padding: 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -282,6 +295,7 @@ h2[mat-dialog-title] {
 .iglesia-details {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -340,10 +354,23 @@ h2[mat-dialog-title] {
   transition: all 0.2s ease !important;
 }
 
-.file-select-btn:hover {
+.file-select-btn:hover:not([disabled]) {
   border-color: var(--primary-color, #7F0B85) !important;
   color: var(--primary-color, #7F0B85) !important;
   background-color: rgba(127, 11, 133, 0.03) !important;
+}
+
+.file-select-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Explicación bajo el botón de la carta */
+.carta-hint {
+  margin: 10px 0 0 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #697386);
 }
 
 .file-name-badge {

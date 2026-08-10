@@ -22,11 +22,16 @@ import { MatMenuModule } from '@angular/material/menu';
 import { HasPrivilegioDirective } from '../../../../core/directives/has-privilegio.directive';
 import { LoadingSpinnerComponent } from '../../../../shared/loading-spinner/loading-spinner.component';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import {
+  AceptarTraspasoDialogComponent,
+  AceptarTraspasoResultado
+} from '../modals/aceptar-traspaso-dialog/aceptar-traspaso-dialog.component';
 
 interface SolicitudExtendida {
   id: number;
-  tipo: 'TRASPASO' | 'EVENTO_INVITACION';
+  tipo: 'TRASPASO' | 'EVENTO_INVITACION' | 'RESPUESTA_TRASPASO';
   titulo: string;
   mensaje: string;
   fecha: Date | undefined;
@@ -42,6 +47,8 @@ interface SolicitudExtendida {
   fechaTraspaso?: Date;
   motivoTraspaso?: string;
   uriCartaTraspaso?: string;
+  /** Solo en RESPUESTA_TRASPASO: qué resolvió la iglesia destino. */
+  resultado?: 'ACEPTADO' | 'RECHAZADO';
   original?: any;
   miembroObj?: any;
   iglesiaOrigenObj?: any;
@@ -112,10 +119,24 @@ export class SolicitudListComponent implements OnInit {
   }
 
   onRowClick(row: SolicitudExtendida) {
+    // Una respuesta de traspaso es solo un aviso: al abrirla queda vista y deja
+    // de figurar en las notificaciones, en vez de quedarse fija para siempre.
+    // No se recarga la lista porque el popover se cierra; el contador del
+    // sidenav se entera por solicitudesChanged$.
+    if (row.tipo === 'RESPUESTA_TRASPASO') {
+      this.miembroIglesiaService.marcarRespuestaVista(row.id).subscribe({
+        error: (err) => console.error('Error al marcar la respuesta como vista', err)
+      });
+      if (this.dialogRef) {
+        this.dialogRef.close();
+      }
+      return;
+    }
+
     if (this.dialogRef) {
       this.dialogRef.close();
     }
-    
+
     if (row.tipo === 'EVENTO_INVITACION') {
       // Abrir modal de participantes del evento
       this.dialog.open(EventoParticipantesComponent, {
@@ -137,6 +158,7 @@ export class SolicitudListComponent implements OnInit {
     // Ejecutar consultas de traspasos, eventos, miembros e iglesias en paralelo, junto con decisiones de eventos
     forkJoin({
       traspasos: this.miembroIglesiaService.getSolicitudesPendientes(iglesiaId),
+      respuestas: this.miembroIglesiaService.getRespuestasSinVer(iglesiaId),
       eventos: this.eventoService.getEventos(),
       miembros: this.miembroService.getMiembros(),
       iglesias: this.iglesiaService.getIglesias(),
@@ -144,6 +166,7 @@ export class SolicitudListComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         const pendientes = res.traspasos.datos || [];
+        const respuestas = res.respuestas.datos || [];
         const todosEventos = res.eventos.datos || [];
         const listaMiembros = res.miembros.datos || [];
         const listaIglesias = res.iglesias.datos || [];
@@ -180,6 +203,39 @@ export class SolicitudListComponent implements OnInit {
           };
         });
 
+        // 1b. Respuestas de vuelta: traspasos que ESTA iglesia solicitó y el
+        // destino ya resolvió. Se muestran hasta que alguien las marque vistas.
+        const respuestasExtendidas: SolicitudExtendida[] = respuestas.map(p => {
+          const miembro = listaMiembros.find(m => m.id === p.miembroId);
+          const iglesiaOrigen = listaIglesias.find(i => i.id === p.iglesiaId);
+          const iglesiaDestino = listaIglesias.find(i => i.id === p.iglesiaDestinoId);
+          const aceptado = p.estadoTraspaso === 'ACEPTADO';
+          const nombreMiembro = miembro ? `${miembro.nombre} ${miembro.apellido}` : 'Desconocido';
+          const nombreDestino = iglesiaDestino ? iglesiaDestino.nombre : 'la iglesia destino';
+
+          return {
+            id: p.id!,
+            tipo: 'RESPUESTA_TRASPASO' as const,
+            titulo: nombreMiembro,
+            mensaje: `${nombreDestino} ${aceptado ? 'aceptó' : 'rechazó'} el traspaso`,
+            fecha: p.updatedAt ? new Date(p.updatedAt) : (p.fechaTraspaso ? new Date(p.fechaTraspaso) : undefined),
+            miembroId: p.miembroId,
+            miembroNombre: nombreMiembro,
+            miembroCI: miembro ? String(miembro.ci || 'Sin CI') : 'Sin CI',
+            iglesiaOrigenId: p.iglesiaId,
+            iglesiaOrigenNombre: iglesiaOrigen ? iglesiaOrigen.nombre : 'Desconocida',
+            iglesiaDestinoId: p.iglesiaDestinoId!,
+            iglesiaDestinoNombre: nombreDestino,
+            fechaTraspaso: p.fechaTraspaso,
+            motivoTraspaso: p.motivoTraspaso,
+            uriCartaTraspaso: p.uriCartaTraspaso,
+            resultado: aceptado ? 'ACEPTADO' as const : 'RECHAZADO' as const,
+            original: p,
+            miembroObj: miembro,
+            iglesiaOrigenObj: iglesiaOrigen
+          };
+        });
+
         // 2. Mapear Invitaciones a Eventos para la Iglesia Activa (filtrando las ya aceptadas o archivadas)
         const eventosInvitados: SolicitudExtendida[] = [];
         
@@ -207,7 +263,7 @@ export class SolicitudListComponent implements OnInit {
         }
 
         // 3. Combinar y Ordenar por fecha descendente
-        const combinadas = [...traspasosExtendidos, ...eventosInvitados];
+        const combinadas = [...traspasosExtendidos, ...respuestasExtendidas, ...eventosInvitados];
         combinadas.sort((a, b) => {
           const timeA = a.fecha ? a.fecha.getTime() : 0;
           const timeB = b.fecha ? b.fecha.getTime() : 0;
@@ -281,34 +337,48 @@ export class SolicitudListComponent implements OnInit {
   }
 
   aceptar(solicitud: SolicitudExtendida) {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
+    // Aceptar y adjuntar la carta firmada van en el mismo paso: es el momento en
+    // que el pastor recibe el documento en papel.
+    const dialogRef = this.dialog.open(AceptarTraspasoDialogComponent, {
+      width: '460px',
+      maxWidth: '95vw',
       data: {
-        title: 'Confirmar Aceptación',
-        message: `¿Está seguro de aceptar el traspaso de <strong>${solicitud.miembroNombre}</strong> a su iglesia?`,
-        confirmText: 'Aceptar Traspaso',
-        cancelText: 'Cancelar',
-        type: 'info'
+        miembroNombre: solicitud.miembroNombre || 'el miembro',
+        miembroCi: solicitud.miembroCI,
+        iglesiaOrigenNombre: solicitud.iglesiaOrigenNombre || 'su iglesia actual',
+        iglesiaDestinoNombre: solicitud.iglesiaDestinoNombre || 'esta iglesia',
+        motivoTraspaso: solicitud.motivoTraspaso,
+        fechaSolicitud: solicitud.fechaTraspaso,
+        uriCartaTraspaso: solicitud.uriCartaTraspaso
       }
     });
 
-    dialogRef.afterClosed().subscribe(confirm => {
-      if (confirm) {
-        this.miembroIglesiaService.aceptarTraspaso(solicitud.id).subscribe({
+    dialogRef.afterClosed().subscribe((resultado: AceptarTraspasoResultado | undefined) => {
+      if (!resultado?.aceptar) return;
+
+      // La carta se sube antes de aceptar: después de aceptar, la solicitud queda
+      // cerrada y ya no corresponde tocarle el documento.
+      const subirCarta$ = resultado.carta
+        ? this.miembroIglesiaService.uploadCartaTraspaso(solicitud.id, resultado.carta)
+        : of(null);
+
+      subirCarta$
+        .pipe(switchMap(() => this.miembroIglesiaService.aceptarTraspaso(solicitud.id)))
+        .subscribe({
           next: () => {
-            this.snackBar.open('Traspaso aceptado exitosamente', 'Cerrar', {
-              duration: 3000,
-              panelClass: ['success-snackbar']
-            });
+            this.snackBar.open(
+              resultado.carta ? 'Traspaso aceptado y carta adjuntada' : 'Traspaso aceptado exitosamente',
+              'Cerrar',
+              { duration: 3000, panelClass: ['success-snackbar'] }
+            );
             this.loadSolicitudes();
           },
           error: (err) => {
             this.snackBar.open(err.error?.message || 'Error al aceptar el traspaso', 'Cerrar', {
-              duration: 3000
+              duration: 4000
             });
           }
         });
-      }
     });
   }
 
@@ -339,6 +409,56 @@ export class SolicitudListComponent implements OnInit {
               duration: 3000
             });
           }
+        });
+      }
+    });
+  }
+
+  /**
+   * La iglesia destino adjunta la foto de la carta firmada que le entregó la
+   * iglesia de origen. El input se crea al vuelo para no repetirlo por fila.
+   */
+  adjuntarCarta(solicitud: SolicitudExtendida) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,application/pdf';
+
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      this.miembroIglesiaService.uploadCartaTraspaso(solicitud.id, file).subscribe({
+        next: () => {
+          this.snackBar.open('Carta adjuntada correctamente', 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          this.loadSolicitudes();
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.message || 'Error al adjuntar la carta', 'Cerrar', {
+            duration: 4000
+          });
+        }
+      });
+    };
+
+    input.click();
+  }
+
+  /** La iglesia de origen se da por enterada de la respuesta y el aviso desaparece. */
+  marcarVista(solicitud: SolicitudExtendida) {
+    this.miembroIglesiaService.marcarRespuestaVista(solicitud.id).subscribe({
+      next: () => {
+        this.snackBar.open('Respuesta marcada como vista', 'Cerrar', {
+          duration: 2500,
+          panelClass: ['success-snackbar']
+        });
+        this.loadSolicitudes();
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Error al marcar la respuesta', 'Cerrar', {
+          duration: 3000
         });
       }
     });

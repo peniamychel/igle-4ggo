@@ -9,7 +9,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import {
+  AceptarTraspasoDialogComponent,
+  AceptarTraspasoResultado
+} from '../modals/aceptar-traspaso-dialog/aceptar-traspaso-dialog.component';
+import { TraspasoDetailDialogComponent } from '../modals/traspaso-detail-dialog/traspaso-detail-dialog.component';
 import { IglesiaService } from '../../../../core/services/iglesia.service';
 import { MiembroService } from '../../../../core/services/miembro.service';
 import { MiembroIglesiaService } from '../../../../core/services/miembro-iglesia.service';
@@ -335,36 +341,65 @@ export class IglesiaMiembroListComponent implements OnInit {
     return false;
   }
 
+  /** Detalle completo del traspaso, con la carta adjunta si la tiene. */
+  verDetalle(solicitud: any) {
+    this.dialog.open(TraspasoDetailDialogComponent, {
+      width: '520px',
+      maxWidth: '95vw',
+      panelClass: 'dialog-fullscreen-mobile',
+      data: solicitud
+    });
+  }
+
   aprobar(solicitud: any) {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+    // El mismo diálogo que la lista de solicitudes: resume la solicitud y permite
+    // adjuntar la carta firmada en el momento de aprobar.
+    const dialogRef = this.dialog.open(AceptarTraspasoDialogComponent, {
+      width: '460px',
+      maxWidth: '95vw',
       data: {
-        title: 'Confirmar Aprobación',
-        message: `¿Está seguro que desea aprobar la solicitud de traspaso para <strong>${solicitud.miembroName}</strong> a la congregación de <strong>${solicitud.destinoNombre}</strong>?`,
-        confirmText: 'Aprobar',
-        type: 'primary'
+        miembroNombre: solicitud.miembroName,
+        miembroCi: solicitud.miembroCi,
+        miembroCargo: solicitud.miembroCargo,
+        iglesiaOrigenNombre: solicitud.origenNombre,
+        pastorOrigen: solicitud.pastorOrigen,
+        iglesiaDestinoNombre: solicitud.destinoNombre,
+        motivoTraspaso: solicitud.motivoTraspaso,
+        fechaSolicitud: solicitud.fechaTraspaso || solicitud.createdAt,
+        uriCartaTraspaso: solicitud.uriCartaTraspaso
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.miembroIglesiaService.aceptarTraspaso(solicitud.id).subscribe({
+    dialogRef.afterClosed().subscribe((resultado: AceptarTraspasoResultado | undefined) => {
+      if (!resultado?.aceptar) return;
+
+      // Primero la carta: si falla la subida no se aprueba, para no cerrar la
+      // solicitud dejando el documento afuera.
+      const subirCarta$ = resultado.carta
+        ? this.miembroIglesiaService.uploadCartaTraspaso(solicitud.id, resultado.carta)
+        : of(null);
+
+      subirCarta$
+        .pipe(switchMap(() => this.miembroIglesiaService.aceptarTraspaso(solicitud.id)))
+        .subscribe({
           next: () => {
-            this.snackBar.open('Traspaso aprobado y membrecía actualizada con éxito', 'Cerrar', {
-              duration: 4000,
-              panelClass: ['success-snackbar']
-            });
+            this.snackBar.open(
+              resultado.carta
+                ? 'Traspaso aprobado, carta adjuntada y membrecía actualizada'
+                : 'Traspaso aprobado y membrecía actualizada con éxito',
+              'Cerrar',
+              { duration: 4000, panelClass: ['success-snackbar'] }
+            );
             this.loadData();
           },
           error: (err) => {
             const errorMsg = err.error?.message || 'Error al aprobar el traspaso';
             this.snackBar.open(errorMsg, 'Cerrar', {
-              duration: 3000,
+              duration: 4000,
               panelClass: ['error-snackbar']
             });
           }
         });
-      }
     });
   }
 

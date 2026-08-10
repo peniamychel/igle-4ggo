@@ -57,10 +57,8 @@
               <mat-icon>visibility</mat-icon>
               <span>Ver detalle</span>
             </button>
-            <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="openEditDialog(item)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar</span>
-            </button>
+            <!-- Sin edición: cambiar el evento o la persona de una asignación ya
+                 hecha equivale a otra asignación distinta. Se elimina y se crea. -->
             <button mat-menu-item *appHasPrivilegio="'Escribir Eventos'" (click)="toggleEstado(item)">
               <mat-icon>{{ item.estado ? 'cancel' : 'check_circle' }}</mat-icon>
               <span>{{ item.estado ? 'Desactivar' : 'Activar' }}</span>

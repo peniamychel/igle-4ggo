@@ -148,24 +148,28 @@
       </div>
     </div>
 
-    <!-- Carta de Traspaso (Opcional - Documento de soporte) -->
+    <!-- Carta de solicitud: se genera desde el sistema para imprimirla y firmarla -->
     <div class="form-section file-upload-section">
-      <label class="section-label">Carta de Traspaso (Opcional)</label>
+      <label class="section-label">Carta de solicitud</label>
       <div class="file-upload-wrapper">
         <div class="file-input-container">
-          <input type="file" id="cartaTraspasoInput" (change)="onFileSelected($event)" accept="image/*,application/pdf" style="display: none;" />
-          <button mat-stroked-button type="button" class="file-select-btn" onclick="document.getElementById('cartaTraspasoInput').click()">
-            <mat-icon>upload_file</mat-icon>
-            {{ selectedFileName ? 'Reemplazar Carta' : 'Adjuntar Carta de Traspaso' }}
+          <button mat-stroked-button type="button" class="file-select-btn"
+                  [disabled]="!puedeGenerarCarta"
+                  (click)="generarCarta()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Generar carta de solicitud (PDF)
           </button>
-          <span class="file-name-badge" *ngIf="selectedFileName">
-            <mat-icon class="file-icon">description</mat-icon>
-            <span class="file-name-text">{{ selectedFileName }}</span>
-            <button mat-icon-button type="button" class="file-remove-btn" (click)="removeFile()">
-              <mat-icon>close</mat-icon>
-            </button>
-          </span>
         </div>
+        <p class="carta-hint">
+          <ng-container *ngIf="puedeGenerarCarta; else faltanDatosCarta">
+            Se descarga la carta con los datos del miembro y de ambas iglesias, lista para
+            imprimir y firmar. La iglesia destino adjuntará la foto de la carta firmada al recibir
+            la solicitud.
+          </ng-container>
+          <ng-template #faltanDatosCarta>
+            Seleccione el miembro, la iglesia destino y escriba el motivo para habilitar la carta.
+          </ng-template>
+        </p>
       </div>
     </div>
 

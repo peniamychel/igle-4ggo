@@ -6,6 +6,8 @@ import { environment } from '../../../environments/environment';
 export interface NotificacionBadge {
   traspasos: number;
   eventos: number;
+  /** Traspasos solicitados por la iglesia que el destino ya resolvió y aún no vio. */
+  respuestas: number;
   total: number;
 }
 

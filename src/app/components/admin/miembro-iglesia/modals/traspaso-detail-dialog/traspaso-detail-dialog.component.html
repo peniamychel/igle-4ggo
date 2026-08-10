@@ -1,0 +1,97 @@
+<div class="dialog-header">
+  <div class="header-title">
+    <div class="header-icon-circle">
+      <mat-icon class="header-icon">swap_horiz</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Detalle del traspaso</h2>
+      <p class="header-subtitle">{{ data.miembroName }}</p>
+    </div>
+  </div>
+  <button mat-icon-button mat-dialog-close class="close-btn" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+
+  <!-- Miembro -->
+  <div class="miembro-bloque">
+    <img class="miembro-foto" *ngIf="data.miembroFoto" [src]="data.miembroFoto | imageUrl" [alt]="data.miembroName">
+    <div class="miembro-iniciales" *ngIf="!data.miembroFoto">{{ data.miembroInitials || 'M' }}</div>
+    <div class="miembro-datos">
+      <span class="miembro-nombre">{{ data.miembroName }}</span>
+      <span class="miembro-meta">
+        CI: {{ data.miembroCi || 'Sin CI' }}
+        <ng-container *ngIf="data.miembroCargo"> · {{ data.miembroCargo }}</ng-container>
+      </span>
+    </div>
+    <span class="estado-badge" [ngClass]="estadoClase">{{ estadoTexto }}</span>
+  </div>
+
+  <!-- Recorrido -->
+  <div class="recorrido">
+    <div class="recorrido-card">
+      <span class="recorrido-label">Origen</span>
+      <span class="recorrido-iglesia">{{ data.origenNombre }}</span>
+      <span class="recorrido-pastor" *ngIf="limpiarPastor(data.pastorOrigen)">
+        Pastor {{ limpiarPastor(data.pastorOrigen) }}
+      </span>
+    </div>
+    <mat-icon class="recorrido-flecha">arrow_forward</mat-icon>
+    <div class="recorrido-card">
+      <span class="recorrido-label">Destino</span>
+      <span class="recorrido-iglesia">{{ data.destinoNombre }}</span>
+      <span class="recorrido-pastor" *ngIf="limpiarPastor(data.pastorDestino)">
+        Pastor {{ limpiarPastor(data.pastorDestino) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Datos de la solicitud -->
+  <div class="detalle-lista">
+    <div class="detalle-fila" *ngIf="formatearFecha(data.fechaTraspaso || data.createdAt)">
+      <span class="detalle-label">Solicitado</span>
+      <span class="detalle-valor">{{ formatearFecha(data.fechaTraspaso || data.createdAt) }}</span>
+    </div>
+    <div class="detalle-fila" *ngIf="estado !== 'PENDIENTE' && formatearFecha(data.updatedAt)">
+      <span class="detalle-label">Resuelto</span>
+      <span class="detalle-valor">{{ formatearFecha(data.updatedAt) }}</span>
+    </div>
+    <div class="detalle-fila motivo">
+      <span class="detalle-label">Motivo</span>
+      <span class="detalle-valor">{{ data.motivoTraspaso || 'No especificado' }}</span>
+    </div>
+  </div>
+
+  <!-- Carta adjunta -->
+  <div class="carta-bloque">
+    <span class="carta-titulo">Carta de traspaso</span>
+
+    <ng-container *ngIf="data.uriCartaTraspaso; else sinCarta">
+      <a class="carta-preview" *ngIf="cartaEsImagen"
+         [href]="data.uriCartaTraspaso | imageUrl" target="_blank" rel="noopener">
+        <img [src]="data.uriCartaTraspaso | imageUrl" alt="Carta de traspaso adjunta">
+        <span class="carta-zoom"><mat-icon>zoom_in</mat-icon> Ver en tamaño completo</span>
+      </a>
+
+      <a mat-stroked-button class="carta-boton"
+         [href]="data.uriCartaTraspaso | imageUrl" target="_blank" rel="noopener">
+        <mat-icon>open_in_new</mat-icon>
+        {{ cartaEsImagen ? 'Abrir imagen' : 'Abrir documento' }}
+      </a>
+    </ng-container>
+
+    <ng-template #sinCarta>
+      <div class="carta-vacia">
+        <mat-icon>description</mat-icon>
+        <span>Sin carta adjunta.</span>
+      </div>
+    </ng-template>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close class="btn-cerrar">Cerrar</button>
+</mat-dialog-actions>

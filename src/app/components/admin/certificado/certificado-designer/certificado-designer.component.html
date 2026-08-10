@@ -1,8 +1,33 @@
 <div class="designer-container">
   <div class="toolbar mat-elevation-z4">
     <div class="toolbar-header">
-      <h2 class="title"><mat-icon>brush</mat-icon> Diseñador de Plantilla</h2>
+      <!-- El nombre de la plantilla es el título: se edita en el mismo lugar -->
+      <div class="title">
+        <mat-icon class="title-icon">brush</mat-icon>
+        <input class="titulo-input"
+               [(ngModel)]="plantilla.nombre"
+               placeholder="Nombre de la plantilla"
+               maxlength="60"
+               matTooltip="Nombre de la plantilla" />
+      </div>
+
       <div class="action-buttons">
+        <button mat-stroked-button [matMenuTriggerFor]="menuAyuda" class="btn-ayuda">
+          <mat-icon>help_outline</mat-icon> Ayuda
+        </button>
+        <mat-menu #menuAyuda="matMenu" class="menu-ayuda">
+          <div class="ayuda-contenido" (click)="$event.stopPropagation()">
+            <h4>Cómo trabajar en el lienzo</h4>
+            <ul>
+              <li><strong>Arrastre sobre el lienzo</strong> para seleccionar varios elementos.</li>
+              <li><strong>Ctrl + clic</strong> agrega o quita un elemento de la selección.</li>
+              <li><strong>Arrastre un seleccionado</strong> y se mueven todos juntos.</li>
+              <li><strong>Flechas</strong> mueven 1 px · con <strong>Shift</strong>, 10 px.</li>
+              <li><strong>Ctrl + A</strong> selecciona todo · <strong>Esc</strong> limpia la selección.</li>
+            </ul>
+          </div>
+        </mat-menu>
+
         <button mat-button (click)="dialogRef.close()">Cancelar</button>
         <button mat-flat-button color="primary" (click)="save()">
           <mat-icon>save</mat-icon> Guardar
@@ -13,11 +38,6 @@
     <mat-divider></mat-divider>
 
     <div class="controls">
-      <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
-        <mat-label>Nombre Plantilla</mat-label>
-        <input matInput [(ngModel)]="plantilla.nombre" placeholder="Nombre" />
-      </mat-form-field>
-
       <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic">
         <mat-label>Tamaño de hoja</mat-label>
         <mat-select [(ngModel)]="formatoHoja">
@@ -33,70 +53,56 @@
         </mat-select>
       </mat-form-field>
 
-      <div class="upload-group">
-        <mat-form-field appearance="outline" class="form-field-sm" subscriptSizing="dynamic" style="width: 200px;">
-          <mat-label>Tipo de Imagen</mat-label>
-          <mat-select [(ngModel)]="imageUploadType" (selectionChange)="fileInput.value = ''">
-            <mat-option value="marcaAgua">Fondo / Marca de Agua</mat-option>
-            <mat-option value="logo">Logo</mat-option>
-            <mat-option value="firma">Firma</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-stroked-button color="accent" (click)="fileInput.click()">
-          <mat-icon>cloud_upload</mat-icon> Subir
-        </button>
-        <input type="file" hidden (change)="onFileSelected($event, imageUploadType)" accept="image/*" #fileInput />
-      </div>
-
-      <div class="properties-panel mat-elevation-z1" *ngIf="selectedElement">
+      <!-- El panel no desaparece al deseleccionar: queda deshabilitado, para que
+           la barra no cambie de tamaño y se vea qué se puede ajustar. -->
+      <div class="properties-panel mat-elevation-z1" [class.sin-seleccion]="!selectedElement">
         <h4>
           <mat-icon>tune</mat-icon>
-          <span *ngIf="selectedElements.length < 2">{{ selectedElement.type === 'text' ? 'Texto' : 'Imagen' }}</span>
-          <span *ngIf="selectedElements.length > 1">{{ selectedElements.length }} seleccionados</span>
+          <span *ngIf="!selectedElement">Sin selección</span>
+          <span *ngIf="selectedElement && selectedElements.length < 2">
+            {{ elementoPanel.type === 'text' ? 'Texto' : 'Código QR' }}
+          </span>
+          <span *ngIf="selectedElement && selectedElements.length > 1">
+            {{ selectedElements.length }} seleccionados
+          </span>
         </h4>
 
-        <div *ngIf="selectedElement.type === 'text'" class="props-row">
+        <div *ngIf="!selectedElement || elementoPanel.type === 'text'" class="props-row">
           <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
             <mat-label>Tamaño (px)</mat-label>
-            <input matInput type="number" [(ngModel)]="selectedElement.fontSize"
+            <input matInput type="number" [(ngModel)]="elementoPanel.fontSize"
+                   [disabled]="!selectedElement"
                    (ngModelChange)="aplicarASeleccion('fontSize', $event)" />
           </mat-form-field>
           <div class="color-picker-wrapper">
-             <input type="color" [(ngModel)]="selectedElement.color"
+             <input type="color" [(ngModel)]="elementoPanel.color"
+                    [disabled]="!selectedElement"
                     (ngModelChange)="aplicarASeleccion('color', $event)" title="Color de Texto" />
           </div>
           <button mat-icon-button
-                  [color]="selectedElement.centrado ? 'primary' : undefined"
+                  [color]="elementoPanel.centrado ? 'primary' : undefined"
+                  [disabled]="!selectedElement"
                   (click)="alternarCentrado()"
                   matTooltip="Centrar el texto dentro de un ancho fijo">
             <mat-icon>format_align_center</mat-icon>
           </button>
         </div>
 
-        <div *ngIf="selectedElement.type === 'text' && selectedElement.centrado" class="props-row">
+        <div *ngIf="selectedElement && elementoPanel.type === 'text' && elementoPanel.centrado" class="props-row">
           <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
             <mat-label>Ancho del texto (px)</mat-label>
-            <input matInput type="number" [(ngModel)]="selectedElement.width"
+            <input matInput type="number" [(ngModel)]="elementoPanel.width"
                    (ngModelChange)="aplicarASeleccion('width', $event)" />
           </mat-form-field>
         </div>
 
-        <div *ngIf="selectedElement.type === 'logo' || selectedElement.type === 'firma' || selectedElement.type === 'qr' || selectedElement.type === 'marcaAgua'" class="props-row">
+        <div *ngIf="selectedElement && elementoPanel.type === 'qr'" class="props-row">
           <mat-form-field appearance="outline" class="form-field-xs" subscriptSizing="dynamic">
-            <mat-label>Ancho (px)</mat-label>
-            <input matInput type="number" [(ngModel)]="selectedElement.width" />
+            <mat-label>Ancho del QR (px)</mat-label>
+            <input matInput type="number" [(ngModel)]="elementoPanel.width" />
           </mat-form-field>
-          <button *ngIf="selectedElement.type !== 'qr'" mat-icon-button color="warn" (click)="removeImage(selectedElement.type)" matTooltip="Eliminar Imagen">
-            <mat-icon>delete</mat-icon>
-          </button>
         </div>
       </div>
-
-      <p class="ayuda-seleccion">
-        <mat-icon>touch_app</mat-icon>
-        Arrastre sobre el lienzo para seleccionar varios · Ctrl + clic agrega o quita ·
-        flechas para mover (Shift = 10px) · Ctrl+A todo · Esc limpia
-      </p>
     </div>
   </div>
 
@@ -111,7 +117,7 @@
          <div *ngFor="let element of elements"
               class="drag-element"
               [class.selected]="estaSeleccionado(element)"
-              [style.zIndex]="element.type === 'marcaAgua' ? 0 : 10"
+              [style.zIndex]="10"
               cdkDrag
               [cdkDragFreeDragPosition]="{x: element.x, y: element.y}"
               (cdkDragStarted)="onDragStarted(element)"
@@ -132,9 +138,6 @@
                   <qrcode [qrdata]="qrPreviewData" [width]="element.width || 100" [errorCorrectionLevel]="'M'"></qrcode>
               </div>
 
-              <img *ngIf="element.type === 'logo' && logoPreview" [src]="logoPreview" [style.width.px]="element.width" />
-              <img *ngIf="element.type === 'firma' && firmaPreview" [src]="firmaPreview" [style.width.px]="element.width" />
-              <img *ngIf="element.type === 'marcaAgua' && marcaAguaPreview" [src]="marcaAguaPreview" [style.width.px]="element.width" />
          </div>
 
          <!-- Rectángulo de selección múltiple -->

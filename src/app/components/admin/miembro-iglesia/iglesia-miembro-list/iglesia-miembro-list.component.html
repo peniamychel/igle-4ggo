@@ -116,7 +116,11 @@
 
   <!-- Grid de tarjetas de traspaso -->
   <div class="transfers-grid" *ngIf="!isLoading && filteredTransfers.length > 0 && viewMode === 'grid'">
-    <div class="transfer-card" *ngFor="let solicitud of filteredTransfers" [id]="'transfer-card-' + solicitud.id" [class.highlight-bounce]="solicitud.id === selectedTransferId">
+    <div class="transfer-card clickable-card" *ngFor="let solicitud of filteredTransfers"
+         [id]="'transfer-card-' + solicitud.id"
+         [class.highlight-bounce]="solicitud.id === selectedTransferId"
+         (click)="verDetalle(solicitud)"
+         matTooltip="Ver detalle del traspaso">
       <!-- Cabecera de la Tarjeta -->
       <div class="card-header">
         <div class="member-profile">
@@ -126,7 +130,7 @@
           <img [src]="solicitud.miembroFoto" class="avatar-image" *ngIf="solicitud.miembroFoto" loading="lazy" />
           <div class="member-details">
             <h3 class="member-name">{{solicitud.miembroName}}</h3>
-            <p class="member-ci-cargo">CI: {{solicitud.miembroCi || 'Sin CI'}} • {{solicitud.miembroCargo || 'Miembro'}}</p>
+            <p class="member-ci-cargo">CI: {{solicitud.miembroCi || 'Sin CI'}}</p>
           </div>
         </div>
         <!-- Badge de Estado -->
@@ -151,21 +155,11 @@
         </div>
       </div>
 
-      <!-- Motivo -->
-      <div class="transfer-reason" *ngIf="solicitud.motivoTraspaso">
-        <span class="reason-label">
-          <mat-icon>chat_bubble_outline</mat-icon>
-          MOTIVO
-        </span>
-        <p class="reason-text">{{solicitud.motivoTraspaso}}</p>
-      </div>
+      <!-- El motivo y el pastor de origen se ven en el detalle: la tarjeta queda
+           con lo indispensable para reconocer el traspaso de un vistazo. -->
 
       <!-- Footer de la Tarjeta -->
       <div class="card-footer">
-        <div class="footer-item">
-          <mat-icon>person_outline</mat-icon>
-          <span>{{solicitud.pastorOrigen}}</span>
-        </div>
         <div class="footer-item">
           <mat-icon>calendar_today</mat-icon>
           <span>{{solicitud.fechaRelativa}}</span>
@@ -173,7 +167,7 @@
       </div>
 
       <!-- Acciones de la Tarjeta -->
-      <div class="card-actions" *ngIf="solicitud.estadoTraspaso === 'PENDIENTE'">
+      <div class="card-actions" *ngIf="solicitud.estadoTraspaso === 'PENDIENTE'" (click)="$event.stopPropagation()">
         <div class="action-buttons-group">
           <!-- Aprobación y Rechazo (sólo para destino o admin) -->
           <ng-container *ngIf="canAction(solicitud, 'aprobar_rechazar')">
@@ -184,7 +178,7 @@
               <mat-icon>close</mat-icon>
             </button>
           </ng-container>
-          
+
           <!-- Cancelación (sólo para origen o admin) -->
           <ng-container *ngIf="canAction(solicitud, 'cancelar')">
             <button mat-icon-button class="mac-mini-btn mac-btn-archive" (click)="cancelar(solicitud)" matTooltip="Cancelar solicitud">
@@ -255,8 +249,13 @@
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones">
         <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
-        <mat-cell *matCellDef="let row">
+        <mat-cell *matCellDef="let row" (click)="$event.stopPropagation()">
           <div class="mac-actions-right">
+            <!-- Ver detalle: disponible en cualquier estado -->
+            <button mat-icon-button class="mac-mini-btn mac-btn-edit" (click)="verDetalle(row)" matTooltip="Ver detalle del traspaso">
+              <mat-icon>visibility</mat-icon>
+            </button>
+
             <!-- Aprobación y Rechazo (sólo para destino o admin y si está PENDIENTE) -->
             <ng-container *ngIf="row.estadoTraspaso === 'PENDIENTE' && canAction(row, 'aprobar_rechazar')">
               <button mat-icon-button class="mac-mini-btn mac-btn-reactivate" (click)="aprobar(row)" matTooltip="Aprobar traspaso">
@@ -278,7 +277,9 @@
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;" [id]="'transfer-row-' + row.id" [class.highlight-bounce]="row.id === selectedTransferId"></mat-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;" [id]="'transfer-row-' + row.id"
+               [class.highlight-bounce]="row.id === selectedTransferId"
+               class="clickable-row" (click)="verDetalle(row)"></mat-row>
     </mat-table>
   </div>
 
